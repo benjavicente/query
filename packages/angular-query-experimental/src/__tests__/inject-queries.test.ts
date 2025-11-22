@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
+  ChangeDetectionStrategy,
   Component,
   effect,
   provideZonelessChangeDetection,
@@ -42,6 +43,7 @@ describe('injectQueries', () => {
           </div>
         </div>
       `,
+      changeDetection: ChangeDetectionStrategy.OnPush,
     })
     class Page {
       result = injectQueries(() => ({
