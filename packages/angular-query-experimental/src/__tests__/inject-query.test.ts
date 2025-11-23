@@ -560,11 +560,19 @@ describe('injectQuery', () => {
 
     test('should throw when throwOnError is true', async () => {
       const zone = TestBed.inject(NgZone)
-      const errorPromise = new Promise<Error>((resolve) => {
+      const zoneErrorPromise = new Promise<Error>((resolve) => {
         const sub = zone.onError.subscribe((error) => {
           sub.unsubscribe()
           resolve(error as Error)
         })
+      })
+      let handler: ((error: Error) => void) | null = null
+      const processErrorPromise = new Promise<Error>((resolve) => {
+        handler = (error: Error) => {
+          process.off('uncaughtException', handler!)
+          resolve(error)
+        }
+        process.on('uncaughtException', handler)
       })
 
       @Component({
@@ -584,17 +592,32 @@ describe('injectQuery', () => {
 
       TestBed.createComponent(TestComponent).detectChanges()
 
-      await vi.runAllTimersAsync()
-      await expect(errorPromise).resolves.toEqual(Error('Some error'))
+      try {
+        await vi.runAllTimersAsync()
+        await expect(zoneErrorPromise).resolves.toEqual(Error('Some error'))
+        await expect(processErrorPromise).resolves.toEqual(Error('Some error'))
+      } finally {
+        if (handler) {
+          process.off('uncaughtException', handler)
+        }
+      }
     })
 
     test('should throw when throwOnError function returns true', async () => {
       const zone = TestBed.inject(NgZone)
-      const errorPromise = new Promise<Error>((resolve) => {
+      const zoneErrorPromise = new Promise<Error>((resolve) => {
         const sub = zone.onError.subscribe((error) => {
           sub.unsubscribe()
           resolve(error as Error)
         })
+      })
+      let handler: ((error: Error) => void) | null = null
+      const processErrorPromise = new Promise<Error>((resolve) => {
+        handler = (error: Error) => {
+          process.off('uncaughtException', handler!)
+          resolve(error)
+        }
+        process.on('uncaughtException', handler)
       })
 
       @Component({
@@ -614,8 +637,15 @@ describe('injectQuery', () => {
 
       TestBed.createComponent(TestComponent).detectChanges()
 
-      await vi.runAllTimersAsync()
-      await expect(errorPromise).resolves.toEqual(Error('Some error'))
+      try {
+        await vi.runAllTimersAsync()
+        await expect(zoneErrorPromise).resolves.toEqual(Error('Some error'))
+        await expect(processErrorPromise).resolves.toEqual(Error('Some error'))
+      } finally {
+        if (handler) {
+          process.off('uncaughtException', handler)
+        }
+      }
     })
   })
 
