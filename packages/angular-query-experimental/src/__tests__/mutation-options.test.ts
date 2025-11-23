@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { provideZonelessChangeDetection } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
 import { QueryClient } from '@tanstack/query-core'
 import { sleep } from '@tanstack/query-test-utils'
@@ -8,9 +7,8 @@ import {
   injectMutation,
   injectMutationState,
   mutationOptions,
-  provideTanStackQuery,
 } from '..'
-import type { CreateMutationOptions } from '../types'
+import { flushQueryUpdates, setupTanStackQueryTestBed } from './test-utils'
 
 describe('mutationOptions', () => {
   let queryClient: QueryClient
@@ -18,12 +16,7 @@ describe('mutationOptions', () => {
   beforeEach(() => {
     vi.useFakeTimers()
     queryClient = new QueryClient()
-    TestBed.configureTestingModule({
-      providers: [
-        provideZonelessChangeDetection(),
-        provideTanStackQuery(queryClient),
-      ],
-    })
+    setupTanStackQueryTestBed(queryClient)
   })
 
   afterEach(() => {
@@ -62,7 +55,7 @@ describe('mutationOptions', () => {
 
     mutation.mutate()
     expect(isMutating()).toBe(0)
-    await vi.advanceTimersByTimeAsync(0)
+    await flushQueryUpdates()
     expect(isMutating()).toBe(1)
     await vi.advanceTimersByTimeAsync(51)
     expect(isMutating()).toBe(0)
@@ -82,7 +75,7 @@ describe('mutationOptions', () => {
 
     mutation.mutate()
     expect(isMutating()).toBe(0)
-    await vi.advanceTimersByTimeAsync(0)
+    await flushQueryUpdates()
     expect(isMutating()).toBe(1)
     await vi.advanceTimersByTimeAsync(51)
     expect(isMutating()).toBe(0)
@@ -110,7 +103,7 @@ describe('mutationOptions', () => {
     mutation1.mutate()
     mutation2.mutate()
     expect(isMutating()).toBe(0)
-    await vi.advanceTimersByTimeAsync(0)
+    await flushQueryUpdates()
     expect(isMutating()).toBe(2)
     await vi.advanceTimersByTimeAsync(51)
     expect(isMutating()).toBe(0)
@@ -138,7 +131,7 @@ describe('mutationOptions', () => {
     mutation1.mutate()
     mutation2.mutate()
     expect(isMutating()).toBe(0)
-    await vi.advanceTimersByTimeAsync(0)
+    await flushQueryUpdates()
     expect(isMutating()).toBe(1)
     await vi.advanceTimersByTimeAsync(51)
     expect(isMutating()).toBe(0)

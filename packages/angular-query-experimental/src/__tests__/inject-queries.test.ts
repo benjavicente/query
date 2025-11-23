@@ -1,27 +1,17 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import {
-  ChangeDetectionStrategy,
-  Component,
-  effect,
-  provideZonelessChangeDetection,
-} from '@angular/core'
-import { TestBed } from '@angular/core/testing'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { render } from '@testing-library/angular'
-import { queryKey, sleep } from '@tanstack/query-test-utils'
-import { QueryClient, provideTanStackQuery } from '..'
+import { ChangeDetectionStrategy, Component, effect } from '@angular/core'
+import { queryKey } from '@tanstack/query-test-utils'
+import { QueryClient } from '..'
 import { injectQueries } from '../inject-queries'
+import { setupTanStackQueryTestBed } from './test-utils'
 
 let queryClient: QueryClient
 
 beforeEach(() => {
   vi.useFakeTimers()
   queryClient = new QueryClient()
-  TestBed.configureTestingModule({
-    providers: [
-      provideZonelessChangeDetection(),
-      provideTanStackQuery(queryClient),
-    ],
-  })
+  setupTanStackQueryTestBed(queryClient)
 })
 
 afterEach(() => {
