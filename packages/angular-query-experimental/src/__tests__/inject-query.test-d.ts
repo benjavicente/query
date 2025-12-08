@@ -176,4 +176,21 @@ describe('Discriminated union return type', () => {
       expectTypeOf(query.error).toEqualTypeOf<Signal<Error>>()
     }
   })
+
+  test('should narrow type with status', () => {
+    const query = injectQuery(() => ({
+      queryKey: ['key'],
+      queryFn: () => sleep(0).then(() => 'Some data'),
+    }))
+
+    if (query.status() === 'success') {
+      expectTypeOf(query.data).toEqualTypeOf<Signal<string>>()
+      expectTypeOf(query.error).toEqualTypeOf<Signal<null>>()
+    } else if (query.status() === 'error') {
+      expectTypeOf(query.error).toEqualTypeOf<Signal<Error>>()
+    } else if (query.status() === 'pending') {
+      expectTypeOf(query.data).toEqualTypeOf<Signal<undefined>>()
+      expectTypeOf(query.error).toEqualTypeOf<Signal<null>>()
+    }
+  })
 })

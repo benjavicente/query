@@ -1,16 +1,20 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { render } from '@testing-library/angular'
 import { ChangeDetectionStrategy, Component, effect } from '@angular/core'
 import { queryKey } from '@tanstack/query-test-utils'
 import { QueryClient } from '..'
 import { injectQueries } from '../inject-queries'
 import { setupTanStackQueryTestBed } from './test-utils'
-
-let queryClient: QueryClient
+import { TestBed } from '@angular/core/testing'
 
 beforeEach(() => {
-  queryClient = new QueryClient()
+  const queryClient = new QueryClient()
   setupTanStackQueryTestBed(queryClient)
+  vi.useFakeTimers({ shouldAdvanceTime: true })
+})
+
+afterEach(() => {
+  vi.useRealTimers()
 })
 
 describe('injectQueries', () => {
@@ -22,10 +26,8 @@ describe('injectQueries', () => {
     @Component({
       template: `
         <div>
-          <div>
-            data1: {{ result()[0].data() ?? 'null' }}, data2:
-            {{ result()[1].data() ?? 'null' }}
-          </div>
+          data1: {{ result()[0].data() ?? 'null' }}, data2:
+          {{ result()[1].data() ?? 'null' }}
         </div>
       `,
       changeDetection: ChangeDetectionStrategy.OnPush,
@@ -67,5 +69,55 @@ describe('injectQueries', () => {
     expect(results[0]).toMatchObject([{ data: undefined }, { data: undefined }])
     expect(results[1]).toMatchObject([{ data: 1 }, { data: undefined }])
     expect(results[2]).toMatchObject([{ data: 1 }, { data: 2 }])
+  })
+
+  it('should combine results', async () => {
+    const key1 = queryKey()
+    const key2 = queryKey()
+
+    const result = TestBed.runInInjectionContext(() =>
+      injectQueries(() => ({
+        queries: [
+          {
+            queryKey: key1,
+            queryFn: async () => {
+              await new Promise((r) => setTimeout(r, 10))
+              return 1
+            },
+          },
+          {
+            queryKey: key2,
+            queryFn: async () => {
+              await new Promise((r) => setTimeout(r, 100))
+              return '2'
+            },
+          },
+        ],
+        combine: (results) => {
+          return {
+            data: results.map((r) => r.data),
+            pending: results.some((r) => r.isPending),
+          }
+        },
+      })),
+    )
+
+    expect(result().data.length).toBe(2)
+
+    expect(result().pending).toBe(true)
+    expect(result().data[0]).toBe(undefined)
+    expect(result().data[1]).toBe(undefined)
+
+    await vi.advanceTimersByTimeAsync(15)
+
+    expect(result().pending).toBe(true)
+    expect(result().data[0]).toBe(1)
+    expect(result().data[1]).toBe(undefined)
+
+    await vi.advanceTimersByTimeAsync(100)
+
+    expect(result().pending).toBe(false)
+    expect(result().data[0]).toBe(1)
+    expect(result().data[1]).toBe('2')
   })
 })

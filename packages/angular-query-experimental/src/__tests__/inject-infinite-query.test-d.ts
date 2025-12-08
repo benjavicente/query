@@ -1,42 +1,43 @@
-import { TestBed } from '@angular/core/testing'
-import { afterEach, beforeEach, describe, expectTypeOf, test, vi } from 'vitest'
-import { provideZonelessChangeDetection } from '@angular/core'
-import { sleep } from '@tanstack/query-test-utils'
-import { QueryClient, injectInfiniteQuery, provideTanStackQuery } from '..'
+import { describe, expectTypeOf, test } from 'vitest'
+import { injectInfiniteQuery } from '..'
 import type { InfiniteData } from '@tanstack/query-core'
 
 describe('injectInfiniteQuery', () => {
-  let queryClient: QueryClient
-
-  beforeEach(() => {
-    queryClient = new QueryClient()
-    vi.useFakeTimers()
-    TestBed.configureTestingModule({
-      providers: [
-        provideZonelessChangeDetection(),
-        provideTanStackQuery(queryClient),
-      ],
-    })
-  })
-
-  afterEach(() => {
-    vi.useRealTimers()
-  })
-
-  test('should narrow type after isSuccess', () => {
-    const query = TestBed.runInInjectionContext(() => {
-      return injectInfiniteQuery(() => ({
-        queryKey: ['infiniteQuery'],
-        queryFn: ({ pageParam }) =>
-          sleep(0).then(() => 'data on page ' + pageParam),
-        initialPageParam: 0,
-        getNextPageParam: () => 12,
-      }))
-    })
+  test('should narrow type with isSuccess, isError, isPending', () => {
+    const query = injectInfiniteQuery(() => ({
+      queryKey: ['infiniteQuery'],
+      queryFn: () => Promise.resolve('data'),
+      initialPageParam: 1,
+      getNextPageParam: () => 12,
+    }))
 
     if (query.isSuccess()) {
-      const data = query.data()
-      expectTypeOf(data).toEqualTypeOf<InfiniteData<string, unknown>>()
+      expectTypeOf(query.error()).toEqualTypeOf<null>()
+      expectTypeOf(query.data()).toEqualTypeOf<InfiniteData<string, unknown>>()
+    } else if (query.isError()) {
+      expectTypeOf(query.error()).toEqualTypeOf<Error>()
+    } else if (query.isPending()) {
+      expectTypeOf(query.data()).toEqualTypeOf<undefined>()
+      expectTypeOf(query.error()).toEqualTypeOf<null>()
+    }
+  })
+
+  test('should narrow type with status', () => {
+    const query = injectInfiniteQuery(() => ({
+      queryKey: ['infiniteQuery'],
+      queryFn: () => Promise.resolve('data'),
+      initialPageParam: 1,
+      getNextPageParam: () => 12,
+    }))
+
+    if (query.status() === 'success') {
+      expectTypeOf(query.data()).toEqualTypeOf<InfiniteData<string, unknown>>()
+      expectTypeOf(query.error()).toEqualTypeOf<null>()
+    } else if (query.status() === 'error') {
+      expectTypeOf(query.error()).toEqualTypeOf<Error>()
+    } else if (query.status() === 'pending') {
+      expectTypeOf(query.data()).toEqualTypeOf<undefined>()
+      expectTypeOf(query.error()).toEqualTypeOf<null>()
     }
   })
 })
