@@ -11,7 +11,7 @@ import {
 } from '@angular/common/http/testing'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { sleep } from '@tanstack/query-test-utils'
-import { lastValueFrom } from 'rxjs'
+import { firstValueFrom, lastValueFrom } from 'rxjs'
 import { QueryClient, injectMutation, injectQuery, onlineManager } from '..'
 import { flushQueryUpdates, setupTanStackQueryTestBed } from './test-utils'
 
@@ -355,38 +355,41 @@ describe('PendingTasks Integration', () => {
     }
 
     test('should cleanup pending tasks when component with active query is destroyed', async () => {
-      const app = TestBed.inject(ApplicationRef)
       const fixture = TestBed.createComponent(TestComponent)
       fixture.detectChanges()
 
       // Start the query
       expect(fixture.componentInstance.query.status()).toBe('pending')
+      expect(fixture.isStable()).toBe(false)
 
       // Destroy component while query is running
       fixture.destroy()
 
       // Angular should become stable even though component was destroyed
-      const stablePromise = app.whenStable()
+      const stablePromise = fixture.whenStable()
       await vi.advanceTimersByTimeAsync(150)
 
-      await expect(stablePromise).resolves.toEqual(undefined)
+      await expect(stablePromise).resolves.toEqual(false)
+      expect(fixture.isStable()).toBe(true)
     })
 
     test('should cleanup pending tasks when component with active mutation is destroyed', async () => {
-      const app = TestBed.inject(ApplicationRef)
       const fixture = TestBed.createComponent(TestComponent)
       fixture.detectChanges()
 
       fixture.componentInstance.mutation.mutate('test')
+      fixture.detectChanges()
+      expect(fixture.isStable()).toBe(false)
 
       // Destroy component while mutation is running
       fixture.destroy()
 
       // Angular should become stable even though component was destroyed
-      const stablePromise = app.whenStable()
+      const stablePromise = fixture.whenStable()
       await vi.advanceTimersByTimeAsync(150)
 
       await expect(stablePromise).resolves.toEqual(undefined)
+      expect(fixture.isStable()).toBe(true)
     })
   })
 
