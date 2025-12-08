@@ -718,6 +718,9 @@ describe('injectQuery', () => {
     await fixture.whenStable()
 
     // WORKS
+    // await new Promise((resolve) => queueMicrotask(() => resolve(undefined)))
+
+    // WORKS
     // await vi.advanceTimersByTimeAsync(0)
 
     // WORKS
