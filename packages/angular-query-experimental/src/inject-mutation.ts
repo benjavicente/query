@@ -125,6 +125,7 @@ export function injectMutation<
   effect(
     (onCleanup) => {
       const observer = observerSignal()
+      let destroyed = false
       let taskCleanupRef: (() => void) | null = null
 
       untracked(() => {
@@ -132,9 +133,12 @@ export function injectMutation<
           observer.subscribe(
             notifyManager.batchCalls((state) => {
               ngZone.run(() => {
+                if (destroyed) return
+
                 // Track pending task when mutation is pending
                 if (state.isPending && !taskCleanupRef) {
                   taskCleanupRef = pendingTasks.add()
+                  console.log('taskCleanupRef added')
                 }
 
                 // Clear pending task when mutation is no longer pending
@@ -158,6 +162,7 @@ export function injectMutation<
         )
         onCleanup(() => {
           // Clean up any pending task on destroy
+          destroyed = true
           if (taskCleanupRef) {
             taskCleanupRef()
             taskCleanupRef = null

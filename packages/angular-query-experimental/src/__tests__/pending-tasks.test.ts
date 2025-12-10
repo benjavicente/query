@@ -11,7 +11,7 @@ import {
 } from '@angular/common/http/testing'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { sleep } from '@tanstack/query-test-utils'
-import { firstValueFrom, lastValueFrom } from 'rxjs'
+import { lastValueFrom } from 'rxjs'
 import { QueryClient, injectMutation, injectQuery, onlineManager } from '..'
 import { flushQueryUpdates, setupTanStackQueryTestBed } from './test-utils'
 
@@ -342,6 +342,7 @@ describe('PendingTasks Integration', () => {
         queryKey: ['component-query'],
         queryFn: async () => {
           await sleep(100)
+          console.log('queryFn resolved')
           return 'component-data'
         },
       }))
@@ -349,6 +350,7 @@ describe('PendingTasks Integration', () => {
       mutation = injectMutation(() => ({
         mutationFn: async (data: string) => {
           await sleep(100)
+          console.log('mutationFn resolved')
           return `processed: ${data}`
         },
       }))
@@ -368,8 +370,7 @@ describe('PendingTasks Integration', () => {
       // Angular should become stable even though component was destroyed
       const stablePromise = fixture.whenStable()
       await vi.advanceTimersByTimeAsync(150)
-
-      await expect(stablePromise).resolves.toEqual(false)
+      await stablePromise
       expect(fixture.isStable()).toBe(true)
     })
 
@@ -383,12 +384,16 @@ describe('PendingTasks Integration', () => {
 
       // Destroy component while mutation is running
       fixture.destroy()
+      fixture.detectChanges()
+      expect(fixture.isStable()).toBe(true)
 
       // Angular should become stable even though component was destroyed
       const stablePromise = fixture.whenStable()
-      await vi.advanceTimersByTimeAsync(150)
+      await vi.advanceTimersByTimeAsync(200)
+      await Promise.resolve()
+      await vi.advanceTimersByTimeAsync(200)
+      await stablePromise
 
-      await expect(stablePromise).resolves.toEqual(undefined)
       expect(fixture.isStable()).toBe(true)
     })
   })

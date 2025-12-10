@@ -150,6 +150,11 @@ export function createBaseQuery<
       throw new Error(OBSERVER_NOT_READY_ERROR)
     }
 
+    const initialState = observer.getCurrentResult()
+    if (initialState.fetchStatus !== 'idle') {
+      startPendingTask()
+    }
+
     return observer.subscribe((state) => {
       if (state.fetchStatus !== 'idle') {
         startPendingTask()
