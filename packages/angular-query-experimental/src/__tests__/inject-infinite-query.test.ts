@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { ChangeDetectionStrategy, Component, Injector } from '@angular/core'
 import { sleep } from '@tanstack/query-test-utils'
 import { QueryClient, injectInfiniteQuery } from '..'
-import { expectSignals, setupTanStackQueryTestBed } from './test-utils'
+import { setupTanStackQueryTestBed } from './test-utils'
 
 describe('injectInfiniteQuery', () => {
   let queryClient: QueryClient
@@ -38,32 +38,26 @@ describe('injectInfiniteQuery', () => {
     fixture.detectChanges()
     const query = fixture.componentInstance.query
 
-    expectSignals(query, {
-      data: undefined,
-      status: 'pending',
-    })
+    expect(query.data()).toBeUndefined()
+    expect(query.status()).toBe('pending')
 
     await vi.advanceTimersByTimeAsync(11)
 
-    expectSignals(query, {
-      data: {
-        pageParams: [0],
-        pages: ['data on page 0'],
-      },
-      status: 'success',
+    expect(query.data()).toEqual({
+      pageParams: [0],
+      pages: ['data on page 0'],
     })
+    expect(query.status()).toBe('success')
 
     void query.fetchNextPage()
 
     await vi.advanceTimersByTimeAsync(11)
 
-    expectSignals(query, {
-      data: {
-        pageParams: [0, 12],
-        pages: ['data on page 0', 'data on page 12'],
-      },
-      status: 'success',
+    expect(query.data()).toEqual({
+      pageParams: [0, 12],
+      pages: ['data on page 0', 'data on page 12'],
     })
+    expect(query.status()).toBe('success')
   })
 
   describe('injection context', () => {

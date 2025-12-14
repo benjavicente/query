@@ -1,49 +1,9 @@
-import {
-  isSignal,
-  provideZonelessChangeDetection,
-  untracked,
-} from '@angular/core'
+import { provideZonelessChangeDetection } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
-import { expect, vi } from 'vitest'
+import { vi } from 'vitest'
 import { provideTanStackQuery } from '..'
 import type { QueryClient } from '@tanstack/query-core'
-import type {
-  EnvironmentProviders,
-  Provider,
-  Signal,
-  Type,
-} from '@angular/core'
-
-// Evaluate all signals on an object and return the result
-function evaluateSignals<T extends Record<string, any>>(
-  obj: T,
-): { [K in keyof T]: ReturnType<T[K]> } {
-  const result: Partial<{ [K in keyof T]: ReturnType<T[K]> }> = {}
-
-  untracked(() => {
-    for (const key in obj) {
-      if (
-        Object.prototype.hasOwnProperty.call(obj, key) &&
-        // Only evaluate signals, not normal functions
-        isSignal(obj[key])
-      ) {
-        const func = obj[key]
-        result[key] = func()
-      }
-    }
-  })
-
-  return result as { [K in keyof T]: ReturnType<T[K]> }
-}
-
-export const expectSignals = <T extends Record<string, any>>(
-  obj: T,
-  expected: Partial<{
-    [K in keyof T]: T[K] extends Signal<any> ? ReturnType<T[K]> : never
-  }>,
-): void => {
-  expect(evaluateSignals(obj)).toMatchObject(expected)
-}
+import type { EnvironmentProviders, Provider, Type } from '@angular/core'
 
 /**
  * Reset Angular's TestBed and configure the standard TanStack Query providers for tests.

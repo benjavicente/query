@@ -326,5 +326,5 @@ export function injectQueries<
             signalProxy(signal(query)),
           )
     })
-  }) as unknown as Signal<TCombinedResult>
+  }) as Signal<TCombinedResult>
 }
