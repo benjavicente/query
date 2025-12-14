@@ -25,6 +25,7 @@ import type {
   QueryFunction,
   QueryKey,
   QueryObserverOptions,
+  QueryObserverResult,
   ThrowOnError,
 } from '@tanstack/query-core'
 import type {
@@ -138,6 +139,57 @@ type GetCreateQueryResult<T> =
                 : // Fallback
                   CreateQueryResult
 
+// For the combine callback - uses core QueryObserverResult (plain values, not signals)
+type GetQueryObserverResultForCombine<T> = T extends {
+  queryFnData: any
+  error?: infer TError
+  data: infer TData
+}
+  ? QueryObserverResult<TData, TError>
+  : T extends { queryFnData: infer TQueryFnData; error?: infer TError }
+    ? QueryObserverResult<TQueryFnData, TError>
+    : T extends { data: infer TData; error?: infer TError }
+      ? QueryObserverResult<TData, TError>
+      : T extends [any, infer TError, infer TData]
+        ? QueryObserverResult<TData, TError>
+        : T extends [infer TQueryFnData, infer TError]
+          ? QueryObserverResult<TQueryFnData, TError>
+          : T extends [infer TQueryFnData]
+            ? QueryObserverResult<TQueryFnData>
+            : T extends {
+                  queryFn?:
+                    | QueryFunction<infer TQueryFnData, any>
+                    | SkipTokenForCreateQueries
+                  select?: (data: any) => infer TData
+                  throwOnError?: ThrowOnError<any, infer TError, any, any>
+                }
+              ? QueryObserverResult<
+                  unknown extends TData ? TQueryFnData : TData,
+                  unknown extends TError ? DefaultError : TError
+                >
+              : QueryObserverResult
+
+/**
+ * CombineResults reducer recursively maps type param to core QueryObserverResult (for combine callback)
+ */
+type CombineResults<
+  T extends Array<any>,
+  TResults extends Array<any> = [],
+  TDepth extends ReadonlyArray<number> = [],
+> = TDepth['length'] extends MAXIMUM_DEPTH
+  ? Array<QueryObserverResult>
+  : T extends []
+    ? []
+    : T extends [infer Head]
+      ? [...TResults, GetQueryObserverResultForCombine<Head>]
+      : T extends [infer Head, ...infer Tails]
+        ? CombineResults<
+            [...Tails],
+            [...TResults, GetQueryObserverResultForCombine<Head>],
+            [...TDepth, 1]
+          >
+        : { [K in keyof T]: GetQueryObserverResultForCombine<T[K]> }
+
 /**
  * QueriesOptions reducer recursively unwraps function arguments to infer/enforce type param
  */
@@ -210,7 +262,7 @@ export interface InjectQueriesOptions<
     | readonly [
         ...{ [K in keyof T]: GetCreateQueryOptionsForCreateQueries<T[K]> },
       ]
-  combine?: (result: QueriesResults<T>) => TCombinedResult
+  combine?: (result: CombineResults<T>) => TCombinedResult
 }
 
 /**

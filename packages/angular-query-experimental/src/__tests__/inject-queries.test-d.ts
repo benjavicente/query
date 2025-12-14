@@ -189,7 +189,7 @@ describe('InjectQueries config object overload', () => {
       ],
       combine: (results) => {
         return {
-          data: results.map((r) => r.data),
+          data: [results[0].data, results[1].data] as const,
           pending: results.some((r) => r.isPending),
         }
       },
