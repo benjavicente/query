@@ -11,7 +11,7 @@ import { TestBed } from '@angular/core/testing'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { sleep } from '@tanstack/query-test-utils'
 import { QueryClient, injectMutation, provideTanStackQuery } from '..'
-import { expectSignals, registerSignalInput } from './test-utils'
+import { registerSignalInput } from './test-utils'
 
 describe('injectMutation', () => {
   let queryClient: QueryClient
@@ -38,12 +38,12 @@ describe('injectMutation', () => {
       }))
     })
 
-    expectSignals(mutation, {
-      isIdle: true,
-      isPending: false,
-      isError: false,
-      isSuccess: false,
-    })
+    expect(mutation.isIdle()).toBe(true)
+    expect(mutation.isPending()).toBe(false)
+    expect(mutation.isError()).toBe(false)
+    expect(mutation.isSuccess()).toBe(false)
+    expect(mutation.data()).toBeUndefined()
+    expect(mutation.error()).toBeNull()
   })
 
   test('should change state after invoking mutate', async () => {
@@ -60,14 +60,12 @@ describe('injectMutation', () => {
     mutation.mutate(result)
     await vi.advanceTimersByTimeAsync(0)
 
-    expectSignals(mutation, {
-      isIdle: false,
-      isPending: true,
-      isError: false,
-      isSuccess: false,
-      data: undefined,
-      error: null,
-    })
+    expect(mutation.isIdle()).toBe(false)
+    expect(mutation.isPending()).toBe(true)
+    expect(mutation.isError()).toBe(false)
+    expect(mutation.isSuccess()).toBe(false)
+    expect(mutation.data()).toBeUndefined()
+    expect(mutation.error()).toBeNull()
   })
 
   test('should return error when request fails', async () => {
@@ -82,14 +80,11 @@ describe('injectMutation', () => {
 
     await vi.advanceTimersByTimeAsync(11)
 
-    expectSignals(mutation, {
-      isIdle: false,
-      isPending: false,
-      isError: true,
-      isSuccess: false,
-      data: undefined,
-      error: Error('Some error'),
-    })
+    expect(mutation.isError()).toBe(true)
+    expect(mutation.isSuccess()).toBe(false)
+    expect(mutation.data()).toBeUndefined()
+    expect(mutation.error()).toBeInstanceOf(Error)
+    expect(mutation.error()?.message).toBe('Some error')
   })
 
   test('should return data when request succeeds', async () => {
@@ -104,14 +99,12 @@ describe('injectMutation', () => {
 
     await vi.advanceTimersByTimeAsync(11)
 
-    expectSignals(mutation, {
-      isIdle: false,
-      isPending: false,
-      isError: false,
-      isSuccess: true,
-      data: result,
-      error: null,
-    })
+    expect(mutation.isIdle()).toBe(false)
+    expect(mutation.isPending()).toBe(false)
+    expect(mutation.isError()).toBe(false)
+    expect(mutation.isSuccess()).toBe(true)
+    expect(mutation.data()).toBe(result)
+    expect(mutation.error()).toBeNull()
   })
 
   test('reactive options should update mutation', () => {
@@ -153,14 +146,12 @@ describe('injectMutation', () => {
 
     await vi.advanceTimersByTimeAsync(0)
 
-    expectSignals(mutation, {
-      isIdle: true,
-      isPending: false,
-      isError: false,
-      isSuccess: false,
-      data: undefined,
-      error: null,
-    })
+    expect(mutation.isIdle()).toBe(true)
+    expect(mutation.isPending()).toBe(false)
+    expect(mutation.isError()).toBe(false)
+    expect(mutation.isSuccess()).toBe(false)
+    expect(mutation.data()).toBeUndefined()
+    expect(mutation.error()).toBeNull()
   })
 
   describe('side effects', () => {

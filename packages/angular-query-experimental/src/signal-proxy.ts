@@ -22,13 +22,22 @@ export function signalProxy<TInput extends Record<string | symbol, any>>(
       const computedField = target[prop]
       if (computedField) return computedField
 
-      // then, check if it's a function on the resultState and return it
-      const targetField = untracked(inputSignal)[prop]
-      if (typeof targetField === 'function') return targetField
+      // we always return a callable function
+      return (...args: any[]) => {
+        const targetField = untracked(inputSignal)[prop]
 
-      // finally, create a computed field, store it and return it
-      // @ts-expect-error
-      return (target[prop] = computed(() => inputSignal()[prop]))
+        // if it's a function, call it directly
+        if (typeof targetField === 'function') {
+          // @ts-ignore
+          return targetField(...args)
+        }
+
+        // return it as a signal otherwise
+        const signal = computed(() => inputSignal()[prop])
+        // @ts-ignore
+        target[prop] = signal
+        return signal()
+      }
     },
     has(_, prop) {
       return !!untracked(inputSignal)[prop]
