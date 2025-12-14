@@ -138,7 +138,6 @@ export function injectMutation<
                 // Track pending task when mutation is pending
                 if (state.isPending && !taskCleanupRef) {
                   taskCleanupRef = pendingTasks.add()
-                  console.log('taskCleanupRef added')
                 }
 
                 // Clear pending task when mutation is no longer pending

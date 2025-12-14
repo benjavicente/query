@@ -708,26 +708,10 @@ describe('injectQuery', () => {
     const fixture = TestBed.createComponent(TemplateQueryComponent)
     fixture.detectChanges()
 
-    // There seems to be a race conition where the query
-    // is updated to late with the success value.
-
-    // DOES NOT WORK
-    // This might be an issue on when whenStable is resolved,
-    // and when the fixture is marked as stable.
     expect(fixture.isStable()).toBe(false)
     const stablePromise = fixture.whenStable()
     await vi.advanceTimersByTimeAsync(0)
     await stablePromise
-
-    // WORKS
-    // await new Promise((resolve) => queueMicrotask(() => resolve(undefined)))
-
-    // WORKS
-    // await vi.advanceTimersByTimeAsync(0)
-
-    // WORKS
-    // const app = TestBed.inject(ApplicationRef)
-    // await app.whenStable()
 
     expect(fixture.componentInstance.query.isSuccess()).toBe(true)
     expect(fixture.componentInstance.query.data()).toEqual([1, 2, 3, 4, 5])

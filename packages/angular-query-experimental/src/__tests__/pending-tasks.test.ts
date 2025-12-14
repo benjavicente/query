@@ -342,7 +342,6 @@ describe('PendingTasks Integration', () => {
         queryKey: ['component-query'],
         queryFn: async () => {
           await sleep(100)
-          console.log('queryFn resolved')
           return 'component-data'
         },
       }))
@@ -350,7 +349,6 @@ describe('PendingTasks Integration', () => {
       mutation = injectMutation(() => ({
         mutationFn: async (data: string) => {
           await sleep(100)
-          console.log('mutationFn resolved')
           return `processed: ${data}`
         },
       }))
@@ -389,8 +387,6 @@ describe('PendingTasks Integration', () => {
 
       // Angular should become stable even though component was destroyed
       const stablePromise = fixture.whenStable()
-      await vi.advanceTimersByTimeAsync(200)
-      await Promise.resolve()
       await vi.advanceTimersByTimeAsync(200)
       await stablePromise
 
