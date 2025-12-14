@@ -34,8 +34,8 @@ describe('injectInfiniteQuery', () => {
       }))
     })
 
-    if (query.isSuccess()) {
-      const data = query.data()
+    if (query.isSuccess) {
+      const data = query.data
       expectTypeOf(data).toEqualTypeOf<InfiniteData<string, unknown>>()
     }
   })

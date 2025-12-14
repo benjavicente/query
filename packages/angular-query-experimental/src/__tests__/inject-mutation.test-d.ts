@@ -1,7 +1,6 @@
 import { describe, expectTypeOf, test } from 'vitest'
 import { sleep } from '@tanstack/query-test-utils'
 import { injectMutation } from '..'
-import type { Signal } from '@angular/core'
 
 describe('Discriminated union return type', () => {
   test('data should be possibly undefined by default', () => {
@@ -9,7 +8,7 @@ describe('Discriminated union return type', () => {
       mutationFn: () => sleep(0).then(() => 'string'),
     }))
 
-    expectTypeOf(mutation.data).toEqualTypeOf<Signal<string | undefined>>()
+    expectTypeOf(mutation.data).toEqualTypeOf<string | undefined>()
   })
 
   test('data should be defined when mutation is success', () => {
@@ -17,8 +16,8 @@ describe('Discriminated union return type', () => {
       mutationFn: () => sleep(0).then(() => 'string'),
     }))
 
-    if (mutation.isSuccess()) {
-      expectTypeOf(mutation.data).toEqualTypeOf<Signal<string>>()
+    if (mutation.isSuccess) {
+      expectTypeOf(mutation.data).toEqualTypeOf<string>()
     }
   })
 
@@ -27,8 +26,8 @@ describe('Discriminated union return type', () => {
       mutationFn: () => sleep(0).then(() => 'string'),
     }))
 
-    if (mutation.isSuccess()) {
-      expectTypeOf(mutation.error).toEqualTypeOf<Signal<null>>()
+    if (mutation.isSuccess) {
+      expectTypeOf(mutation.error).toEqualTypeOf<null>()
     }
   })
 
@@ -37,8 +36,8 @@ describe('Discriminated union return type', () => {
       mutationFn: () => sleep(0).then(() => 'string'),
     }))
 
-    if (mutation.isPending()) {
-      expectTypeOf(mutation.data).toEqualTypeOf<Signal<undefined>>()
+    if (mutation.isPending) {
+      expectTypeOf(mutation.data).toEqualTypeOf<undefined>()
     }
   })
 
@@ -47,8 +46,8 @@ describe('Discriminated union return type', () => {
       mutationFn: () => sleep(0).then(() => 'string'),
     }))
 
-    if (mutation.isError()) {
-      expectTypeOf(mutation.error).toEqualTypeOf<Signal<Error>>()
+    if (mutation.isError) {
+      expectTypeOf(mutation.error).toEqualTypeOf<Error>()
     }
   })
 
@@ -57,15 +56,15 @@ describe('Discriminated union return type', () => {
       mutationFn: (_variables: string) => sleep(0).then(() => 'string'),
     }))
 
-    if (mutation.isIdle()) {
-      expectTypeOf(mutation.variables).toEqualTypeOf<Signal<undefined>>()
+    if (mutation.isIdle) {
+      expectTypeOf(mutation.variables).toEqualTypeOf<undefined>()
     }
-    if (mutation.isPending()) {
-      expectTypeOf(mutation.variables).toEqualTypeOf<Signal<string>>()
+    if (mutation.isPending) {
+      expectTypeOf(mutation.variables).toEqualTypeOf<string>()
     }
-    if (mutation.isSuccess()) {
-      expectTypeOf(mutation.variables).toEqualTypeOf<Signal<string>>()
+    if (mutation.isSuccess) {
+      expectTypeOf(mutation.variables).toEqualTypeOf<string>()
     }
-    expectTypeOf(mutation.variables).toEqualTypeOf<Signal<string | undefined>>()
+    expectTypeOf(mutation.variables).toEqualTypeOf<string | undefined>()
   })
 })

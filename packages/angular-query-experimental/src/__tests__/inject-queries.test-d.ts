@@ -34,9 +34,9 @@ describe('InjectQueries config object overload', () => {
       queries: [query1, query2, query3],
     }))
 
-    const query1Data = queryResults()[0].data()
-    const query2Data = queryResults()[1].data()
-    const query3Data = queryResults()[2].data()
+    const query1Data = queryResults()[0].data
+    const query2Data = queryResults()[1].data
+    const query3Data = queryResults()[2].data
 
     expectTypeOf(query1Data).toEqualTypeOf<{ wow: boolean }>()
     expectTypeOf(query2Data).toEqualTypeOf<string>()
@@ -57,7 +57,7 @@ describe('InjectQueries config object overload', () => {
     })
     const queryResults = injectQueries(() => ({ queries: [options] }))
 
-    const data = queryResults()[0].data()
+    const data = queryResults()[0].data
 
     expectTypeOf(data).toEqualTypeOf<{ wow: boolean }>()
   })
@@ -76,8 +76,8 @@ describe('InjectQueries config object overload', () => {
     }
 
     const queryResults = injectQueries(() => ({ queries: [query1, query2] }))
-    const query1Data = queryResults()[0].data()
-    const query2Data = queryResults()[1].data()
+    const query1Data = queryResults()[0].data
+    const query2Data = queryResults()[1].data
 
     expectTypeOf(query1Data).toEqualTypeOf<boolean | undefined>()
     expectTypeOf(query2Data).toEqualTypeOf<boolean | undefined>()
@@ -98,7 +98,7 @@ describe('InjectQueries config object overload', () => {
       ],
     }))
 
-    const data = queryResults()[0].data()
+    const data = queryResults()[0].data
 
     expectTypeOf(data).toEqualTypeOf<{ wow: boolean } | undefined>()
   })
@@ -122,7 +122,7 @@ describe('InjectQueries config object overload', () => {
       }
 
       const queryResults = injectCustomQueries()
-      const data = queryResults()[0].data()
+      const data = queryResults()[0].data
 
       expectTypeOf(data).toEqualTypeOf<Data | undefined>()
     })
@@ -141,7 +141,7 @@ describe('InjectQueries config object overload', () => {
     const firstResult = queryResults()[0]
 
     expectTypeOf(firstResult).toEqualTypeOf<CreateQueryResult<number, Error>>()
-    expectTypeOf(firstResult.data()).toEqualTypeOf<number | undefined>()
+    expectTypeOf(firstResult.data).toEqualTypeOf<number | undefined>()
   })
 
   it('should return correct data for dynamic queries with mixed result types', () => {

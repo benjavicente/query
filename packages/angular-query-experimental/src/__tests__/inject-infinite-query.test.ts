@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { ChangeDetectionStrategy, Component, Injector } from '@angular/core'
 import { sleep } from '@tanstack/query-test-utils'
 import { QueryClient, injectInfiniteQuery } from '..'
-import { expectSignals, setupTanStackQueryTestBed } from './test-utils'
+import { setupTanStackQueryTestBed } from './test-utils'
 
 describe('injectInfiniteQuery', () => {
   let queryClient: QueryClient
@@ -38,14 +38,14 @@ describe('injectInfiniteQuery', () => {
     fixture.detectChanges()
     const query = fixture.componentInstance.query
 
-    expectSignals(query, {
+    expect(query).toMatchObject({
       data: undefined,
       status: 'pending',
     })
 
     await vi.advanceTimersByTimeAsync(11)
 
-    expectSignals(query, {
+    expect(query).toMatchObject({
       data: {
         pageParams: [0],
         pages: ['data on page 0'],
@@ -57,7 +57,7 @@ describe('injectInfiniteQuery', () => {
 
     await vi.advanceTimersByTimeAsync(11)
 
-    expectSignals(query, {
+    expect(query).toMatchObject({
       data: {
         pageParams: [0, 12],
         pages: ['data on page 0', 'data on page 12'],
@@ -98,7 +98,7 @@ describe('injectInfiniteQuery', () => {
 
       TestBed.tick()
 
-      expect(query.status()).toBe('pending')
+      expect(query.status).toBe('pending')
     })
   })
 })

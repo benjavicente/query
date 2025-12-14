@@ -14,8 +14,8 @@
         marginLeft: '.5rem',
         width: '10px',
         height: '10px',
-        background: tasks.isFetching() ? 'green' : 'transparent',
-        transition: !tasks.isFetching() ? 'all .3s ease' : 'none',
+        background: tasks.isFetching ? 'green' : 'transparent',
+        transition: !tasks.isFetching ? 'all .3s ease' : 'none',
         borderRadius: '100%',
         transform: 'scale(2)',
       }"
@@ -25,7 +25,7 @@
 
   <input placeholder="Enter something" (keydown.enter)="addItem($event)" />
   <ul>
-    @for (item of tasks.data(); track item) {
+    @for (item of tasks.data; track item) {
       <li>{{ item }}</li>
     }
   </ul>

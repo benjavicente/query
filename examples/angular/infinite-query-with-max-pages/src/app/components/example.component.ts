@@ -30,24 +30,24 @@ export class ExampleComponent {
   }))
 
   readonly nextButtonDisabled = computed(
-    () => !this.query.hasNextPage() || this.query.isFetchingNextPage(),
+    () => !this.query.hasNextPage || this.query.isFetchingNextPage,
   )
 
   readonly nextButtonText = computed(() =>
-    this.query.isFetchingNextPage()
+    this.query.isFetchingNextPage
       ? 'Loading more...'
-      : this.query.hasNextPage()
+      : this.query.hasNextPage
         ? 'Load newer'
         : 'Nothing more to load',
   )
 
   readonly previousButtonDisabled = computed(
-    () => !this.query.hasPreviousPage() || this.query.isFetchingPreviousPage(),
+    () => !this.query.hasPreviousPage || this.query.isFetchingPreviousPage,
   )
   readonly previousButtonText = computed(() =>
-    this.query.isFetchingPreviousPage()
+    this.query.isFetchingPreviousPage
       ? 'Loading more...'
-      : this.query.hasPreviousPage()
+      : this.query.hasPreviousPage
         ? 'Load Older'
         : 'Nothing more to load',
   )

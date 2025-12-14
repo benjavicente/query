@@ -45,7 +45,7 @@ describe('infiniteQueryOptions', () => {
     const { data } = injectInfiniteQuery(() => options)
 
     // known issue: type of pageParams is unknown when returned from useInfiniteQuery
-    expectTypeOf(data()).toEqualTypeOf<
+    expectTypeOf(data).toEqualTypeOf<
       InfiniteData<string, unknown> | undefined
     >()
   })

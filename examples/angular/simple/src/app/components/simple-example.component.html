@@ -1,10 +1,10 @@
-@if (query.isPending()) {
+@if (query.isPending) {
   <div>Loading...</div>
 }
-@if (query.isError()) {
-  <div>An error has occurred: {{ query.error().message }}</div>
+@if (query.isError) {
+  <div>An error has occurred: {{ query.error.message }}</div>
 }
-@if (query.data(); as data) {
+@if (query.data; as data) {
   <h1>{{ data.name }}</h1>
   <p>{{ data.description }}</p>
   <strong>👀 {{ data.subscribers_count }}</strong>

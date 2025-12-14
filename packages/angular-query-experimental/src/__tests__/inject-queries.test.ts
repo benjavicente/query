@@ -23,8 +23,8 @@ describe('injectQueries', () => {
       template: `
         <div>
           <div>
-            data1: {{ result()[0].data() ?? 'null' }}, data2:
-            {{ result()[1].data() ?? 'null' }}
+            data1: {{ result()[0].data ?? 'null' }}, data2:
+            {{ result()[1].data ?? 'null' }}
           </div>
         </div>
       `,
@@ -54,7 +54,7 @@ describe('injectQueries', () => {
       }))
 
       _pushResults = effect(() => {
-        const snapshot = this.result().map((q) => ({ data: q.data() }))
+        const snapshot = this.result().map((q) => ({ data: q.data }))
         results.push(snapshot)
       })
     }
