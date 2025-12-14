@@ -3,9 +3,9 @@
 <form [formGroup]="form">
   <input type="text" formControlName="term" />
 
-  @if (query.isSuccess() && query.data().suggestions.length) {
+  @if (query.isSuccess && query.data.suggestions.length) {
     <ul>
-      @for (suggestion of query.data().suggestions; track suggestion) {
+      @for (suggestion of query.data.suggestions; track suggestion) {
         <li>{{ suggestion }}</li>
       }
     </ul>

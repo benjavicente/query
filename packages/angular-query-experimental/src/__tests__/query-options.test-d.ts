@@ -1,6 +1,5 @@
 import { assertType, describe, expectTypeOf, test } from 'vitest'
 import { QueryClient, dataTagSymbol, injectQuery, queryOptions } from '..'
-import type { Signal } from '@angular/core'
 
 describe('queryOptions', () => {
   test('should not allow excess properties', () => {
@@ -49,7 +48,7 @@ test('should work when passed to injectQuery', () => {
   })
 
   const { data } = injectQuery(() => options)
-  expectTypeOf(data).toEqualTypeOf<Signal<number | undefined>>()
+  expectTypeOf(data).toEqualTypeOf<number | undefined>()
 })
 
 test('should work when passed to fetchQuery', () => {

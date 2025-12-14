@@ -1,7 +1,6 @@
 import { describe, expectTypeOf, it, test } from 'vitest'
 import { sleep } from '@tanstack/query-test-utils'
 import { injectQuery, queryOptions } from '..'
-import type { Signal } from '@angular/core'
 
 describe('initialData', () => {
   describe('Config object overload', () => {
@@ -12,7 +11,7 @@ describe('initialData', () => {
         initialData: { wow: true },
       }))
 
-      expectTypeOf(data).toEqualTypeOf<Signal<{ wow: boolean }>>()
+      expectTypeOf(data).toEqualTypeOf<{ wow: boolean }>()
     })
 
     it('TData should be defined when passed through queryOptions', () => {
@@ -30,7 +29,7 @@ describe('initialData', () => {
         })
       const { data } = injectQuery(options)
 
-      expectTypeOf(data).toEqualTypeOf<Signal<{ wow: boolean }>>()
+      expectTypeOf(data).toEqualTypeOf<{ wow: boolean }>()
     })
 
     it('should be possible to define a different TData than TQueryFnData using select with queryOptions spread into useQuery', () => {
@@ -44,7 +43,7 @@ describe('initialData', () => {
         select: (data) => data > 1,
       }))
 
-      expectTypeOf(query.data).toEqualTypeOf<Signal<boolean | undefined>>()
+      expectTypeOf(query.data).toEqualTypeOf<boolean | undefined>()
     })
 
     it('TData should always be defined when initialData is provided as a function which ALWAYS returns the data', () => {
@@ -60,7 +59,7 @@ describe('initialData', () => {
         }),
       }))
 
-      expectTypeOf(data).toEqualTypeOf<Signal<{ wow: boolean }>>()
+      expectTypeOf(data).toEqualTypeOf<{ wow: boolean }>()
     })
 
     it('TData should have undefined in the union when initialData is NOT provided', () => {
@@ -73,7 +72,7 @@ describe('initialData', () => {
         },
       }))
 
-      expectTypeOf(data).toEqualTypeOf<Signal<{ wow: boolean } | undefined>>()
+      expectTypeOf(data).toEqualTypeOf<{ wow: boolean } | undefined>()
     })
 
     it('TData should have undefined in the union when initialData is provided as a function which can return undefined', () => {
@@ -87,7 +86,7 @@ describe('initialData', () => {
         initialData: () => undefined as { wow: boolean } | undefined,
       }))
 
-      expectTypeOf(data).toEqualTypeOf<Signal<{ wow: boolean } | undefined>>()
+      expectTypeOf(data).toEqualTypeOf<{ wow: boolean } | undefined>()
     })
 
     it('TData should be narrowed after an isSuccess check when initialData is provided as a function which can return undefined', () => {
@@ -101,8 +100,8 @@ describe('initialData', () => {
         initialData: () => undefined as { wow: boolean } | undefined,
       }))
 
-      if (query.isSuccess()) {
-        expectTypeOf(query.data).toEqualTypeOf<Signal<{ wow: boolean }>>()
+      if (query.isSuccess) {
+        expectTypeOf(query.data).toEqualTypeOf<{ wow: boolean }>()
       }
     })
   })
@@ -130,7 +129,7 @@ describe('Discriminated union return type', () => {
       queryFn: () => sleep(0).then(() => 'Some data'),
     }))
 
-    expectTypeOf(query.data).toEqualTypeOf<Signal<string | undefined>>()
+    expectTypeOf(query.data).toEqualTypeOf<string | undefined>()
   })
 
   test('data should be defined when query is success', () => {
@@ -139,8 +138,8 @@ describe('Discriminated union return type', () => {
       queryFn: () => sleep(0).then(() => 'Some data'),
     }))
 
-    if (query.isSuccess()) {
-      expectTypeOf(query.data).toEqualTypeOf<Signal<string>>()
+    if (query.isSuccess) {
+      expectTypeOf(query.data).toEqualTypeOf<string>()
     }
   })
 
@@ -150,8 +149,8 @@ describe('Discriminated union return type', () => {
       queryFn: () => sleep(0).then(() => 'Some data'),
     }))
 
-    if (query.isSuccess()) {
-      expectTypeOf(query.error).toEqualTypeOf<Signal<null>>()
+    if (query.isSuccess) {
+      expectTypeOf(query.error).toEqualTypeOf<null>()
     }
   })
 
@@ -161,8 +160,8 @@ describe('Discriminated union return type', () => {
       queryFn: () => sleep(0).then(() => 'Some data'),
     }))
 
-    if (query.isPending()) {
-      expectTypeOf(query.data).toEqualTypeOf<Signal<undefined>>()
+    if (query.isPending) {
+      expectTypeOf(query.data).toEqualTypeOf<undefined>()
     }
   })
 
@@ -172,8 +171,8 @@ describe('Discriminated union return type', () => {
       queryFn: () => sleep(0).then(() => 'Some data'),
     }))
 
-    if (query.isError()) {
-      expectTypeOf(query.error).toEqualTypeOf<Signal<Error>>()
+    if (query.isError) {
+      expectTypeOf(query.error).toEqualTypeOf<Error>()
     }
   })
 })

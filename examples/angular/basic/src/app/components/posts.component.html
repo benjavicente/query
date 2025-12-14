@@ -1,12 +1,12 @@
 <div>
   <h1>Posts</h1>
-  @if (postsQuery.isPending()) {
+  @if (postsQuery.isPending) {
     Loading...
-  } @else if (postsQuery.isError()) {
-    Error: {{ postsQuery.error().message }}
-  } @else if (postsQuery.isSuccess()) {
+  } @else if (postsQuery.isError) {
+    Error: {{ postsQuery.error.message }}
+  } @else if (postsQuery.isSuccess) {
     <div class="todo-container">
-      @for (post of postsQuery.data(); track post.id) {
+      @for (post of postsQuery.data; track post.id) {
         <p>
           <!--          We can access the query data here to show bold links for-->
           <!--          ones that are cached-->
@@ -28,7 +28,7 @@
     </div>
   }
   <div>
-    @if (postsQuery.isFetching()) {
+    @if (postsQuery.isFetching) {
       Background Updating...
     }
   </div>

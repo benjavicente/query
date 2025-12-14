@@ -11,7 +11,7 @@ import { TestBed } from '@angular/core/testing'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { sleep } from '@tanstack/query-test-utils'
 import { QueryClient, injectMutation, provideTanStackQuery } from '..'
-import { expectSignals, registerSignalInput } from './test-utils'
+import { registerSignalInput } from './test-utils'
 
 describe('injectMutation', () => {
   let queryClient: QueryClient
@@ -38,7 +38,7 @@ describe('injectMutation', () => {
       }))
     })
 
-    expectSignals(mutation, {
+    expect(mutation).toMatchObject({
       isIdle: true,
       isPending: false,
       isError: false,
@@ -60,7 +60,7 @@ describe('injectMutation', () => {
     mutation.mutate(result)
     await vi.advanceTimersByTimeAsync(0)
 
-    expectSignals(mutation, {
+    expect(mutation).toMatchObject({
       isIdle: false,
       isPending: true,
       isError: false,
@@ -82,7 +82,7 @@ describe('injectMutation', () => {
 
     await vi.advanceTimersByTimeAsync(11)
 
-    expectSignals(mutation, {
+    expect(mutation).toMatchObject({
       isIdle: false,
       isPending: false,
       isError: true,
@@ -104,7 +104,7 @@ describe('injectMutation', () => {
 
     await vi.advanceTimersByTimeAsync(11)
 
-    expectSignals(mutation, {
+    expect(mutation).toMatchObject({
       isIdle: false,
       isPending: false,
       isError: false,
@@ -147,13 +147,13 @@ describe('injectMutation', () => {
 
     await vi.advanceTimersByTimeAsync(11)
 
-    expect(mutation.isError()).toBe(true)
+    expect(mutation.isError).toBe(true)
 
     mutation.reset()
 
     await vi.advanceTimersByTimeAsync(0)
 
-    expectSignals(mutation, {
+    expect(mutation).toMatchObject({
       isIdle: true,
       isPending: false,
       isError: false,
@@ -305,7 +305,7 @@ describe('injectMutation', () => {
       selector: 'app-fake',
       template: `
         <button (click)="mutate()"></button>
-        <span>{{ mutation.data() }}</span>
+        <span>{{ mutation.data }}</span>
       `,
       changeDetection: ChangeDetectionStrategy.OnPush,
     })
@@ -359,7 +359,7 @@ describe('injectMutation', () => {
       selector: 'app-fake',
       template: `
         <button (click)="mutate()"></button>
-        <span>{{ mutation.data() }}</span>
+        <span>{{ mutation.data }}</span>
       `,
       changeDetection: ChangeDetectionStrategy.OnPush,
     })
@@ -518,7 +518,7 @@ describe('injectMutation', () => {
       )
 
       // Initial state
-      expect(mutation.data()).toBeUndefined()
+      expect(mutation.data).toBeUndefined()
       expect(mutationStarted).toBe(false)
 
       // Start mutation
@@ -532,8 +532,8 @@ describe('injectMutation', () => {
       // After whenStable(), mutation should be complete
       expect(mutationStarted).toBe(true)
       expect(mutationCompleted).toBe(true)
-      expect(mutation.isSuccess()).toBe(true)
-      expect(mutation.data()).toBe('processed: test')
+      expect(mutation.isSuccess).toBe(true)
+      expect(mutation.data).toBe('processed: test')
     })
 
     test('should handle synchronous mutation with retry', async () => {
@@ -581,8 +581,8 @@ describe('injectMutation', () => {
       await vi.advanceTimersByTimeAsync(10)
       await stablePromise
 
-      expect(mutation.isSuccess()).toBe(true)
-      expect(mutation.data()).toBe('processed: retry-test')
+      expect(mutation.isSuccess).toBe(true)
+      expect(mutation.data).toBe('processed: retry-test')
       expect(attemptCount).toBe(3) // Initial + 2 retries
     })
 
@@ -631,10 +631,10 @@ describe('injectMutation', () => {
       await vi.advanceTimersByTimeAsync(1)
       await stablePromise
 
-      expect(mutation1.isSuccess()).toBe(true)
-      expect(mutation1.data()).toBe('mutation1: test1')
-      expect(mutation2.isSuccess()).toBe(true)
-      expect(mutation2.data()).toBe('mutation2: test2')
+      expect(mutation1.isSuccess).toBe(true)
+      expect(mutation1.data).toBe('mutation1: test1')
+      expect(mutation2.isSuccess).toBe(true)
+      expect(mutation2.data).toBe('mutation2: test2')
       expect(callCount).toBe(2)
     })
 
@@ -685,8 +685,8 @@ describe('injectMutation', () => {
 
       expect(onMutateCalled).toBe(true)
       expect(onSuccessCalled).toBe(true)
-      expect(mutation.isSuccess()).toBe(true)
-      expect(mutation.data()).toBe('final: test')
+      expect(mutation.isSuccess).toBe(true)
+      expect(mutation.data).toBe('final: test')
       expect(queryClient.getQueryData(testQueryKey)).toBe('final: test')
     })
 
@@ -721,8 +721,8 @@ describe('injectMutation', () => {
       await stablePromise
 
       // Synchronous mutations complete immediately
-      expect(mutation.isSuccess()).toBe(true)
-      expect(mutation.data()).toBe('processed: test')
+      expect(mutation.isSuccess).toBe(true)
+      expect(mutation.data).toBe('processed: test')
     })
   })
 })

@@ -62,8 +62,8 @@ describe('PendingTasks Integration', () => {
       const query = fixture.componentInstance.query
 
       // Should start as pending even with synchronous data
-      expect(query.status()).toBe('pending')
-      expect(query.data()).toBeUndefined()
+      expect(query.status).toBe('pending')
+      expect(query.data).toBeUndefined()
 
       const stablePromise = app.whenStable()
       // Flush microtasks to allow TanStack Query's scheduled notifications to process
@@ -72,8 +72,8 @@ describe('PendingTasks Integration', () => {
       await stablePromise
 
       // Should work correctly even though queryFn was synchronous
-      expect(query.status()).toBe('success')
-      expect(query.data()).toBe('instant-data')
+      expect(query.status).toBe('success')
+      expect(query.data).toBe('instant-data')
     })
 
     test('should handle synchronous error with whenStable()', async () => {
@@ -94,8 +94,8 @@ describe('PendingTasks Integration', () => {
       await vi.advanceTimersByTimeAsync(10)
       await stablePromise
 
-      expect(query.status()).toBe('error')
-      expect(query.error()).toEqual(new Error('instant-error'))
+      expect(query.status).toBe('error')
+      expect(query.error).toEqual(new Error('instant-error'))
     })
 
     test('should handle synchronous mutationFn with whenStable()', async () => {
@@ -122,8 +122,8 @@ describe('PendingTasks Integration', () => {
       await stablePromise
 
       expect(mutationFnCalled).toBe(true)
-      expect(mutation.isSuccess()).toBe(true)
-      expect(mutation.data()).toBe('processed: test')
+      expect(mutation.isSuccess).toBe(true)
+      expect(mutation.data).toBe('processed: test')
     })
 
     test('should handle synchronous mutation error with whenStable()', async () => {
@@ -147,8 +147,8 @@ describe('PendingTasks Integration', () => {
       await vi.advanceTimersByTimeAsync(10)
       await stablePromise
 
-      expect(mutation.isError()).toBe(true)
-      expect(mutation.error()).toEqual(new Error('sync-mutation-error'))
+      expect(mutation.isError).toBe(true)
+      expect(mutation.error).toEqual(new Error('sync-mutation-error'))
     })
   })
 
@@ -176,8 +176,8 @@ describe('PendingTasks Integration', () => {
       await vi.advanceTimersByTimeAsync(10)
       await stablePromise
 
-      expect(query.status()).toBe('success')
-      expect(query.data()).toBe('race-data')
+      expect(query.status).toBe('success')
+      expect(query.data).toBe('race-data')
     })
 
     test('should handle rapid refetches without task leaks', async () => {
@@ -213,8 +213,8 @@ describe('PendingTasks Integration', () => {
       await vi.advanceTimersByTimeAsync(20)
       await stablePromise
 
-      expect(query.status()).toBe('success')
-      expect(query.data()).toMatch(/^data-\d+$/)
+      expect(query.status).toBe('success')
+      expect(query.data).toMatch(/^data-\d+$/)
     })
 
     test('should keep PendingTasks active when query starts offline (never reaches fetching)', async () => {
@@ -238,8 +238,8 @@ describe('PendingTasks Integration', () => {
       await flushQueryUpdates()
 
       // Query should initialize directly to 'paused' (never goes through 'fetching')
-      expect(query.status()).toBe('pending')
-      expect(query.fetchStatus()).toBe('paused')
+      expect(query.status).toBe('pending')
+      expect(query.fetchStatus).toBe('paused')
 
       const stablePromise = app.whenStable()
       let stableResolved = false
@@ -261,8 +261,8 @@ describe('PendingTasks Integration', () => {
       await stablePromise
 
       expect(stableResolved).toBe(true)
-      expect(query.status()).toBe('success')
-      expect(query.data()).toBe('online-data')
+      expect(query.status).toBe('success')
+      expect(query.data).toBe('online-data')
     })
 
     test('should keep PendingTasks active while query retry is paused offline', async () => {
@@ -293,8 +293,8 @@ describe('PendingTasks Integration', () => {
       await vi.advanceTimersByTimeAsync(10)
       await Promise.resolve()
 
-      expect(query.status()).toBe('pending')
-      expect(query.fetchStatus()).toBe('fetching')
+      expect(query.status).toBe('pending')
+      expect(query.fetchStatus).toBe('fetching')
 
       // Simulate the app going offline during retry delay
       onlineManager.setOnline(false)
@@ -303,7 +303,7 @@ describe('PendingTasks Integration', () => {
       await vi.advanceTimersByTimeAsync(50)
       await Promise.resolve()
 
-      expect(query.fetchStatus()).toBe('paused')
+      expect(query.fetchStatus).toBe('paused')
 
       const stablePromise = app.whenStable()
       let stableResolved = false
@@ -315,7 +315,7 @@ describe('PendingTasks Integration', () => {
 
       // PendingTasks should continue blocking stability while the fetch is paused
       expect(stableResolved).toBe(false)
-      expect(query.status()).toBe('pending')
+      expect(query.status).toBe('pending')
 
       // Bring the app back online so the retry can continue
       onlineManager.setOnline(true)
@@ -327,8 +327,8 @@ describe('PendingTasks Integration', () => {
       await stablePromise
 
       expect(stableResolved).toBe(true)
-      expect(query.status()).toBe('success')
-      expect(query.data()).toBe('final-data')
+      expect(query.status).toBe('success')
+      expect(query.data).toBe('final-data')
     })
   })
 
@@ -360,7 +360,7 @@ describe('PendingTasks Integration', () => {
       fixture.detectChanges()
 
       // Start the query
-      expect(fixture.componentInstance.query.status()).toBe('pending')
+      expect(fixture.componentInstance.query.status).toBe('pending')
 
       // Destroy component while query is running
       fixture.destroy()
@@ -427,21 +427,21 @@ describe('PendingTasks Integration', () => {
       const { query1, query2, query3 } = fixture.componentInstance
 
       // All queries should start
-      expect(query1.status()).toBe('pending')
-      expect(query2.status()).toBe('pending')
-      expect(query3.status()).toBe('pending')
+      expect(query1.status).toBe('pending')
+      expect(query2.status).toBe('pending')
+      expect(query3.status).toBe('pending')
 
       const stablePromise = app.whenStable()
       await vi.advanceTimersByTimeAsync(60)
       await stablePromise
 
       // All queries should be complete
-      expect(query1.status()).toBe('success')
-      expect(query1.data()).toBe('data-1')
-      expect(query2.status()).toBe('success')
-      expect(query2.data()).toBe('data-2')
-      expect(query3.status()).toBe('success')
-      expect(query3.data()).toBe('instant-data')
+      expect(query1.status).toBe('success')
+      expect(query1.data).toBe('data-1')
+      expect(query2.status).toBe('success')
+      expect(query2.data).toBe('data-2')
+      expect(query3.status).toBe('success')
+      expect(query3.data).toBe('instant-data')
     })
 
     test('should handle multiple mutations running simultaneously', async () => {
@@ -486,12 +486,12 @@ describe('PendingTasks Integration', () => {
       await stablePromise
 
       // All mutations should be complete
-      expect(mutation1.isSuccess()).toBe(true)
-      expect(mutation1.data()).toBe('processed-1: test1')
-      expect(mutation2.isSuccess()).toBe(true)
-      expect(mutation2.data()).toBe('processed-2: test2')
-      expect(mutation3.isSuccess()).toBe(true)
-      expect(mutation3.data()).toBe('processed-3: test3')
+      expect(mutation1.isSuccess).toBe(true)
+      expect(mutation1.data).toBe('processed-1: test1')
+      expect(mutation2.isSuccess).toBe(true)
+      expect(mutation2.data).toBe('processed-2: test2')
+      expect(mutation3.isSuccess).toBe(true)
+      expect(mutation3.data).toBe('processed-3: test3')
     })
 
     test('should handle mixed queries and mutations', async () => {
@@ -524,10 +524,10 @@ describe('PendingTasks Integration', () => {
       await stablePromise
 
       // Both should be complete
-      expect(query.status()).toBe('success')
-      expect(query.data()).toBe('query-data')
-      expect(mutation.isSuccess()).toBe(true)
-      expect(mutation.data()).toBe('mutation: test')
+      expect(query.status).toBe('success')
+      expect(query.data).toBe('query-data')
+      expect(mutation.isSuccess).toBe(true)
+      expect(mutation.data).toBe('mutation: test')
     })
   })
 
@@ -572,10 +572,10 @@ describe('PendingTasks Integration', () => {
       await vi.advanceTimersByTimeAsync(20)
       await stablePromise
 
-      expect(query1.status()).toBe('success')
-      expect(query1.data()).toEqual({ id: 1 })
-      expect(query2.status()).toBe('success')
-      expect(query2.data()).toEqual({ id: 2 })
+      expect(query1.status).toBe('success')
+      expect(query1.data).toEqual({ id: 1 })
+      expect(query2.status).toBe('success')
+      expect(query2.data).toEqual({ id: 2 })
 
       httpTestingController.verify()
     })
@@ -606,7 +606,7 @@ describe('PendingTasks Integration', () => {
       await vi.advanceTimersByTimeAsync(20)
       await stablePromise
 
-      expect(query.status()).toBe('error')
+      expect(query.status).toBe('error')
 
       httpTestingController.verify()
     })
@@ -641,8 +641,8 @@ describe('PendingTasks Integration', () => {
       await stablePromise
 
       // Cancellation should restore the pre-fetch state
-      expect(query.status()).toBe('pending')
-      expect(query.fetchStatus()).toBe('idle')
+      expect(query.status).toBe('pending')
+      expect(query.fetchStatus).toBe('idle')
     })
 
     test('should handle query retry and pending task tracking', async () => {
@@ -668,8 +668,8 @@ describe('PendingTasks Integration', () => {
       await vi.advanceTimersByTimeAsync(50)
       await stablePromise
 
-      expect(query.status()).toBe('success')
-      expect(query.data()).toBe('success-data')
+      expect(query.status).toBe('success')
+      expect(query.data).toBe('success-data')
       expect(attemptCount).toBe(3) // Initial + 2 retries
     })
 
@@ -711,8 +711,8 @@ describe('PendingTasks Integration', () => {
       await vi.advanceTimersByTimeAsync(60)
       await stablePromise
 
-      expect(mutation.isSuccess()).toBe(true)
-      expect(mutation.data()).toBe('optimistic-data')
+      expect(mutation.isSuccess).toBe(true)
+      expect(mutation.data).toBe('optimistic-data')
       expect(queryClient.getQueryData(testQueryKey)).toBe('optimistic-data')
     })
   })

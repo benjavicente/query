@@ -34,8 +34,8 @@ export class ExampleComponent {
   }))
 
   readonly prefetchEffect = effect(() => {
-    const data = this.query.data()
-    const isPlaceholderData = this.query.isPlaceholderData()
+    const data = this.query.data
+    const isPlaceholderData = this.query.isPlaceholderData
     const newPage = this.page() + 1
 
     untracked(() => {
@@ -57,7 +57,7 @@ export class ExampleComponent {
 
   nextPage() {
     this.page.update((currentPage) => {
-      return this.query.data()?.hasMore ? currentPage + 1 : currentPage
+      return this.query.data?.hasMore ? currentPage + 1 : currentPage
     })
   }
 }

@@ -22,7 +22,7 @@ import { TasksService } from '../services/tasks.service'
     </p>
 
     <hr />
-    @if (tasks.isLoading()) {
+    @if (tasks.isLoading) {
       <p>Loading...</p>
     }
 
@@ -36,16 +36,16 @@ import { TasksService } from '../services/tasks.service'
         <input type="text" [(ngModel)]="newItem" placeholder="Enter text" />
         <button (click)="addItem()">Create</button>
         <ul>
-          @for (task of tasks.data(); track $index) {
+          @for (task of tasks.data; track $index) {
             <li>{{ task }}</li>
           }
         </ul>
 
         <div>
-          Updated At: {{ tasks.dataUpdatedAt() | date: 'MMMM d, h:mm:ss a ' }}
+          Updated At: {{ tasks.dataUpdatedAt | date: 'MMMM d, h:mm:ss a ' }}
         </div>
       </div>
-      @if (!tasks.isLoading() && tasks.isFetching()) {
+      @if (!tasks.isLoading && tasks.isFetching) {
         <p>Fetching in background</p>
       }
     </div>

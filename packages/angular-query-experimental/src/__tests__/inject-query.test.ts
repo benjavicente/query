@@ -214,46 +214,44 @@ describe('injectQuery', () => {
       fromWrappedFuncStyleQuery,
     } = fixture.componentInstance
 
-    expectTypeOf(noQueryFn.data()).toEqualTypeOf<unknown>()
-    expectTypeOf(noQueryFn.error()).toEqualTypeOf<Error | null>()
+    expectTypeOf(noQueryFn.data).toEqualTypeOf<unknown>()
+    expectTypeOf(noQueryFn.error).toEqualTypeOf<Error | null>()
 
-    expectTypeOf(fromQueryFn.data()).toEqualTypeOf<string | undefined>()
-    expectTypeOf(fromQueryFn.error()).toEqualTypeOf<Error | null>()
+    expectTypeOf(fromQueryFn.data).toEqualTypeOf<string | undefined>()
+    expectTypeOf(fromQueryFn.error).toEqualTypeOf<Error | null>()
 
-    expectTypeOf(withResult.data()).toEqualTypeOf<string | undefined>()
-    expectTypeOf(withResult.error()).toEqualTypeOf<Error | null>()
+    expectTypeOf(withResult.data).toEqualTypeOf<string | undefined>()
+    expectTypeOf(withResult.error).toEqualTypeOf<Error | null>()
 
-    expectTypeOf(withError.data()).toEqualTypeOf<string | undefined>()
-    expectTypeOf(withError.error()).toEqualTypeOf<{ message: string } | null>()
+    expectTypeOf(withError.data).toEqualTypeOf<string | undefined>()
+    expectTypeOf(withError.error).toEqualTypeOf<{ message: string } | null>()
 
-    expectTypeOf(withResultInfer.data()).toEqualTypeOf<boolean | undefined>()
-    expectTypeOf(withResultInfer.error()).toEqualTypeOf<Error | null>()
+    expectTypeOf(withResultInfer.data).toEqualTypeOf<boolean | undefined>()
+    expectTypeOf(withResultInfer.error).toEqualTypeOf<Error | null>()
 
-    expectTypeOf(unionTypeSync.data()).toEqualTypeOf<'a' | 'b' | undefined>()
-    expectTypeOf(unionTypeAsync.data()).toEqualTypeOf<'a' | 'b' | undefined>()
+    expectTypeOf(unionTypeSync.data).toEqualTypeOf<'a' | 'b' | undefined>()
+    expectTypeOf(unionTypeAsync.data).toEqualTypeOf<'a' | 'b' | undefined>()
 
-    expectTypeOf(fromGenericQueryFn.data()).toEqualTypeOf<string | undefined>()
-    expectTypeOf(fromGenericQueryFn.error()).toEqualTypeOf<Error | null>()
+    expectTypeOf(fromGenericQueryFn.data).toEqualTypeOf<string | undefined>()
+    expectTypeOf(fromGenericQueryFn.error).toEqualTypeOf<Error | null>()
 
-    expectTypeOf(fromGenericOptionsQueryFn.data()).toEqualTypeOf<
+    expectTypeOf(fromGenericOptionsQueryFn.data).toEqualTypeOf<
       string | undefined
     >()
-    expectTypeOf(
-      fromGenericOptionsQueryFn.error(),
-    ).toEqualTypeOf<Error | null>()
+    expectTypeOf(fromGenericOptionsQueryFn.error).toEqualTypeOf<Error | null>()
 
-    expectTypeOf(fromMyDataArrayKeyQueryFn.data()).toEqualTypeOf<
+    expectTypeOf(fromMyDataArrayKeyQueryFn.data).toEqualTypeOf<
       number | undefined
     >()
 
-    expectTypeOf(fromPromiseAnyQueryFn.data()).toEqualTypeOf<any | undefined>()
+    expectTypeOf(fromPromiseAnyQueryFn.data).toEqualTypeOf<any | undefined>()
 
-    expectTypeOf(fromGetMyDataStringKeyQueryFn.data()).toEqualTypeOf<
+    expectTypeOf(fromGetMyDataStringKeyQueryFn.data).toEqualTypeOf<
       number | undefined
     >()
 
-    expectTypeOf(fromWrappedQuery.data()).toEqualTypeOf<string | undefined>()
-    expectTypeOf(fromWrappedFuncStyleQuery.data()).toEqualTypeOf<
+    expectTypeOf(fromWrappedQuery.data).toEqualTypeOf<string | undefined>()
+    expectTypeOf(fromWrappedFuncStyleQuery.data).toEqualTypeOf<
       boolean | undefined
     >()
   })
@@ -275,11 +273,11 @@ describe('injectQuery', () => {
     fixture.detectChanges()
     const query = fixture.componentInstance.query
 
-    expect(query.status()).toBe('pending')
-    expect(query.isPending()).toBe(true)
-    expect(query.isFetching()).toBe(true)
-    expect(query.isStale()).toBe(true)
-    expect(query.isFetched()).toBe(false)
+    expect(query.status).toBe('pending')
+    expect(query.isPending).toBe(true)
+    expect(query.isFetching).toBe(true)
+    expect(query.isStale).toBe(true)
+    expect(query.isFetched).toBe(false)
   })
 
   test('should resolve to success and update signal: injectQuery()', async () => {
@@ -300,12 +298,12 @@ describe('injectQuery', () => {
     const query = fixture.componentInstance.query
 
     await vi.advanceTimersByTimeAsync(11)
-    expect(query.status()).toBe('success')
-    expect(query.data()).toBe('result2')
-    expect(query.isPending()).toBe(false)
-    expect(query.isFetching()).toBe(false)
-    expect(query.isFetched()).toBe(true)
-    expect(query.isSuccess()).toBe(true)
+    expect(query.status).toBe('success')
+    expect(query.data).toBe('result2')
+    expect(query.isPending).toBe(false)
+    expect(query.isFetching).toBe(false)
+    expect(query.isFetched).toBe(true)
+    expect(query.isSuccess).toBe(true)
   })
 
   test('should reject and update signal', async () => {
@@ -328,14 +326,14 @@ describe('injectQuery', () => {
     const query = fixture.componentInstance.query
 
     await vi.advanceTimersByTimeAsync(11)
-    expect(query.status()).toBe('error')
-    expect(query.data()).toBe(undefined)
-    expect(query.error()).toMatchObject({ message: 'Some error' })
-    expect(query.isPending()).toBe(false)
-    expect(query.isFetching()).toBe(false)
-    expect(query.isError()).toBe(true)
-    expect(query.failureCount()).toBe(1)
-    expect(query.failureReason()).toMatchObject({ message: 'Some error' })
+    expect(query.status).toBe('error')
+    expect(query.data).toBe(undefined)
+    expect(query.error).toMatchObject({ message: 'Some error' })
+    expect(query.isPending).toBe(false)
+    expect(query.isFetching).toBe(false)
+    expect(query.isError).toBe(true)
+    expect(query.failureCount).toBe(1)
+    expect(query.failureReason).toMatchObject({ message: 'Some error' })
   })
 
   test('should update query on options contained signal change', async () => {
@@ -364,7 +362,7 @@ describe('injectQuery', () => {
     expect(spy).toHaveBeenCalledTimes(1)
 
     await vi.advanceTimersByTimeAsync(11)
-    expect(query.status()).toBe('success')
+    expect(query.status).toBe('success')
 
     key.set(['key8'])
     fixture.detectChanges()
@@ -403,13 +401,13 @@ describe('injectQuery', () => {
     const query = fixture.componentInstance.query
 
     expect(spy).not.toHaveBeenCalled()
-    expect(query.status()).toBe('pending')
+    expect(query.status).toBe('pending')
 
     enabled.set(true)
 
     await vi.advanceTimersByTimeAsync(11)
     expect(spy).toHaveBeenCalledTimes(1)
-    expect(query.status()).toBe('success')
+    expect(query.status).toBe('success')
   })
 
   test('should properly execute dependant queries', async () => {
@@ -432,7 +430,7 @@ describe('injectQuery', () => {
         computed(() => ({
           queryKey: ['dependant2'],
           queryFn: dependentQueryFn,
-          enabled: !!this.query1.data(),
+          enabled: !!this.query1.data,
         })),
       )
     }
@@ -441,19 +439,19 @@ describe('injectQuery', () => {
     fixture.detectChanges()
     const { query1, query2 } = fixture.componentInstance
 
-    expect(query1.data()).toStrictEqual(undefined)
-    expect(query2.fetchStatus()).toStrictEqual('idle')
+    expect(query1.data).toStrictEqual(undefined)
+    expect(query2.fetchStatus).toStrictEqual('idle')
     expect(dependentQueryFn).not.toHaveBeenCalled()
 
     await vi.advanceTimersByTimeAsync(11)
 
-    expect(query1.data()).toStrictEqual('Some data')
-    expect(query2.fetchStatus()).toStrictEqual('fetching')
+    expect(query1.data).toStrictEqual('Some data')
+    expect(query2.fetchStatus).toStrictEqual('fetching')
 
     await vi.advanceTimersByTimeAsync(1002)
 
-    expect(query2.fetchStatus()).toStrictEqual('idle')
-    expect(query2.status()).toStrictEqual('success')
+    expect(query2.fetchStatus).toStrictEqual('idle')
+    expect(query2.status).toStrictEqual('success')
     expect(dependentQueryFn).toHaveBeenCalledTimes(1)
     expect(dependentQueryFn).toHaveBeenCalledWith(
       expect.objectContaining({ queryKey: ['dependant2'] }),
@@ -652,17 +650,17 @@ describe('injectQuery', () => {
     fixture.detectChanges()
     const query = fixture.componentInstance.query
 
-    expect(query.status()).toBe('pending')
+    expect(query.status).toBe('pending')
 
     await vi.advanceTimersByTimeAsync(11)
 
-    expect(query.status()).toBe('error')
+    expect(query.status).toBe('error')
   })
 
   test('should render with required signal inputs', async () => {
     @Component({
       selector: 'app-fake',
-      template: `{{ query.data() }}`,
+      template: `{{ query.data }}`,
       changeDetection: ChangeDetectionStrategy.OnPush,
     })
     class FakeComponent {
@@ -726,7 +724,7 @@ describe('injectQuery', () => {
       fixture.detectChanges()
       const query = fixture.componentInstance.query
 
-      expect(query.status()).toBe('pending')
+      expect(query.status).toBe('pending')
     })
 
     test('should complete queries before whenStable() resolves', async () => {
@@ -751,14 +749,14 @@ describe('injectQuery', () => {
       fixture.detectChanges()
       const query = fixture.componentInstance.query
 
-      expect(query.status()).toBe('pending')
-      expect(query.data()).toBeUndefined()
+      expect(query.status).toBe('pending')
+      expect(query.data).toBeUndefined()
 
       await vi.advanceTimersByTimeAsync(60)
       await app.whenStable()
 
-      expect(query.status()).toBe('success')
-      expect(query.data()).toBe('test data')
+      expect(query.status).toBe('success')
+      expect(query.data).toBe('test data')
     })
 
     test('should complete HttpClient-based queries before whenStable() resolves', async () => {
@@ -803,15 +801,15 @@ describe('injectQuery', () => {
       }, 10)
 
       // Initial state
-      expect(query.status()).toBe('pending')
+      expect(query.status).toBe('pending')
 
       // Advance timers and wait for Angular to be "stable"
       await vi.advanceTimersByTimeAsync(20)
       await app.whenStable()
 
       // Query should be complete after whenStable() thanks to PendingTasks integration
-      expect(query.status()).toBe('success')
-      expect(query.data()).toEqual({ message: 'http test data' })
+      expect(query.status).toBe('success')
+      expect(query.data).toEqual({ message: 'http test data' })
 
       httpTestingController.verify()
     })
@@ -851,8 +849,8 @@ describe('injectQuery', () => {
 
       await app.whenStable()
 
-      expect(query.status()).toBe('success')
-      expect(query.data()).toBe('sync-data-1')
+      expect(query.status).toBe('success')
+      expect(query.data).toBe('sync-data-1')
       expect(component.callCount).toBe(1)
 
       await query.refetch()
@@ -860,8 +858,8 @@ describe('injectQuery', () => {
       await vi.runAllTimersAsync()
       await app.whenStable()
 
-      expect(query.status()).toBe('success')
-      expect(query.data()).toBe('sync-data-2')
+      expect(query.status).toBe('success')
+      expect(query.data).toBe('sync-data-2')
       expect(component.callCount).toBe(2)
     })
 
@@ -903,8 +901,8 @@ describe('injectQuery', () => {
       // Initially disabled
       await vi.advanceTimersByTimeAsync(0)
       await app.whenStable()
-      expect(query.status()).toBe('pending')
-      expect(query.data()).toBeUndefined()
+      expect(query.status).toBe('pending')
+      expect(query.data).toBeUndefined()
       expect(component.callCount).toBe(0)
 
       // Enable the query
@@ -913,8 +911,8 @@ describe('injectQuery', () => {
 
       await vi.advanceTimersByTimeAsync(0)
       await app.whenStable()
-      expect(query.status()).toBe('success')
-      expect(query.data()).toBe('sync-data-1')
+      expect(query.status).toBe('success')
+      expect(query.data).toBe('sync-data-1')
       expect(component.callCount).toBe(1)
     })
 
@@ -952,8 +950,8 @@ describe('injectQuery', () => {
       const query = component.query
 
       await app.whenStable()
-      expect(query.status()).toBe('success')
-      expect(query.data()).toBe('sync-data-1')
+      expect(query.status).toBe('success')
+      expect(query.data).toBe('sync-data-1')
       expect(component.callCount).toBe(1)
 
       // Invalidate the query
@@ -964,8 +962,8 @@ describe('injectQuery', () => {
       await vi.advanceTimersByTimeAsync(10)
 
       await app.whenStable()
-      expect(query.status()).toBe('success')
-      expect(query.data()).toBe('sync-data-2')
+      expect(query.status).toBe('success')
+      expect(query.data).toBe('sync-data-2')
       expect(component.callCount).toBe(2)
     })
   })
