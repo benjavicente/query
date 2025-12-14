@@ -174,4 +174,29 @@ describe('InjectQueries config object overload', () => {
       >
     >()
   })
+
+  it('should return correct data when combine is provided', () => {
+    const queryResults = injectQueries(() => ({
+      queries: [
+        {
+          queryKey: ['key1'],
+          queryFn: () => Promise.resolve(1),
+        },
+        {
+          queryKey: ['key2'],
+          queryFn: () => Promise.resolve('2'),
+        },
+      ],
+      combine: (results) => {
+        return {
+          data: [results[0].data, results[1].data] as const,
+          pending: results.some((r) => r.isPending),
+        }
+      },
+    }))
+
+    expectTypeOf(queryResults().data[0]).toEqualTypeOf<number | undefined>()
+    expectTypeOf(queryResults().data[1]).toEqualTypeOf<string | undefined>()
+    expectTypeOf(queryResults().pending).toEqualTypeOf<boolean>()
+  })
 })

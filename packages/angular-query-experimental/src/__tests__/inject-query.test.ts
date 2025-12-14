@@ -692,6 +692,31 @@ describe('injectQuery', () => {
     expect(result).toEqual('signal-input-required-test')
   })
 
+  test('should keep query signals in sync when read in the template', async () => {
+    @Component({
+      selector: 'app-template-query',
+      template: `{{ query.data() }}`,
+      changeDetection: ChangeDetectionStrategy.OnPush,
+    })
+    class TemplateQueryComponent {
+      query = injectQuery(() => ({
+        queryKey: ['template-query'],
+        queryFn: () => Promise.resolve([1, 2, 3, 4, 5] as const),
+      }))
+    }
+
+    const fixture = TestBed.createComponent(TemplateQueryComponent)
+    fixture.detectChanges()
+
+    expect(fixture.isStable()).toBe(false)
+    const stablePromise = fixture.whenStable()
+    await vi.advanceTimersByTimeAsync(0)
+    await stablePromise
+
+    expect(fixture.componentInstance.query.isSuccess()).toBe(true)
+    expect(fixture.componentInstance.query.data()).toEqual([1, 2, 3, 4, 5])
+  })
+
   describe('injection context', () => {
     test('throws NG0203 with descriptive error outside injection context', () => {
       expect(() => {
@@ -849,7 +874,9 @@ describe('injectQuery', () => {
       const component = fixture.componentInstance
       const query = component.query
 
-      await app.whenStable()
+      const stablePromise = app.whenStable()
+      await vi.advanceTimersByTimeAsync(10)
+      await stablePromise
 
       expect(query.status()).toBe('success')
       expect(query.data()).toBe('sync-data-1')
@@ -951,7 +978,10 @@ describe('injectQuery', () => {
       const component = fixture.componentInstance
       const query = component.query
 
-      await app.whenStable()
+      const stablePromise = app.whenStable()
+      await vi.advanceTimersByTimeAsync(10)
+      await stablePromise
+
       expect(query.status()).toBe('success')
       expect(query.data()).toBe('sync-data-1')
       expect(component.callCount).toBe(1)
