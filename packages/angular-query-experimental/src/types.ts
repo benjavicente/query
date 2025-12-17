@@ -16,7 +16,7 @@ import type {
   QueryObserverResult,
 } from '@tanstack/query-core'
 import type { Signal } from '@angular/core'
-import type { MapToSignals } from './signal-proxy'
+import type { MapToSignals, FunctionKeys } from './signal-proxy'
 
 export interface CreateBaseQueryOptions<
   TQueryFnData = unknown,
@@ -100,7 +100,10 @@ export type CreateBaseQueryResult<
   TError = DefaultError,
   TState = QueryObserverResult<TData, TError>,
 > = BaseQueryNarrowing<TData, TError> &
-  MapToSignals<OmitKeyof<TState, keyof BaseQueryNarrowing, 'safely'>>
+  MapToSignals<
+    OmitKeyof<TState, keyof BaseQueryNarrowing, 'safely'>,
+    FunctionKeys<OmitKeyof<TState, keyof BaseQueryNarrowing, 'safely'>>
+  >
 
 export type CreateQueryResult<
   TData = unknown,
@@ -112,13 +115,19 @@ export type DefinedCreateQueryResult<
   TError = DefaultError,
   TState = DefinedQueryObserverResult<TData, TError>,
 > = BaseQueryNarrowing<TData, TError> &
-  MapToSignals<OmitKeyof<TState, keyof BaseQueryNarrowing, 'safely'>>
+  MapToSignals<
+    OmitKeyof<TState, keyof BaseQueryNarrowing, 'safely'>,
+    FunctionKeys<OmitKeyof<TState, keyof BaseQueryNarrowing, 'safely'>>
+  >
 
 export type CreateInfiniteQueryResult<
   TData = unknown,
   TError = DefaultError,
 > = BaseQueryNarrowing<TData, TError> &
-  MapToSignals<InfiniteQueryObserverResult<TData, TError>>
+  MapToSignals<
+    InfiniteQueryObserverResult<TData, TError>,
+    FunctionKeys<InfiniteQueryObserverResult<TData, TError>>
+  >
 
 export type DefinedCreateInfiniteQueryResult<
   TData = unknown,
@@ -127,7 +136,10 @@ export type DefinedCreateInfiniteQueryResult<
     TData,
     TError
   >,
-> = MapToSignals<TDefinedInfiniteQueryObserver>
+> = MapToSignals<
+  TDefinedInfiniteQueryObserver,
+  FunctionKeys<TDefinedInfiniteQueryObserver>
+>
 
 export interface CreateMutationOptions<
   TData = unknown,
@@ -276,4 +288,7 @@ export type CreateMutationResult<
     TOnMutateResult
   >,
 > = BaseMutationNarrowing<TData, TError, TVariables, TOnMutateResult> &
-  MapToSignals<OmitKeyof<TState, keyof BaseMutationNarrowing, 'safely'>>
+  MapToSignals<
+    OmitKeyof<TState, keyof BaseMutationNarrowing, 'safely'>,
+    FunctionKeys<OmitKeyof<TState, keyof BaseMutationNarrowing, 'safely'>>
+  >

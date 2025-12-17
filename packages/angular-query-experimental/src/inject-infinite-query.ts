@@ -110,8 +110,20 @@ export function injectInfiniteQuery<
  * @param options - Additional configuration.
  * @returns The infinite query result.
  */
-export function injectInfiniteQuery(
-  injectInfiniteQueryFn: () => CreateInfiniteQueryOptions,
+export function injectInfiniteQuery<
+  TQueryFnData = unknown,
+  TError = DefaultError,
+  TData = InfiniteData<TQueryFnData>,
+  TQueryKey extends QueryKey = QueryKey,
+  TPageParam = unknown,
+>(
+  injectInfiniteQueryFn: () => CreateInfiniteQueryOptions<
+    TQueryFnData,
+    TError,
+    TData,
+    TQueryKey,
+    TPageParam
+  >,
   options?: InjectInfiniteQueryOptions,
 ) {
   !options?.injector && assertInInjectionContext(injectInfiniteQuery)
@@ -120,6 +132,7 @@ export function injectInfiniteQuery(
     createBaseQuery(
       injectInfiniteQueryFn,
       InfiniteQueryObserver as typeof QueryObserver,
+      ['refetch', 'fetchNextPage', 'fetchPreviousPage'],
     ),
   )
 }

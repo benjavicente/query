@@ -27,6 +27,7 @@ import type { CreateBaseQueryOptions } from './types'
  * Base implementation for `injectQuery` and `injectInfiniteQuery`.
  * @param optionsFn
  * @param Observer
+ * @param excludeFunctions - Array of function property names to exclude from signal conversion
  */
 export function createBaseQuery<
   TQueryFnData,
@@ -43,6 +44,7 @@ export function createBaseQuery<
     TQueryKey
   >,
   Observer: typeof QueryObserver,
+  excludeFunctions: ReadonlyArray<string> = [],
 ) {
   const ngZone = inject(NgZone)
   const pendingTasks = inject(PendingTasks)
@@ -211,7 +213,7 @@ export function createBaseQuery<
     })
   })
 
-  return signalProxy(resultSignal.asReadonly())
+  return signalProxy(resultSignal.asReadonly(), excludeFunctions)
 }
 const OBSERVER_NOT_READY_ERROR =
   'injectQuery: QueryObserver not initialized yet. Avoid reading the query result during construction'
