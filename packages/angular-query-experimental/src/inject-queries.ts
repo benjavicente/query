@@ -323,8 +323,8 @@ export function injectQueries<
       return combine
         ? result
         : (result as QueriesResults<T>).map((query) =>
-            signalProxy(signal(query)),
+            signalProxy(signal(query), ['refetch']),
           )
     })
-  }) as unknown as Signal<TCombinedResult>
+  }) as Signal<TCombinedResult>
 }
