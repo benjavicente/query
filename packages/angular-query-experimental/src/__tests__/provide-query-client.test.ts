@@ -1,8 +1,9 @@
 import { TestBed } from '@angular/core/testing'
 import { describe, expect, test } from 'vitest'
-import { InjectionToken, provideZonelessChangeDetection } from '@angular/core'
+import { InjectionToken } from '@angular/core'
 import { QueryClient } from '@tanstack/query-core'
 import { provideQueryClient } from '../providers'
+import { provideZonelessChangeDetection } from './test-utils'
 
 describe('provideQueryClient', () => {
   test('should provide a QueryClient instance directly', () => {

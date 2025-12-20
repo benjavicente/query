@@ -4,14 +4,18 @@ import {
   Component,
   Injector,
   input,
-  provideZonelessChangeDetection,
   signal,
 } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { sleep } from '@tanstack/query-test-utils'
 import { QueryClient, injectMutation, provideTanStackQuery } from '..'
-import { expectSignals, registerSignalInput } from './test-utils'
+import {
+  expectSignals,
+  provideZonelessChangeDetection,
+  registerSignalInput,
+  tick,
+} from './test-utils'
 
 describe('injectMutation', () => {
   let queryClient: QueryClient
@@ -38,6 +42,8 @@ describe('injectMutation', () => {
       }))
     })
 
+    tick()
+
     expectSignals(mutation, {
       isIdle: true,
       isPending: false,
@@ -54,8 +60,7 @@ describe('injectMutation', () => {
         mutationFn: (params: string) => sleep(10).then(() => params),
       }))
     })
-
-    TestBed.tick()
+    tick()
 
     mutation.mutate(result)
     await vi.advanceTimersByTimeAsync(0)
@@ -435,8 +440,7 @@ describe('injectMutation', () => {
         }))
       })
 
-      TestBed.tick()
-
+      tick()
       mutate()
 
       await vi.advanceTimersByTimeAsync(0)
@@ -566,18 +570,7 @@ describe('injectMutation', () => {
       mutation.mutate('retry-test')
 
       // Synchronize pending effects for each retry attempt
-      TestBed.tick()
-      await Promise.resolve()
-      await vi.advanceTimersByTimeAsync(10)
-
-      TestBed.tick()
-      await Promise.resolve()
-      await vi.advanceTimersByTimeAsync(10)
-
-      TestBed.tick()
-
       const stablePromise = app.whenStable()
-      await Promise.resolve()
       await vi.advanceTimersByTimeAsync(10)
       await stablePromise
 
@@ -623,7 +616,7 @@ describe('injectMutation', () => {
       mutation2.mutate('test2')
 
       // Synchronize pending effects
-      TestBed.tick()
+      tick()
 
       const stablePromise = app.whenStable()
       // Flush microtasks to allow TanStack Query's scheduled notifications to process
@@ -675,7 +668,7 @@ describe('injectMutation', () => {
       mutation.mutate('test')
 
       // Synchronize pending effects
-      TestBed.tick()
+      tick()
 
       const stablePromise = app.whenStable()
       // Flush microtasks to allow TanStack Query's scheduled notifications to process
@@ -712,7 +705,7 @@ describe('injectMutation', () => {
       mutation.mutate('test')
 
       // Synchronize pending effects
-      TestBed.tick()
+      tick()
 
       const stablePromise = app.whenStable()
       // Flush microtasks to allow TanStack Query's scheduled notifications to process

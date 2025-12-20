@@ -6,7 +6,6 @@ import {
   NgZone,
   computed,
   input,
-  provideZonelessChangeDetection,
   signal,
 } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
@@ -27,7 +26,10 @@ import {
 import { queryKey, sleep } from '@tanstack/query-test-utils'
 import { lastValueFrom } from 'rxjs'
 import { QueryCache, QueryClient, injectQuery, provideTanStackQuery } from '..'
-import { registerSignalInput } from './test-utils'
+import {
+  provideZonelessChangeDetection,
+  registerSignalInput,
+} from './test-utils'
 import type { CreateQueryOptions, OmitKeyof, QueryFunction } from '..'
 
 describe('injectQuery', () => {

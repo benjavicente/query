@@ -1,8 +1,5 @@
-import {
-  isSignal,
-  provideZonelessChangeDetection,
-  untracked,
-} from '@angular/core'
+import * as ng from '@angular/core'
+import { isSignal, untracked } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
 import { expect, vi } from 'vitest'
 import { provideTanStackQuery } from '..'
@@ -13,6 +10,25 @@ import type {
   Signal,
   Type,
 } from '@angular/core'
+
+const isAngular19 = 'provideExperimentalZonelessChangeDetection' in ng
+
+export function provideZonelessChangeDetection() {
+  if (isAngular19) {
+    //@ts-ignore
+    return ng.provideExperimentalZonelessChangeDetection()
+  } else {
+    return ng.provideZonelessChangeDetection()
+  }
+}
+
+export function tick() {
+  if (isAngular19) {
+    TestBed.tick()
+  } else {
+    TestBed.flushEffects()
+  }
+}
 
 // Evaluate all signals on an object and return the result
 function evaluateSignals<T extends Record<string, any>>(

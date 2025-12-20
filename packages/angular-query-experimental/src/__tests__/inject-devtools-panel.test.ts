@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { QueryClient } from '@tanstack/query-core'
 import { injectDevtoolsPanel } from '../devtools-panel'
-import { setupTanStackQueryTestBed } from './test-utils'
+import { setupTanStackQueryTestBed, tick } from './test-utils'
 
 const mockDevtoolsPanelInstance = {
   mount: vi.fn(),
@@ -64,7 +64,7 @@ describe('injectDevtoolsPanel', () => {
       }))
     })
 
-    TestBed.tick()
+    tick()
 
     await waitForDevtoolsToBeCreated()
 
@@ -78,7 +78,7 @@ describe('injectDevtoolsPanel', () => {
       }))
     })
 
-    TestBed.tick()
+    tick()
 
     await waitForDevtoolsToBeCreated()
 
@@ -96,7 +96,7 @@ describe('injectDevtoolsPanel', () => {
       }))
     })
 
-    TestBed.tick()
+    tick()
 
     await waitForDevtoolsToBeCreated()
 
@@ -104,7 +104,7 @@ describe('injectDevtoolsPanel', () => {
 
     hostElement.set(null as unknown as ElementRef)
 
-    TestBed.tick()
+    tick()
 
     expect(mockDevtoolsPanelInstance.unmount).toHaveBeenCalledTimes(1)
   })
@@ -119,15 +119,13 @@ describe('injectDevtoolsPanel', () => {
       }))
     })
 
-    TestBed.tick()
-
     await waitForDevtoolsToBeCreated()
 
     expect(mockDevtoolsPanelInstance.setClient).toHaveBeenCalledTimes(0)
 
     client.set(new QueryClient())
 
-    TestBed.tick()
+    tick()
 
     expect(mockDevtoolsPanelInstance.setClient).toHaveBeenCalledTimes(1)
   })
@@ -142,7 +140,7 @@ describe('injectDevtoolsPanel', () => {
       }))
     })
 
-    TestBed.tick()
+    tick()
 
     await waitForDevtoolsToBeCreated()
 
@@ -150,7 +148,7 @@ describe('injectDevtoolsPanel', () => {
 
     errorTypes.set([])
 
-    TestBed.tick()
+    tick()
 
     expect(mockDevtoolsPanelInstance.setErrorTypes).toHaveBeenCalledTimes(1)
   })
@@ -168,15 +166,14 @@ describe('injectDevtoolsPanel', () => {
       }))
     })
 
-    TestBed.tick()
+    tick()
 
     await waitForDevtoolsToBeCreated()
 
     expect(mockDevtoolsPanelInstance.setOnClose).toHaveBeenCalledTimes(0)
 
     onClose.set(functionB)
-
-    TestBed.tick()
+    tick()
 
     expect(mockDevtoolsPanelInstance.setOnClose).toHaveBeenCalledTimes(1)
   })
