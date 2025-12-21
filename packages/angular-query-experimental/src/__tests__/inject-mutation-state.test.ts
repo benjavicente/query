@@ -3,7 +3,6 @@ import {
   Component,
   Injector,
   input,
-  provideZonelessChangeDetection,
   signal,
 } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
@@ -15,7 +14,10 @@ import {
   injectMutationState,
   provideTanStackQuery,
 } from '..'
-import { registerSignalInput } from './test-utils'
+import {
+  provideZonelessChangeDetection,
+  registerSignalInput,
+} from './test-utils'
 
 describe('injectMutationState', () => {
   let queryClient: QueryClient

@@ -8,12 +8,15 @@ import {
   PLATFORM_ID,
   createEnvironmentInjector,
   isDevMode,
-  provideZonelessChangeDetection,
   signal,
 } from '@angular/core'
 import { provideTanStackQuery } from '../providers'
 import { withDevtools } from '../devtools'
-import { flushQueryUpdates } from './test-utils'
+import {
+  flushQueryUpdates,
+  provideZonelessChangeDetection,
+  tick,
+} from './test-utils'
 import type {
   DevtoolsButtonPosition,
   DevtoolsErrorType,
@@ -136,9 +139,7 @@ describe('withDevtools feature', () => {
 
       TestBed.inject(ENVIRONMENT_INITIALIZER)
       await flushQueryUpdates()
-      TestBed.tick()
       await vi.dynamicImportSettled()
-      TestBed.tick()
       await vi.dynamicImportSettled()
 
       if (expectedCalled) {
@@ -250,7 +251,7 @@ describe('withDevtools feature', () => {
     TestBed.inject(ENVIRONMENT_INITIALIZER)
     await flushQueryUpdates()
 
-    TestBed.tick()
+    tick()
 
     expect(mockDevtoolsInstance.setErrorTypes).toHaveBeenCalledTimes(0)
 
@@ -263,7 +264,7 @@ describe('withDevtools feature', () => {
 
     errorTypes.set(newErrorTypes)
 
-    TestBed.tick()
+    tick()
 
     expect(mockDevtoolsInstance.setErrorTypes).toHaveBeenCalledTimes(1)
     expect(mockDevtoolsInstance.setErrorTypes).toHaveBeenCalledWith(
@@ -290,14 +291,14 @@ describe('withDevtools feature', () => {
     TestBed.inject(ENVIRONMENT_INITIALIZER)
     await flushQueryUpdates()
 
-    TestBed.tick()
+    tick()
 
     expect(mockDevtoolsInstance.setClient).toHaveBeenCalledTimes(0)
 
     const newClient = new QueryClient()
     client.set(newClient)
 
-    TestBed.tick()
+    tick()
 
     expect(mockDevtoolsInstance.setClient).toHaveBeenCalledTimes(1)
     expect(mockDevtoolsInstance.setClient).toHaveBeenCalledWith(newClient)
@@ -322,13 +323,13 @@ describe('withDevtools feature', () => {
     TestBed.inject(ENVIRONMENT_INITIALIZER)
     await flushQueryUpdates()
 
-    TestBed.tick()
+    tick()
 
     expect(mockDevtoolsInstance.setPosition).toHaveBeenCalledTimes(0)
 
     position.set('left')
 
-    TestBed.tick()
+    tick()
 
     expect(mockDevtoolsInstance.setPosition).toHaveBeenCalledTimes(1)
     expect(mockDevtoolsInstance.setPosition).toHaveBeenCalledWith('left')
@@ -353,13 +354,13 @@ describe('withDevtools feature', () => {
     TestBed.inject(ENVIRONMENT_INITIALIZER)
     await flushQueryUpdates()
 
-    TestBed.tick()
+    tick()
 
     expect(mockDevtoolsInstance.setButtonPosition).toHaveBeenCalledTimes(0)
 
     buttonPosition.set('bottom-right')
 
-    TestBed.tick()
+    tick()
 
     expect(mockDevtoolsInstance.setButtonPosition).toHaveBeenCalledTimes(1)
     expect(mockDevtoolsInstance.setButtonPosition).toHaveBeenCalledWith(
@@ -386,13 +387,13 @@ describe('withDevtools feature', () => {
     TestBed.inject(ENVIRONMENT_INITIALIZER)
     await flushQueryUpdates()
 
-    TestBed.tick()
+    tick()
 
     expect(mockDevtoolsInstance.setInitialIsOpen).toHaveBeenCalledTimes(0)
 
     initialIsOpen.set(true)
 
-    TestBed.tick()
+    tick()
 
     expect(mockDevtoolsInstance.setInitialIsOpen).toHaveBeenCalledTimes(1)
     expect(mockDevtoolsInstance.setInitialIsOpen).toHaveBeenCalledWith(true)
@@ -421,7 +422,7 @@ describe('withDevtools feature', () => {
 
     loadDevtools.set(false)
 
-    TestBed.tick()
+    tick()
 
     expect(mockDevtoolsInstance.unmount).toHaveBeenCalledTimes(1)
   })
@@ -441,7 +442,6 @@ describe('withDevtools feature', () => {
 
     TestBed.inject(ENVIRONMENT_INITIALIZER)
     await flushQueryUpdates()
-    TestBed.tick()
     await vi.dynamicImportSettled()
 
     expect(mockTanstackQueryDevtools).toHaveBeenCalled()
@@ -476,7 +476,7 @@ describe('withDevtools feature', () => {
     expect(mockDevtoolsInstance.mount).not.toHaveBeenCalled()
 
     loadDevtools.set(true)
-    TestBed.tick()
+    tick()
     await vi.dynamicImportSettled()
 
     expect(mockTanstackQueryDevtools).toHaveBeenCalledTimes(1)
@@ -484,13 +484,13 @@ describe('withDevtools feature', () => {
     expect(mockDevtoolsInstance.unmount).not.toHaveBeenCalled()
 
     loadDevtools.set(false)
-    TestBed.tick()
+    tick()
 
     expect(mockDevtoolsInstance.unmount).toHaveBeenCalledTimes(1)
     expect(mockDevtoolsInstance.mount).toHaveBeenCalledTimes(1)
 
     loadDevtools.set(true)
-    TestBed.tick()
+    tick()
     await vi.dynamicImportSettled()
 
     // Should remount (mount called twice now)
@@ -585,7 +585,7 @@ describe('withDevtools feature', () => {
       expect(mockTanstackQueryDevtools).not.toHaveBeenCalled()
 
       service.enabled.set(true)
-      TestBed.tick()
+      tick()
       await vi.dynamicImportSettled()
 
       expect(mockTanstackQueryDevtools).toHaveBeenCalledTimes(1)
@@ -596,7 +596,7 @@ describe('withDevtools feature', () => {
       )
 
       service.position.set('top')
-      TestBed.tick()
+      tick()
 
       expect(mockDevtoolsInstance.setPosition).toHaveBeenCalledWith('top')
     })

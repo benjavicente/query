@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { ChangeDetectionStrategy, Component, Injector } from '@angular/core'
 import { sleep } from '@tanstack/query-test-utils'
 import { QueryClient, injectInfiniteQuery } from '..'
-import { expectSignals, setupTanStackQueryTestBed } from './test-utils'
+import { expectSignals, setupTanStackQueryTestBed, tick } from './test-utils'
 
 describe('injectInfiniteQuery', () => {
   let queryClient: QueryClient
@@ -96,7 +96,7 @@ describe('injectInfiniteQuery', () => {
         },
       )
 
-      TestBed.tick()
+      tick()
 
       expect(query.status()).toBe('pending')
     })

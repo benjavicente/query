@@ -2,7 +2,6 @@ import {
   ChangeDetectionStrategy,
   Component,
   destroyPlatform,
-  provideZonelessChangeDetection,
 } from '@angular/core'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
@@ -16,6 +15,7 @@ import { injectQuery } from '../inject-query'
 import { sleep } from '@tanstack/query-test-utils'
 import { provideTanStackQuery } from '../providers'
 import { QueryClient } from '@tanstack/query-core'
+import { provideZonelessChangeDetection } from './test-utils'
 
 describe('PendingTasks SSR', () => {
   beforeEach(() => {
@@ -45,18 +45,24 @@ describe('PendingTasks SSR', () => {
 
   test('should wait for stability of queries', async () => {
     const htmlPromise = renderApplication(
-      () =>
-        bootstrapApplication(TestComponent, {
-          providers: [
-            provideServerRendering(),
-            provideZonelessChangeDetection(),
-            provideTanStackQuery(
-              new QueryClient({
-                defaultOptions: { queries: { retry: false } },
-              }),
-            ),
-          ],
-        }),
+      (context) =>
+        bootstrapApplication(
+          TestComponent,
+          {
+            providers: [
+              provideServerRendering(),
+              provideZonelessChangeDetection(),
+              provideTanStackQuery(
+                new QueryClient({
+                  defaultOptions: { queries: { retry: false } },
+                }),
+              ),
+            ],
+          },
+          // @ts-expect-error changed in 18.2.14, 19.2.15, 20.3.0, and later
+          // See https://github.com/angular/angular/security/advisories/GHSA-68x2-mx4q-78m7
+          context,
+        ),
       {
         url: '/',
         document:

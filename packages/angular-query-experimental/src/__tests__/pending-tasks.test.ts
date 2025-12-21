@@ -13,7 +13,11 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { sleep } from '@tanstack/query-test-utils'
 import { lastValueFrom } from 'rxjs'
 import { QueryClient, injectMutation, injectQuery, onlineManager } from '..'
-import { flushQueryUpdates, setupTanStackQueryTestBed } from './test-utils'
+import {
+  flushQueryUpdates,
+  setupTanStackQueryTestBed,
+  tick,
+} from './test-utils'
 
 describe('PendingTasks Integration', () => {
   let queryClient: QueryClient
@@ -114,7 +118,7 @@ describe('PendingTasks Integration', () => {
 
       mutation.mutate('test')
 
-      TestBed.tick()
+      tick()
 
       const stablePromise = app.whenStable()
       await Promise.resolve()
@@ -139,7 +143,7 @@ describe('PendingTasks Integration', () => {
       )
 
       mutation.mutate()
-      TestBed.tick()
+      tick()
 
       const stablePromise = app.whenStable()
       await Promise.resolve()
@@ -482,9 +486,8 @@ describe('PendingTasks Integration', () => {
       mutation2.mutate('test2')
       mutation3.mutate('test3')
 
-      TestBed.tick()
-
       const stablePromise = app.whenStable()
+      tick()
       await vi.advanceTimersByTimeAsync(60)
       await stablePromise
 
@@ -636,8 +639,6 @@ describe('PendingTasks Integration', () => {
 
       // Advance to the cancellation point
       await vi.advanceTimersByTimeAsync(20)
-
-      TestBed.tick()
 
       const stablePromise = app.whenStable()
       await vi.advanceTimersByTimeAsync(130)

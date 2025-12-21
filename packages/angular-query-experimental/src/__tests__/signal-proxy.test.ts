@@ -4,13 +4,15 @@ import {
   computed,
   input,
   isSignal,
-  provideZonelessChangeDetection,
   untracked,
   signal,
 } from '@angular/core'
 import { beforeEach, describe, expect, test } from 'vitest'
 import { signalProxy } from '../signal-proxy'
-import { registerSignalInput } from './test-utils'
+import {
+  provideZonelessChangeDetection,
+  registerSignalInput,
+} from './test-utils'
 import { TestBed } from '@angular/core/testing'
 
 describe('signalProxy', () => {

@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing'
 import { afterEach, beforeEach, describe, expectTypeOf, test, vi } from 'vitest'
-import { provideZonelessChangeDetection } from '@angular/core'
 import { sleep } from '@tanstack/query-test-utils'
 import { QueryClient, injectInfiniteQuery, provideTanStackQuery } from '..'
+import { provideZonelessChangeDetection } from './test-utils'
 import type { InfiniteData } from '@tanstack/query-core'
 
 describe('injectInfiniteQuery', () => {
