@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   Injector,
+  NgZone,
   input,
   provideZonelessChangeDetection,
   signal,
@@ -446,26 +447,34 @@ describe('injectMutation', () => {
       expect(boundaryFn).toHaveBeenCalledWith(err)
     })
 
-    test('should throw when throwOnError is true and mutate is used', async () => {
-      const { mutate } = TestBed.runInInjectionContext(() => {
-        return injectMutation(() => ({
-          mutationKey: ['fake'],
-          mutationFn: () => {
-            return Promise.reject(
-              new Error('Expected mock error. All is well!'),
-            )
-          },
-          throwOnError: true,
-        }))
+    test('should emit zone error when throwOnError is true and mutate is used', async () => {
+      const err = new Error('Expected mock error. All is well!')
+      const zone = TestBed.inject(NgZone)
+      const zoneErrorEmitSpy = vi.spyOn(zone.onError, 'emit')
+      const runSpy = vi.spyOn(zone, 'run').mockImplementation((callback: any) => {
+        try {
+          return callback()
+        } catch {
+          return undefined
+        }
       })
 
-      TestBed.tick()
+      const { mutate } = TestBed.runInInjectionContext(() =>
+        injectMutation(() => ({
+          mutationKey: ['fake'],
+          mutationFn: () => {
+            return sleep(0).then(() => Promise.reject(err))
+          },
+          throwOnError: true,
+        })),
+      )
 
       mutate()
 
-      await expect(vi.advanceTimersByTimeAsync(0)).rejects.toThrow(
-        'Expected mock error. All is well!',
-      )
+      await vi.runAllTimersAsync()
+
+      expect(zoneErrorEmitSpy).toHaveBeenCalledWith(err)
+      expect(runSpy).toHaveBeenCalled()
     })
   })
 
