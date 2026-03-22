@@ -65,18 +65,26 @@ export function withPersistQueryClient(
 
       const { onSuccess, onError, persistOptions } = persistQueryClientOptions
       const options = { queryClient, ...persistOptions }
-      persistQueryClientRestore(options)
-        .then(() => {
-          onSuccess?.()
-        })
-        .catch(() => {
-          onError?.()
-        })
-        .finally(() => {
-          isRestoring.set(false)
-          const cleanup = persistQueryClientSubscribe(options)
-          destroyRef.onDestroy(cleanup)
-        })
+      let cleanup: (() => void) | undefined
+      let isDestroyed = false
+
+      destroyRef.onDestroy(() => {
+        isDestroyed = true
+        cleanup?.()
+      })
+
+      void persistQueryClientRestore(options).then(() => {
+        return onSuccess?.()
+      }).catch(() => {
+        return onError?.()
+      }).finally(() => {
+        if (isDestroyed) {
+          return
+        }
+
+        isRestoring.set(false)
+        cleanup = persistQueryClientSubscribe(options)
+      })
     }),
   ]
   return queryFeature('PersistQueryClient', providers)
