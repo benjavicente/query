@@ -14,7 +14,12 @@ import { signalProxy } from '../signal-proxy'
 import { registerSignalInput } from './test-utils'
 
 describe('signalProxy', () => {
-  const inputSignal = signal({ fn: () => 'bar', baz: 'qux' })
+  const inputSignal = signal({
+    fn: () => 'bar',
+    baz: 'qux',
+    falsy: false,
+    zero: 0,
+  })
   const proxy = signalProxy(inputSignal, ['fn'])
 
   test('should have computed fields', () => {
@@ -29,11 +34,13 @@ describe('signalProxy', () => {
 
   test('supports "in" operator', () => {
     expect('baz' in proxy).toBe(true)
+    expect('falsy' in proxy).toBe(true)
+    expect('zero' in proxy).toBe(true)
     expect('foo' in proxy).toBe(false)
   })
 
   test('supports "Object.keys"', () => {
-    expect(Object.keys(proxy)).toEqual(['fn', 'baz'])
+    expect(Object.keys(proxy)).toEqual(['fn', 'baz', 'falsy', 'zero'])
   })
 
   describe('in component fixture', () => {

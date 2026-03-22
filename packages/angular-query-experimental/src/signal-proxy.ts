@@ -45,7 +45,7 @@ export function signalProxy<
         return (target[prop] = computed(() => inputSignal()[prop]))
       },
       has(_, prop) {
-        return !!untracked(inputSignal)[prop]
+        return prop in untracked(inputSignal)
       },
       ownKeys() {
         return Reflect.ownKeys(untracked(inputSignal))
