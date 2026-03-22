@@ -45,22 +45,15 @@ import {
 export class AppModule {}
 ```
 
-You can also enable optional developer tools by adding `withDevtools`. By
-default the tools will then be loaded when your app is in development mode.
-```ts
-import {
-  provideTanStackQuery,
-  withDevtools
-  QueryClient,
-} from '@tanstack/angular-query-experimental'
+You can also enable optional developer tools by adding `withDevtools` from `@tanstack/angular-query-devtools`. By default the tools will then be loaded when your app is in development mode.
 
-bootstrapApplication(AppComponent,
-  {
-    providers: [
-      provideTanStackQuery(new QueryClient(), withDevtools())
-    ]
-  }
-)
+```ts
+import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental'
+import { withDevtools } from '@tanstack/angular-query-devtools'
+
+bootstrapApplication(AppComponent, {
+  providers: [provideTanStackQuery(new QueryClient(), withDevtools())],
+})
 ```
 
 **Example: using an InjectionToken**
@@ -100,5 +93,5 @@ A set of providers to set up TanStack Query.
 
 ## See
 
- - https://tanstack.com/query/v5/docs/framework/angular/quick-start
- - withDevtools
+- https://tanstack.com/query/v5/docs/framework/angular/quick-start
+- https://tanstack.com/query/v5/docs/framework/angular/devtools

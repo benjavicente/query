@@ -31,4 +31,6 @@ or
 bun add @tanstack/angular-query-experimental
 ```
 
+To use [Devtools](./devtools), also install `@tanstack/angular-query-devtools`.
+
 > Wanna give it a spin before you download? Try out the [simple](./examples/simple) or [basic](./examples/basic) examples!

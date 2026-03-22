@@ -1,13 +1,13 @@
 {
-  "name": "@tanstack/angular-query-experimental",
-  "version": "5.95.2",
-  "description": "Signals for managing, caching and syncing asynchronous and remote data in Angular",
+  "name": "@tanstack/angular-query-devtools",
+  "version": "5.90.25",
+  "description": "Developer tools to interact with and visualize the TanStack Angular Query cache",
   "author": "Arnoud de Vries",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/TanStack/query.git",
-    "directory": "packages/angular-query-experimental"
+    "directory": "packages/angular-query-devtools"
   },
   "homepage": "https://tanstack.com/query",
   "funding": {
@@ -15,15 +15,9 @@
     "url": "https://github.com/sponsors/tannerlinsley"
   },
   "keywords": [
-    "angular query",
     "angular",
-    "cache",
-    "performance",
-    "reactive",
-    "rxjs",
-    "signals",
-    "state management",
-    "state",
+    "angular query",
+    "devtools",
     "tanstack"
   ],
   "scripts": {
@@ -34,10 +28,7 @@
     "test:types:ts55": "node ../../node_modules/typescript55/lib/tsc.js --build",
     "test:types:ts56": "node ../../node_modules/typescript56/lib/tsc.js --build",
     "test:types:ts57": "node ../../node_modules/typescript57/lib/tsc.js --build",
-    "test:types:ts58": "node ../../node_modules/typescript58/lib/tsc.js --build",
-    "test:types:ts59": "node ../../node_modules/typescript59/lib/tsc.js --build",
     "test:types:tscurrent": "tsc --build",
-    "test:types:ts60": "node ../../node_modules/typescript60/lib/tsc.js --build",
     "test:lib": "vitest",
     "test:lib:dev": "pnpm run test:lib --watch",
     "test:build": "pnpm pack && publint ./dist/*.tgz --strict && attw ./dist/*.tgz; premove ./dist/*.tgz",
@@ -51,9 +42,24 @@
     ".": {
       "@tanstack/custom-condition": "./src/index.ts",
       "types": "./dist/index.d.ts",
+      "development": "./dist/index.mjs",
+      "default": "./dist/stub.mjs"
+    },
+    "./package.json": "./package.json",
+    "./production": {
+      "types": "./dist/production/index.d.ts",
       "default": "./dist/index.mjs"
     },
-    "./package.json": "./package.json"
+    "./devtools-panel": {
+      "@tanstack/custom-condition": "./src/devtools-panel/index.ts",
+      "types": "./dist/devtools-panel/index.d.ts",
+      "development": "./dist/devtools-panel/index.mjs",
+      "default": "./dist/devtools-panel/stub.mjs"
+    },
+    "./devtools-panel/production": {
+      "types": "./dist/devtools-panel/production/index.d.ts",
+      "default": "./dist/devtools-panel/index.mjs"
+    }
   },
   "sideEffects": false,
   "files": [
@@ -62,14 +68,15 @@
     "**/*.mjs.map"
   ],
   "dependencies": {
-    "@tanstack/query-core": "workspace:*"
+    "@tanstack/query-core": "workspace:*",
+    "@tanstack/query-devtools": "workspace:*"
   },
   "devDependencies": {
     "@angular/common": "^20.0.0",
     "@angular/compiler": "^20.0.0",
     "@angular/core": "^20.0.0",
     "@angular/platform-browser": "^20.0.0",
-    "@angular/platform-server": "^20.0.0",
+    "@tanstack/angular-query-experimental": "workspace:*",
     "@tanstack/query-test-utils": "workspace:*",
     "@testing-library/angular": "^18.0.0",
     "npm-run-all2": "^5.0.0",
@@ -81,7 +88,8 @@
   },
   "peerDependencies": {
     "@angular/common": ">=19.0.0",
-    "@angular/core": ">=19.0.0"
+    "@angular/core": ">=19.0.0",
+    "@tanstack/angular-query-experimental": "workspace:^"
   },
   "publishConfig": {
     "directory": "dist",

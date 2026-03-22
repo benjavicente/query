@@ -11,7 +11,7 @@ import {
   isDevMode,
 } from '@angular/core'
 import { QueryClient, noop, onlineManager } from '@tanstack/query-core'
-import { queryFeature } from '../providers'
+import { queryFeature } from '@tanstack/angular-query-experimental'
 import type { Signal } from '@angular/core'
 import type {
   DevtoolsOptions,
@@ -167,7 +167,7 @@ export const withDevtools: WithDevtools = (
                 })
                 .catch((error) => {
                   console.error(
-                    'Install @tanstack/query-devtools or reinstall without --omit=optional.',
+                    'Failed to load @tanstack/query-devtools.',
                     error,
                   )
                 })

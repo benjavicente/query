@@ -15,5 +15,9 @@
     "strictTemplates": true
   },
   "include": ["src", "scripts", "test-setup.ts", "*.config.*", "package.json"],
-  "references": [{ "path": "../query-core" }]
+  "references": [
+    { "path": "../angular-query-experimental" },
+    { "path": "../query-core" },
+    { "path": "../query-devtools" }
+  ]
 }

@@ -1,9 +1,17 @@
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { defineConfig, mergeConfig } from 'vitest/config'
 import { externalizeDeps } from 'vite-plugin-externalize-deps'
 import tsconfigPaths from 'vite-tsconfig-paths'
 import dts from 'vite-plugin-dts'
 import packageJson from './package.json'
 import type { Options } from '@tanstack/vite-config'
+
+const packageDir = path.dirname(fileURLToPath(import.meta.url))
+const queryDevtoolsEntry = path.join(
+  packageDir,
+  '../query-devtools/src/index.ts',
+)
 
 function ensureImportFileExtension({
   content,
@@ -12,13 +20,11 @@ function ensureImportFileExtension({
   content: string
   extension: string
 }) {
-  // replace e.g. `import { foo } from './foo'` with `import { foo } from './foo.js'`
   content = content.replace(
     /(im|ex)port\s[\w{}/*\s,]+from\s['"](?:\.\.?\/)+?[^.'"]+(?=['"];?)/gm,
     `$&.${extension}`,
   )
 
-  // replace e.g. `import('./foo')` with `import('./foo.js')`
   content = content.replace(
     /import\(['"](?:\.\.?\/)+?[^.'"]+(?=['"];?)/gm,
     `$&.${extension}`,
@@ -27,9 +33,15 @@ function ensureImportFileExtension({
 }
 
 const config = defineConfig({
-  // fix from https://github.com/vitest-dev/vitest/issues/6992#issuecomment-2509408660
   resolve: {
     conditions: ['@tanstack/custom-condition'],
+    ...(process.env.VITEST === 'true'
+      ? {
+          alias: {
+            '@tanstack/query-devtools': queryDevtoolsEntry,
+          },
+        }
+      : {}),
   },
   environments: {
     ssr: {
@@ -44,21 +56,13 @@ const config = defineConfig({
     watch: false,
     environment: 'jsdom',
     setupFiles: ['test-setup.ts'],
-    coverage: {
-      enabled: true,
-      provider: 'istanbul',
-      include: ['src/**/*'],
-      exclude: ['src/__tests__/**'],
-    },
+    coverage: { enabled: true, provider: 'istanbul', include: ['src/**/*'] },
     typecheck: { enabled: true },
     globals: true,
     restoreMocks: true,
   },
 })
 
-// copy from @tanstack/config/vite with changes:
-// - build - lib - fileName: [name.mjs]
-// - rollup - output - preserveModulesRoot: src
 export const tanstackViteConfig = (options: Options) => {
   const outDir = options.outDir ?? 'dist'
   const cjs = options.cjs ?? true
@@ -116,7 +120,14 @@ export default mergeConfig(
   config,
   tanstackViteConfig({
     cjs: false,
-    entry: ['./src/index.ts'],
+    entry: [
+      './src/index.ts',
+      './src/stub.ts',
+      './src/production/index.ts',
+      './src/devtools-panel/index.ts',
+      './src/devtools-panel/stub.ts',
+      './src/devtools-panel/production/index.ts',
+    ],
     exclude: ['src/__tests__'],
     srcDir: './src',
     tsconfigPath: 'tsconfig.prod.json',

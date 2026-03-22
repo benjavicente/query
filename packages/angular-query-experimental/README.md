@@ -25,7 +25,7 @@ Visit https://tanstack.com/query/latest/docs/framework/angular/overview
 - Paginated + Cursor-based Queries
 - Load-More + Infinite Scroll Queries w/ Scroll Recovery
 - Request Cancellation
-- Dedicated Devtools
+- Dedicated Devtools ([`@tanstack/angular-query-devtools`](https://www.npmjs.com/package/@tanstack/angular-query-devtools))
 
 # Quick Start
 

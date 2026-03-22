@@ -1,4 +1,4 @@
-import { DestroyRef, InjectionToken, inject } from '@angular/core'
+import { DestroyRef, InjectionToken } from '@angular/core'
 import { QueryClient } from '@tanstack/query-core'
 import type { Provider } from '@angular/core'
 
@@ -14,18 +14,27 @@ import type { Provider } from '@angular/core'
 export function provideQueryClient(
   queryClient: QueryClient | InjectionToken<QueryClient>,
 ): Provider {
+  if (queryClient instanceof InjectionToken) {
+    return {
+      provide: QueryClient,
+      useFactory: (client: QueryClient, destroyRef: DestroyRef) => {
+        destroyRef.onDestroy(() => client.unmount())
+        client.mount()
+        return client
+      },
+      deps: [queryClient, DestroyRef],
+    }
+  }
+
   return {
     provide: QueryClient,
-    useFactory: () => {
-      const client =
-        queryClient instanceof InjectionToken
-          ? inject(queryClient)
-          : queryClient
-      // Unmount the query client on injector destroy
-      inject(DestroyRef).onDestroy(() => client.unmount())
+    useFactory: (destroyRef: DestroyRef) => {
+      const client = queryClient
+      destroyRef.onDestroy(() => client.unmount())
       client.mount()
       return client
     },
+    deps: [DestroyRef],
   }
 }
 
@@ -64,22 +73,16 @@ export function provideQueryClient(
  * export class AppModule {}
  * ```
  *
- * You can also enable optional developer tools by adding `withDevtools`. By
- * default the tools will then be loaded when your app is in development mode.
+ * You can also enable optional developer tools by adding `withDevtools` from
+ * `@tanstack/angular-query-devtools`. By default the tools will then be loaded
+ * when your app is in development mode.
  * ```ts
- * import {
- *   provideTanStackQuery,
- *   withDevtools
- *   QueryClient,
- * } from '@tanstack/angular-query-experimental'
+ * import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental'
+ * import { withDevtools } from '@tanstack/angular-query-devtools'
  *
- * bootstrapApplication(AppComponent,
- *   {
- *     providers: [
- *       provideTanStackQuery(new QueryClient(), withDevtools())
- *     ]
- *   }
- * )
+ * bootstrapApplication(AppComponent, {
+ *   providers: [provideTanStackQuery(new QueryClient(), withDevtools())],
+ * })
  * ```
  *
  * **Example: using an InjectionToken**
@@ -100,7 +103,7 @@ export function provideQueryClient(
  * @param features - Optional features to configure additional Query functionality.
  * @returns A set of providers to set up TanStack Query.
  * @see https://tanstack.com/query/v5/docs/framework/angular/quick-start
- * @see withDevtools
+ * @see https://tanstack.com/query/v5/docs/framework/angular/devtools
  */
 export function provideTanStackQuery(
   queryClient: QueryClient | InjectionToken<QueryClient>,
@@ -108,13 +111,11 @@ export function provideTanStackQuery(
 ): Array<Provider> {
   return [
     provideQueryClient(queryClient),
-    features.map((feature) => feature.ɵproviders),
+    ...features.flatMap((feature) => feature.ɵproviders),
   ]
 }
 
-const queryFeatures = ['Devtools', 'PersistQueryClient'] as const
-
-type QueryFeatureKind = (typeof queryFeatures)[number]
+type QueryFeatureKind = "Devtools" | "PersistQueryClient"
 
 /**
  * Helper type to represent a Query feature.

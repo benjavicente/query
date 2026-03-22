@@ -11,15 +11,15 @@ import {
   provideZonelessChangeDetection,
   signal,
 } from '@angular/core'
-import { provideTanStackQuery } from '../providers'
-import { withDevtools } from '../devtools'
+import { provideTanStackQuery } from '@tanstack/angular-query-experimental'
+import { withDevtools } from '../index'
 import { flushQueryUpdates } from './test-utils'
 import type {
   DevtoolsButtonPosition,
   DevtoolsErrorType,
   DevtoolsPosition,
 } from '@tanstack/query-devtools'
-import type { DevtoolsOptions } from '../devtools'
+import type { DevtoolsOptions } from '../types'
 
 const mockDevtoolsInstance = {
   mount: vi.fn(),

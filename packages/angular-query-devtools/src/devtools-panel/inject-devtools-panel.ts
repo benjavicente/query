@@ -87,7 +87,7 @@ export const injectDevtoolsPanel: InjectDevtoolsPanel = (
             })
             .catch((error) => {
               console.error(
-                'Install @tanstack/query-devtools or reinstall without --omit=optional.',
+                'Failed to load @tanstack/query-devtools.',
                 error,
               )
             })
