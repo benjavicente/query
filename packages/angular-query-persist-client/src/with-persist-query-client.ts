@@ -5,9 +5,9 @@ import {
 } from '@tanstack/angular-query-experimental'
 import {
   DestroyRef,
-  ENVIRONMENT_INITIALIZER,
   PLATFORM_ID,
   inject,
+  provideEnvironmentInitializer,
   signal,
 } from '@angular/core'
 import { isPlatformBrowser } from '@angular/common'
@@ -58,31 +58,26 @@ export function withPersistQueryClient(
   const isRestoring = signal(true)
   const providers = [
     provideIsRestoring(isRestoring.asReadonly()),
-    {
-      // Do not use provideEnvironmentInitializer while Angular < v19 is supported
-      provide: ENVIRONMENT_INITIALIZER,
-      multi: true,
-      useValue: () => {
-        if (!isPlatformBrowser(inject(PLATFORM_ID))) return
-        const destroyRef = inject(DestroyRef)
-        const queryClient = inject(QueryClient)
+    provideEnvironmentInitializer(() => {
+      if (!isPlatformBrowser(inject(PLATFORM_ID))) return
+      const destroyRef = inject(DestroyRef)
+      const queryClient = inject(QueryClient)
 
-        const { onSuccess, onError, persistOptions } = persistQueryClientOptions
-        const options = { queryClient, ...persistOptions }
-        persistQueryClientRestore(options)
-          .then(() => {
-            onSuccess?.()
-          })
-          .catch(() => {
-            onError?.()
-          })
-          .finally(() => {
-            isRestoring.set(false)
-            const cleanup = persistQueryClientSubscribe(options)
-            destroyRef.onDestroy(cleanup)
-          })
-      },
-    },
+      const { onSuccess, onError, persistOptions } = persistQueryClientOptions
+      const options = { queryClient, ...persistOptions }
+      persistQueryClientRestore(options)
+        .then(() => {
+          onSuccess?.()
+        })
+        .catch(() => {
+          onError?.()
+        })
+        .finally(() => {
+          isRestoring.set(false)
+          const cleanup = persistQueryClientSubscribe(options)
+          destroyRef.onDestroy(cleanup)
+        })
+    }),
   ]
   return queryFeature('PersistQueryClient', providers)
 }

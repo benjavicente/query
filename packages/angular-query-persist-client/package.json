@@ -65,11 +65,12 @@
     "@testing-library/angular": "^18.0.0",
     "@testing-library/dom": "^10.4.0",
     "eslint-plugin-jsdoc": "^50.5.0",
-    "npm-run-all2": "^5.0.0"
+    "npm-run-all2": "^5.0.0",
+    "zone.js": "^0.16.0"
   },
   "peerDependencies": {
-    "@angular/common": ">=16.0.0",
-    "@angular/core": ">=16.0.0",
+    "@angular/common": ">=19.0.0",
+    "@angular/core": ">=19.0.0",
     "@tanstack/angular-query-experimental": "workspace:^"
   }
 }
