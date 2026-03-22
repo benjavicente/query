@@ -30,18 +30,19 @@ Dynamic parallel query - `injectQueries` can depend on a previous query also, he
 
 ```ts
 // Get the users ids
-userIds = injectQuery(() => ({
+userIdsQuery = injectQuery(() => ({
   queryKey: ['users'],
-  queryFn: getUserData,
+  queryFn: getUsersData,
   select: (users) => users.map((user) => user.id),
 }))
 
-// Then get the users messages
-userQueries = injectQueries(() => ({
-  queries: (this.userIds() ?? []).map((userId) => ({
-    queryKey: ['user', userId],
-    queryFn: () => getUserById(userId),
-  })),
+// Then get the users' messages
+usersMessages = injectQueries(() => ({
+  queries:
+    this.userIdsQuery.data()?.map((id) => ({
+      queryKey: ['messages', id],
+      queryFn: () => getMessagesByUsers(id),
+    })) ?? [],
 }))
 ```
 
