@@ -47,27 +47,6 @@ export type DefinedInitialDataOptions<
     | (() => NonUndefinedGuard<TQueryFnData>)
 }
 
-/**
- * Allows to share and re-use query options in a type-safe way.
- *
- * The `queryKey` will be tagged with the type from `queryFn`.
- *
- * **Example**
- *
- * ```ts
- *  const { queryKey } = queryOptions({
- *     queryKey: ['key'],
- *     queryFn: () => Promise.resolve(5),
- *     //  ^?  Promise<number>
- *   })
- *
- *   const queryClient = new QueryClient()
- *   const data = queryClient.getQueryData(queryKey)
- *   //    ^?  number | undefined
- * ```
- * @param options - The query options to tag with the type from `queryFn`.
- * @returns The tagged query options.
- */
 export function queryOptions<
   TQueryFnData = unknown,
   TError = DefaultError,
@@ -79,27 +58,6 @@ export function queryOptions<
   queryKey: DataTag<TQueryKey, TQueryFnData, TError>
 }
 
-/**
- * Allows to share and re-use query options in a type-safe way.
- *
- * The `queryKey` will be tagged with the type from `queryFn`.
- *
- * **Example**
- *
- * ```ts
- *  const { queryKey } = queryOptions({
- *     queryKey: ['key'],
- *     queryFn: () => Promise.resolve(5),
- *     //  ^?  Promise<number>
- *   })
- *
- *   const queryClient = new QueryClient()
- *   const data = queryClient.getQueryData(queryKey)
- *   //    ^?  number | undefined
- * ```
- * @param options - The query options to tag with the type from `queryFn`.
- * @returns The tagged query options.
- */
 export function queryOptions<
   TQueryFnData = unknown,
   TError = DefaultError,
@@ -111,27 +69,6 @@ export function queryOptions<
   queryKey: DataTag<TQueryKey, TQueryFnData, TError>
 }
 
-/**
- * Allows to share and re-use query options in a type-safe way.
- *
- * The `queryKey` will be tagged with the type from `queryFn`.
- *
- * **Example**
- *
- * ```ts
- *  const { queryKey } = queryOptions({
- *     queryKey: ['key'],
- *     queryFn: () => Promise.resolve(5),
- *     //  ^?  Promise<number>
- *   })
- *
- *   const queryClient = new QueryClient()
- *   const data = queryClient.getQueryData(queryKey)
- *   //    ^?  number | undefined
- * ```
- * @param options - The query options to tag with the type from `queryFn`.
- * @returns The tagged query options.
- */
 export function queryOptions<
   TQueryFnData = unknown,
   TError = DefaultError,

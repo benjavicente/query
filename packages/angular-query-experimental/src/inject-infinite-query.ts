@@ -33,13 +33,6 @@ export interface InjectInfiniteQueryOptions {
   injector?: Injector
 }
 
-/**
- * Injects an infinite query: a declarative dependency on an asynchronous source of data that is tied to a unique key.
- * Infinite queries can additively "load more" data onto an existing set of data or "infinite scroll"
- * @param injectInfiniteQueryFn - A function that returns infinite query options.
- * @param options - Additional configuration.
- * @returns The infinite query result.
- */
 export function injectInfiniteQuery<
   TQueryFnData,
   TError = DefaultError,
@@ -57,13 +50,6 @@ export function injectInfiniteQuery<
   options?: InjectInfiniteQueryOptions,
 ): DefinedCreateInfiniteQueryResult<TData, TError>
 
-/**
- * Injects an infinite query: a declarative dependency on an asynchronous source of data that is tied to a unique key.
- * Infinite queries can additively "load more" data onto an existing set of data or "infinite scroll"
- * @param injectInfiniteQueryFn - A function that returns infinite query options.
- * @param options - Additional configuration.
- * @returns The infinite query result.
- */
 export function injectInfiniteQuery<
   TQueryFnData,
   TError = DefaultError,
@@ -81,13 +67,6 @@ export function injectInfiniteQuery<
   options?: InjectInfiniteQueryOptions,
 ): CreateInfiniteQueryResult<TData, TError>
 
-/**
- * Injects an infinite query: a declarative dependency on an asynchronous source of data that is tied to a unique key.
- * Infinite queries can additively "load more" data onto an existing set of data or "infinite scroll"
- * @param injectInfiniteQueryFn - A function that returns infinite query options.
- * @param options - Additional configuration.
- * @returns The infinite query result.
- */
 export function injectInfiniteQuery<
   TQueryFnData,
   TError = DefaultError,
@@ -107,10 +86,12 @@ export function injectInfiniteQuery<
 
 /**
  * Injects an infinite query: a declarative dependency on an asynchronous source of data that is tied to a unique key.
- * Infinite queries can additively "load more" data onto an existing set of data or "infinite scroll"
+ * Infinite queries can additively "load more" data onto an existing set of data or support infinite scroll.
+ *
  * @param injectInfiniteQueryFn - A function that returns infinite query options.
  * @param options - Additional configuration.
  * @returns The infinite query result.
+ * @see https://tanstack.com/query/latest/docs/framework/angular/guides/infinite-queries
  */
 export function injectInfiniteQuery<
   TQueryFnData,

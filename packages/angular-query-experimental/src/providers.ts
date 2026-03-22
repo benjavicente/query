@@ -127,8 +127,8 @@ export interface QueryFeature<TFeatureKind extends QueryFeatureKind> {
 
 /**
  * Helper function to create an object that represents a Query feature.
- * @param kind -
- * @param providers -
+ * @param kind - The feature kind identifier.
+ * @param providers - The providers contributed by the feature.
  * @returns A Query feature.
  */
 export function queryFeature<TFeatureKind extends QueryFeatureKind>(
