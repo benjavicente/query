@@ -3,6 +3,7 @@ import { TestBed } from '@angular/core/testing'
 import { QueryClient } from '@tanstack/query-core'
 import { sleep } from '@tanstack/query-test-utils'
 import {
+  type CreateMutationOptions,
   injectIsMutating,
   injectMutation,
   injectMutationState,

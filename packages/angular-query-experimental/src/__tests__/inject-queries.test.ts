@@ -8,11 +8,12 @@ import {
   computed,
   effect,
   input,
+  provideZonelessChangeDetection,
   signal,
 } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
 import { queryKey, sleep } from '@tanstack/query-test-utils'
-import { QueryClient, provideIsRestoring } from '..'
+import { QueryClient, provideIsRestoring, provideTanStackQuery } from '..'
 import { injectQueries } from '../inject-queries'
 import { registerSignalInput, setupTanStackQueryTestBed } from './test-utils'
 
@@ -360,7 +361,7 @@ describe('injectQueries', () => {
     await vi.advanceTimersByTimeAsync(11)
     await Promise.resolve()
 
-    ;[firstQuery, secondQuery] = rendered.fixture.componentInstance.queries()
+      ;[firstQuery, secondQuery] = rendered.fixture.componentInstance.queries()
     expect(firstQuery.data()).toBe('first-c')
     expect(secondQuery.data()).toBe('second-b')
     expect(firstSpy).toHaveBeenCalledTimes(2)
