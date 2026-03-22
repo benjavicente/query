@@ -33,25 +33,7 @@ The query options to tag with the type from `queryFn`.
 function queryOptions<TQueryFnData, TError, TData, TQueryKey>(options): CreateQueryOptions<TQueryFnData, TError, TData, TQueryKey> & object & object;
 ```
 
-Defined in: [query-options.ts:71](https://github.com/TanStack/query/blob/main/packages/angular-query-experimental/src/query-options.ts#L71)
-
-Allows to share and re-use query options in a type-safe way.
-
-The `queryKey` will be tagged with the type from `queryFn`.
-
-**Example**
-
-```ts
- const { queryKey } = queryOptions({
-    queryKey: ['key'],
-    queryFn: () => Promise.resolve(5),
-    //  ^?  Promise<number>
-  })
-
-  const queryClient = new QueryClient()
-  const data = queryClient.getQueryData(queryKey)
-  //    ^?  number | undefined
-```
+Defined in: [query-options.ts:50](https://github.com/TanStack/query/blob/main/packages/angular-query-experimental/src/query-options.ts#L50)
 
 ### Type Parameters
 
@@ -77,13 +59,9 @@ The `queryKey` will be tagged with the type from `queryFn`.
 
 [`DefinedInitialDataOptions`](../type-aliases/DefinedInitialDataOptions.md)\<`TQueryFnData`, `TError`, `TData`, `TQueryKey`\>
 
-The query options to tag with the type from `queryFn`.
-
 ### Returns
 
 [`CreateQueryOptions`](../type-aliases/CreateQueryOptions.md)\<`TQueryFnData`, `TError`, `TData`, `TQueryKey`\> & `object` & `object`
-
-The tagged query options.
 
 ## Call Signature
 
@@ -91,25 +69,7 @@ The tagged query options.
 function queryOptions<TQueryFnData, TError, TData, TQueryKey>(options): OmitKeyof<CreateQueryOptions<TQueryFnData, TError, TData, TQueryKey>, "queryFn"> & object & object;
 ```
 
-Defined in: [query-options.ts:103](https://github.com/TanStack/query/blob/main/packages/angular-query-experimental/src/query-options.ts#L103)
-
-Allows to share and re-use query options in a type-safe way.
-
-The `queryKey` will be tagged with the type from `queryFn`.
-
-**Example**
-
-```ts
- const { queryKey } = queryOptions({
-    queryKey: ['key'],
-    queryFn: () => Promise.resolve(5),
-    //  ^?  Promise<number>
-  })
-
-  const queryClient = new QueryClient()
-  const data = queryClient.getQueryData(queryKey)
-  //    ^?  number | undefined
-```
+Defined in: [query-options.ts:61](https://github.com/TanStack/query/blob/main/packages/angular-query-experimental/src/query-options.ts#L61)
 
 ### Type Parameters
 
@@ -135,13 +95,9 @@ The `queryKey` will be tagged with the type from `queryFn`.
 
 [`UnusedSkipTokenOptions`](../type-aliases/UnusedSkipTokenOptions.md)\<`TQueryFnData`, `TError`, `TData`, `TQueryKey`\>
 
-The query options to tag with the type from `queryFn`.
-
 ### Returns
 
 `OmitKeyof`\<[`CreateQueryOptions`](../type-aliases/CreateQueryOptions.md)\<`TQueryFnData`, `TError`, `TData`, `TQueryKey`\>, `"queryFn"`\> & `object` & `object`
-
-The tagged query options.
 
 ## Call Signature
 
@@ -149,25 +105,7 @@ The tagged query options.
 function queryOptions<TQueryFnData, TError, TData, TQueryKey>(options): CreateQueryOptions<TQueryFnData, TError, TData, TQueryKey> & object & object;
 ```
 
-Defined in: [query-options.ts:135](https://github.com/TanStack/query/blob/main/packages/angular-query-experimental/src/query-options.ts#L135)
-
-Allows to share and re-use query options in a type-safe way.
-
-The `queryKey` will be tagged with the type from `queryFn`.
-
-**Example**
-
-```ts
- const { queryKey } = queryOptions({
-    queryKey: ['key'],
-    queryFn: () => Promise.resolve(5),
-    //  ^?  Promise<number>
-  })
-
-  const queryClient = new QueryClient()
-  const data = queryClient.getQueryData(queryKey)
-  //    ^?  number | undefined
-```
+Defined in: [query-options.ts:72](https://github.com/TanStack/query/blob/main/packages/angular-query-experimental/src/query-options.ts#L72)
 
 ### Type Parameters
 
@@ -193,10 +131,6 @@ The `queryKey` will be tagged with the type from `queryFn`.
 
 [`UndefinedInitialDataOptions`](../type-aliases/UndefinedInitialDataOptions.md)\<`TQueryFnData`, `TError`, `TData`, `TQueryKey`\>
 
-The query options to tag with the type from `queryFn`.
-
 ### Returns
 
 [`CreateQueryOptions`](../type-aliases/CreateQueryOptions.md)\<`TQueryFnData`, `TError`, `TData`, `TQueryKey`\> & `object` & `object`
-
-The tagged query options.

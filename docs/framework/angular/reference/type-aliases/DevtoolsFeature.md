@@ -9,11 +9,11 @@ title: DevtoolsFeature
 type DevtoolsFeature = QueryFeature<"Devtools">;
 ```
 
-Defined in: [providers.ts:158](https://github.com/TanStack/query/blob/main/packages/angular-query-experimental/src/providers.ts#L158)
+Defined in: [providers.ts:146](https://github.com/TanStack/query/blob/main/packages/angular-query-experimental/src/providers.ts#L146)
 
 A type alias that represents a feature which enables developer tools.
-The type is used to describe the return value of the `withDevtools` function from `@tanstack/angular-query-devtools`.
+The type is used to describe the return value of the `withDevtools` function.
 
 ## See
 
-[@tanstack/angular-query-devtools](https://www.npmjs.com/package/@tanstack/angular-query-devtools)
+withDevtools
