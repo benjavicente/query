@@ -39,20 +39,15 @@ export function injectIsFetching(
   const queryClient = injector.get(QueryClient)
 
   const cache = queryClient.getQueryCache()
-  // isFetching is the prev value initialized on mount *
-  let isFetching = queryClient.isFetching(filters)
-
-  const result = signal(isFetching)
+  const result = signal(queryClient.isFetching(filters))
 
   const unsubscribe = ngZone.runOutsideAngular(() =>
     cache.subscribe(
       notifyManager.batchCalls(() => {
         const newIsFetching = queryClient.isFetching(filters)
-        if (isFetching !== newIsFetching) {
-          // * and update with each change
-          isFetching = newIsFetching
+        if (result() !== newIsFetching) {
           ngZone.run(() => {
-            result.set(isFetching)
+            result.set(newIsFetching)
           })
         }
       }),
@@ -61,5 +56,5 @@ export function injectIsFetching(
 
   destroyRef.onDestroy(unsubscribe)
 
-  return result
+  return result.asReadonly()
 }

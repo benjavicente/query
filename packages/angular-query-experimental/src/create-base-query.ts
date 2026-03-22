@@ -181,7 +181,9 @@ export function createBaseQuery<
     if (isRestoring()) {
       return
     }
-    const unsubscribe = untracked(() => subscribeToObserver())
+    const unsubscribe = untracked(() =>
+      ngZone.runOutsideAngular(() => subscribeToObserver()),
+    )
     onCleanup(() => {
       unsubscribe()
       stopPendingTask()
