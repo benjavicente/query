@@ -11,7 +11,7 @@ title: Devtools
 
 ## Enable devtools
 
-Install the devtools package (in addition to `@tanstack/angular-query-experimental`):
+Add the devtools package (in addition to `@tanstack/angular-query-experimental`):
 
 ```bash
 npm install @tanstack/angular-query-devtools
