@@ -118,7 +118,6 @@ export default mergeConfig(
     cjs: false,
     entry: [
       './src/index.ts',
-      './src/inject-queries-experimental/index.ts',
       './src/devtools-panel/index.ts',
       './src/devtools-panel/stub.ts',
       './src/devtools/index.ts',
