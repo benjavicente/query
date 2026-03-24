@@ -47,7 +47,7 @@ describe('PendingTasks SSR (injectQueries)', () => {
 
   test('should wait for stability of queries', async () => {
     const htmlPromise = renderApplication(
-      () =>
+      (context) =>
         bootstrapApplication(TestComponent, {
           providers: [
             provideServerRendering(),
@@ -58,7 +58,7 @@ describe('PendingTasks SSR (injectQueries)', () => {
               }),
             ),
           ],
-        }),
+        }, context),
       {
         url: '/',
         document:
@@ -72,4 +72,3 @@ describe('PendingTasks SSR (injectQueries)', () => {
     expect(html).toContain('queries-data-fetched-on-ssr')
   })
 })
-

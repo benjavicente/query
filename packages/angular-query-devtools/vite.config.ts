@@ -1,10 +1,9 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { defineConfig, mergeConfig } from 'vitest/config'
+import { defineConfig, mergeConfig } from 'vite'
 import { externalizeDeps } from 'vite-plugin-externalize-deps'
 import tsconfigPaths from 'vite-tsconfig-paths'
 import dts from 'vite-plugin-dts'
-import packageJson from './package.json'
 import type { Options } from '@tanstack/vite-config'
 
 const packageDir = path.dirname(fileURLToPath(import.meta.url))
@@ -42,24 +41,6 @@ const config = defineConfig({
           },
         }
       : {}),
-  },
-  environments: {
-    ssr: {
-      resolve: {
-        conditions: ['@tanstack/custom-condition'],
-      },
-    },
-  },
-  test: {
-    name: packageJson.name,
-    dir: './src',
-    watch: false,
-    environment: 'jsdom',
-    setupFiles: ['test-setup.ts'],
-    coverage: { enabled: true, provider: 'istanbul', include: ['src/**/*'] },
-    typecheck: { enabled: true },
-    globals: true,
-    restoreMocks: true,
   },
 })
 

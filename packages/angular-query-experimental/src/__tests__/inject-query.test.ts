@@ -7,6 +7,7 @@ import {
   computed,
   effect,
   input,
+  inputBinding,
   provideZonelessChangeDetection,
   signal,
 } from '@angular/core'
@@ -25,6 +26,7 @@ import {
   test,
   vi,
 } from 'vitest'
+import { render } from '@testing-library/angular'
 import { queryKey, sleep } from '@tanstack/query-test-utils'
 import { lastValueFrom } from 'rxjs'
 import {
@@ -34,7 +36,6 @@ import {
   provideIsRestoring,
   provideTanStackQuery,
 } from '..'
-import { registerSignalInput } from './test-utils'
 import type { CreateQueryOptions, OmitKeyof, QueryFunction } from '..'
 
 describe('injectQuery', () => {
@@ -709,21 +710,13 @@ describe('injectQuery', () => {
       }))
     }
 
-    registerSignalInput(FakeComponent, 'name')
-
-    @Component({
-      template: `<app-fake [name]="name()" />`,
-      imports: [FakeComponent],
+    const name = signal('signal-input-required-test')
+    const rendered = await render(FakeComponent, {
+      bindings: [inputBinding('name', name.asReadonly())],
     })
-    class HostComponent {
-      protected readonly name = signal('signal-input-required-test')
-    }
-
-    const fixture = TestBed.createComponent(HostComponent)
-    fixture.detectChanges()
     await vi.advanceTimersByTimeAsync(0)
 
-    const result = fixture.nativeElement.querySelector('app-fake').textContent
+    const result = rendered.fixture.nativeElement.textContent
     expect(result).toEqual('signal-input-required-test')
   })
 
@@ -744,21 +737,13 @@ describe('injectQuery', () => {
       data = this.query.data
     }
 
-    registerSignalInput(FakeComponent, 'name')
-
-    @Component({
-      template: `<app-fake [name]="name()" />`,
-      imports: [FakeComponent],
+    const name = signal('signal-input-alias-test')
+    const rendered = await render(FakeComponent, {
+      bindings: [inputBinding('name', name.asReadonly())],
     })
-    class HostComponent {
-      protected readonly name = signal('signal-input-alias-test')
-    }
-
-    const fixture = TestBed.createComponent(HostComponent)
-    fixture.detectChanges()
     await vi.advanceTimersByTimeAsync(0)
 
-    const result = fixture.nativeElement.querySelector('app-fake').textContent
+    const result = rendered.fixture.nativeElement.textContent
     expect(result).toEqual('signal-input-alias-test')
   })
 
@@ -785,9 +770,10 @@ describe('injectQuery', () => {
     expect(spy).toHaveBeenCalledWith(undefined)
   })
 
-  test('should render with an initial value for input signal if available before change detection', () => {
-    const key1 = queryKey()
-    const key2 = queryKey()
+  test('should render with an initial value for input signal if available before change detection', async () => {
+    const key1 = queryKey() as [string]
+    const key2 = queryKey() as [string]
+    const inputKey = signal<[string]>(key1)
 
     queryClient.setQueryData(key1, 'value 1')
     queryClient.setQueryData(key2, 'value 2')
@@ -804,12 +790,12 @@ describe('injectQuery', () => {
         queryFn: () => sleep(0).then(() => 'Some data'),
       }))
     }
-    registerSignalInput(TestComponent, 'inputKey')
 
-    const fixture = TestBed.createComponent(TestComponent)
-    fixture.componentRef.setInput('inputKey', key1)
+    const rendered = await render(TestComponent, {
+      bindings: [inputBinding('inputKey', inputKey.asReadonly())],
+    })
 
-    const instance = fixture.componentInstance
+    const instance = rendered.fixture.componentInstance
     const query = instance.query
 
     expect(() => instance.inputKey()).not.toThrow()
@@ -817,7 +803,8 @@ describe('injectQuery', () => {
     expect(instance.inputKey()).toEqual(key1)
     expect(query.data()).toEqual('value 1')
 
-    fixture.componentRef.setInput('inputKey', key2)
+    inputKey.set(key2)
+    rendered.fixture.detectChanges()
 
     expect(instance.inputKey()).toEqual(key2)
     expect(query.data()).toEqual('value 2')
@@ -851,12 +838,12 @@ describe('injectQuery', () => {
       })
     }
 
-    registerSignalInput(TestComponent, 'key')
+    const key = signal<[string]>(['ngOnInitTest'])
+    const rendered = await render(TestComponent, {
+      bindings: [inputBinding('key', key.asReadonly())],
+    })
 
-    const fixture = TestBed.createComponent(TestComponent)
-    fixture.componentRef.setInput('key', ['ngOnInitTest'])
-
-    fixture.detectChanges()
+    const fixture = rendered.fixture
     expect(spy).toHaveBeenCalled()
 
     const instance = fixture.componentInstance

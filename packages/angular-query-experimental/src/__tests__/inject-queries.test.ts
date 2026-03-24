@@ -8,6 +8,7 @@ import {
   computed,
   effect,
   input,
+  inputBinding,
   provideZonelessChangeDetection,
   signal,
 } from '@angular/core'
@@ -15,7 +16,7 @@ import { TestBed } from '@angular/core/testing'
 import { queryKey, sleep } from '@tanstack/query-test-utils'
 import { QueryClient, provideIsRestoring, provideTanStackQuery } from '..'
 import { injectQueries } from '../inject-queries'
-import { registerSignalInput, setupTanStackQueryTestBed } from './test-utils'
+import { setupTanStackQueryTestBed } from './test-utils'
 
 let queryClient: QueryClient
 
@@ -505,21 +506,13 @@ describe('injectQueries', () => {
       }))
     }
 
-    registerSignalInput(FakeComponent, 'name')
-
-    @Component({
-      template: `<app-fake [name]="name()" />`,
-      imports: [FakeComponent],
+    const name = signal('signal-input-required-test')
+    const rendered = await render(FakeComponent, {
+      bindings: [inputBinding('name', name.asReadonly())],
     })
-    class HostComponent {
-      protected readonly name = signal('signal-input-required-test')
-    }
-
-    const fixture = TestBed.createComponent(HostComponent)
-    fixture.detectChanges()
     await vi.advanceTimersByTimeAsync(0)
 
-    const result = fixture.nativeElement.querySelector('app-fake').textContent
+    const result = rendered.fixture.nativeElement.textContent
     expect(result).toEqual('signal-input-required-test')
   })
 

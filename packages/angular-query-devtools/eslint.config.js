@@ -8,10 +8,7 @@ export default [
   {
     plugins: { vitest },
     rules: {
-      'vitest/expect-expect': [
-        'error',
-        { assertFunctionNames: ['expect', 'expectSignals'] },
-      ],
+      'vitest/expect-expect': ['error', { assertFunctionNames: ['expect'] }],
     },
   },
   {

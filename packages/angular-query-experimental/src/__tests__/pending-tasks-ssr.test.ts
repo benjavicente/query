@@ -45,7 +45,7 @@ describe('PendingTasks SSR', () => {
 
   test('should wait for stability of queries', async () => {
     const htmlPromise = renderApplication(
-      () =>
+      (context) =>
         bootstrapApplication(TestComponent, {
           providers: [
             provideServerRendering(),
@@ -56,7 +56,7 @@ describe('PendingTasks SSR', () => {
               }),
             ),
           ],
-        }),
+        }, context),
       {
         url: '/',
         document:

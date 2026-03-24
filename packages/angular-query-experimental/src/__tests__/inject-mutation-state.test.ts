@@ -3,10 +3,12 @@ import {
   Component,
   Injector,
   input,
+  inputBinding,
   provideZonelessChangeDetection,
   signal,
 } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
+import { render } from '@testing-library/angular'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { sleep } from '@tanstack/query-test-utils'
 import {
@@ -15,7 +17,6 @@ import {
   injectMutationState,
   provideTanStackQuery,
 } from '..'
-import { registerSignalInput } from './test-utils'
 
 describe('injectMutationState', () => {
   let queryClient: QueryClient
@@ -158,18 +159,17 @@ describe('injectMutationState', () => {
         }))
       }
 
-      registerSignalInput(FakeComponent, 'name')
-
-      @Component({
-        template: `<app-fake [name]="name()" />`,
-        imports: [FakeComponent],
+      TestBed.resetTestingModule()
+      const name = signal(fakeName)
+      const rendered = await render(FakeComponent, {
+        providers: [
+          provideZonelessChangeDetection(),
+          provideTanStackQuery(queryClient),
+        ],
+        bindings: [inputBinding('name', name.asReadonly())],
       })
-      class HostComponent {
-        protected readonly name = signal(fakeName)
-      }
 
-      const fixture = TestBed.createComponent(HostComponent)
-      fixture.detectChanges()
+      const fixture = rendered.fixture
       await vi.advanceTimersByTimeAsync(0)
 
       const readSpans = () =>

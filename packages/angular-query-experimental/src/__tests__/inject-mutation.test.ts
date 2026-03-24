@@ -5,15 +5,17 @@ import {
   Injector,
   NgZone,
   input,
+  inputBinding,
   provideZonelessChangeDetection,
   signal,
 } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
+import { render } from '@testing-library/angular'
 import { sleep } from '@tanstack/query-test-utils'
 import { firstValueFrom } from 'rxjs'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { QueryClient, injectMutation, provideTanStackQuery } from '..'
-import { expectSignals, registerSignalInput } from './test-utils'
+import { expectSignals } from './test-utils'
 
 describe('injectMutation', () => {
   let queryClient: QueryClient
@@ -324,18 +326,12 @@ describe('injectMutation', () => {
       }
     }
 
-    registerSignalInput(FakeComponent, 'name')
-
-    @Component({
-      template: `<app-fake [name]="name()" />`,
-      imports: [FakeComponent],
+    const name = signal('value')
+    const rendered = await render(FakeComponent, {
+      bindings: [inputBinding('name', name.asReadonly())],
     })
-    class HostComponent {
-      protected readonly name = signal('value')
-    }
 
-    const fixture = TestBed.createComponent(HostComponent)
-    fixture.detectChanges()
+    const fixture = rendered.fixture
 
     const hostButton = fixture.nativeElement.querySelector(
       'button',
@@ -376,24 +372,15 @@ describe('injectMutation', () => {
       mutate(): void {
         this.mutation.mutate()
       }
+
     }
 
-    registerSignalInput(FakeComponent, 'name')
-
-    @Component({
-      template: `<app-fake [name]="name()" />`,
-      imports: [FakeComponent],
+    const name = signal('value')
+    const rendered = await render(FakeComponent, {
+      bindings: [inputBinding('name', name.asReadonly())],
     })
-    class HostComponent {
-      protected readonly name = signal('value')
 
-      updateName(value: string): void {
-        this.name.set(value)
-      }
-    }
-
-    const fixture = TestBed.createComponent(HostComponent)
-    fixture.detectChanges()
+    const fixture = rendered.fixture
 
     let button = fixture.nativeElement.querySelector(
       'button',
@@ -405,7 +392,7 @@ describe('injectMutation', () => {
     let span = fixture.nativeElement.querySelector('span') as HTMLSpanElement
     expect(span.textContent).toEqual('value')
 
-    fixture.componentInstance.updateName('updatedValue')
+    name.set('updatedValue')
     fixture.detectChanges()
 
     button = fixture.nativeElement.querySelector('button') as HTMLButtonElement

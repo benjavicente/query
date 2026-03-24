@@ -9,6 +9,16 @@
   ],
   "ignoreWorkspaces": ["examples/**", "integrations/**"],
   "workspaces": {
+    "packages/angular-query-devtools": {
+      "ignoreDependencies": ["@angular/compiler-cli"]
+    },
+    "packages/angular-query-experimental": {
+      "ignore": ["src/**/*.test-d.ts"],
+      "ignoreDependencies": ["@angular/compiler-cli"]
+    },
+    "packages/angular-query-persist-client": {
+      "ignoreDependencies": ["@angular/compiler-cli"]
+    },
     "packages/query-codemods": {
       "entry": ["src/v4/**/*.cjs", "src/v5/**/*.cjs"],
       "ignore": ["**/__testfixtures__/**"]

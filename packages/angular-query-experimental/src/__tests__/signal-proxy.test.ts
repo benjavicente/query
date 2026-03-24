@@ -3,15 +3,16 @@ import {
   Component,
   computed,
   input,
+  inputBinding,
   isSignal,
   provideZonelessChangeDetection,
   signal,
   untracked,
 } from '@angular/core'
+import { render } from '@testing-library/angular'
 import { beforeEach, describe, expect, test } from 'vitest'
 import { TestBed } from '@angular/core/testing'
 import { signalProxy } from '../signal-proxy'
-import { registerSignalInput } from './test-utils'
 
 describe('signalProxy', () => {
   const inputSignal = signal({
@@ -59,7 +60,6 @@ describe('signalProxy', () => {
       shortNumber = this.proxy.number
       shortFn = this.proxy.fn
     }
-    registerSignalInput(TestComponent, 'number')
 
     beforeEach(() => {
       TestBed.configureTestingModule({
@@ -67,15 +67,12 @@ describe('signalProxy', () => {
       })
     })
 
-    test('should generate fixed fields after initial change detection run', () => {
-      const fixture = TestBed.createComponent(TestComponent)
-      const instance = fixture.componentInstance
-
-      expect(() => instance.shortNumber).not.throw()
-      expect(() => instance.shortNumber()).toThrow()
-
-      fixture.componentRef.setInput('number', 1)
-      fixture.detectChanges()
+    test('should generate fixed fields after initial change detection run', async () => {
+      const number = signal(1)
+      const rendered = await render(TestComponent, {
+        bindings: [inputBinding('number', number.asReadonly())],
+      })
+      const instance = rendered.fixture.componentInstance
 
       expect(isSignal(instance.proxy.number)).toBe(true)
       expect(instance.proxy.number()).toBe(1)
@@ -86,16 +83,18 @@ describe('signalProxy', () => {
       expect(instance.shortFn).toBe(instance.proxy.fn)
     })
 
-    test('should reflect updates on the proxy', () => {
-      const fixture = TestBed.createComponent(TestComponent)
-      const instance = fixture.componentInstance
-      fixture.componentRef.setInput('number', 0)
-      fixture.detectChanges()
+    test('should reflect updates on the proxy', async () => {
+      const number = signal(0)
+      const rendered = await render(TestComponent, {
+        bindings: [inputBinding('number', number.asReadonly())],
+      })
+      const instance = rendered.fixture.componentInstance
 
       expect(instance.shortNumber()).toBe(0)
       expect(instance.shortFn()).toBe(1)
 
-      fixture.componentRef.setInput('number', 1)
+      number.set(1)
+      rendered.fixture.detectChanges()
 
       expect(instance.shortNumber()).toBe(1)
       expect(instance.shortFn()).toBe(2)

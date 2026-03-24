@@ -7,14 +7,7 @@ import { TestBed } from '@angular/core/testing'
 import { expect, vi } from 'vitest'
 import { provideTanStackQuery } from '..'
 import type { QueryClient } from '@tanstack/query-core'
-import type {
-  EnvironmentProviders,
-  Provider,
-  Signal,
-  Type,
-} from '@angular/core'
-
-// cspell:ignore ɵcmp ɵdir
+import type { EnvironmentProviders, Provider, Signal } from '@angular/core'
 
 // Evaluate all signals on an object and return the result
 function evaluateSignals<T extends Record<string, any>>(
@@ -71,32 +64,4 @@ export function setupTanStackQueryTestBed(
  */
 export async function flushQueryUpdates() {
   await vi.advanceTimersByTimeAsync(0)
-}
-
-const SIGNAL_BASED_INPUT_FLAG = 1
-
-/**
- * Register a signal-based input on a test-only component/dir so Angular marks the
- * `input.required()` member as bound before the initial change detection run.
- *
- * After migrating to Angular 21 we can use the CLI to compile and run Vitest tests
- * and this helper should be obsolete.
- */
-export function registerSignalInput<T>(
-  type: Type<T>,
-  inputName: keyof T & string,
-) {
-  const definition = (type as any).ɵcmp ?? (type as any).ɵdir
-  if (!definition) {
-    throw new Error(`Component ${type.name} is missing its definition`)
-  }
-
-  definition.inputs = {
-    ...(definition.inputs ?? {}),
-    [inputName]: [inputName, SIGNAL_BASED_INPUT_FLAG, null],
-  }
-  definition.declaredInputs = {
-    ...(definition.declaredInputs ?? {}),
-    [inputName]: inputName,
-  }
 }
