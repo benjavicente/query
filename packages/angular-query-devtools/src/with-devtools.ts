@@ -9,6 +9,8 @@ import {
   inject,
   isDevMode,
   provideEnvironmentInitializer,
+  runInInjectionContext,
+  afterNextRender
 } from '@angular/core'
 import { QueryClient, onlineManager } from '@tanstack/query-core'
 import { queryFeature } from '@tanstack/angular-query-experimental'
@@ -78,96 +80,103 @@ export const withDevtools: WithDevtools = (
         return
 
       devtoolsProvided.isProvided = true
-      let injectorIsDestroyed = false
-      inject(DestroyRef).onDestroy(() => (injectorIsDestroyed = true))
 
-      const injectedClient = inject(QueryClient, {
-        optional: true,
-      })
-      const destroyRef = inject(DestroyRef)
-      const devtoolsOptions = inject(DEVTOOLS_OPTIONS_SIGNAL)
       const injector = inject(Injector)
 
-      let devtools: TanstackQueryDevtools | null = null
-      let el: HTMLElement | null = null
+      // Do not run on SSR
+      afterNextRender(() => {
+        runInInjectionContext(injector, () => {
+          let injectorIsDestroyed = false
+          inject(DestroyRef).onDestroy(() => (injectorIsDestroyed = true))
 
-      const shouldLoadToolsSignal = computed(() => {
-        const { loadDevtools } = devtoolsOptions()
-        return typeof loadDevtools === 'boolean'
-          ? loadDevtools
-          : isDevMode()
+          const injectedClient = inject(QueryClient, {
+            optional: true,
+          })
+          const destroyRef = inject(DestroyRef)
+          const devtoolsOptions = inject(DEVTOOLS_OPTIONS_SIGNAL)
+
+          let devtools: TanstackQueryDevtools | null = null
+          let el: HTMLElement | null = null
+
+          const shouldLoadToolsSignal = computed(() => {
+            const { loadDevtools } = devtoolsOptions()
+            return typeof loadDevtools === 'boolean'
+              ? loadDevtools
+              : isDevMode()
+          })
+
+          const getResolvedQueryClient = () => {
+            const client = devtoolsOptions().client ?? injectedClient
+            if (!client) {
+              throw new Error('No QueryClient found')
+            }
+            return client
+          }
+
+          const destroyDevtools = () => {
+            devtools?.unmount()
+            el?.remove()
+            devtools = null
+          }
+
+          effect(
+            () => {
+              const shouldLoadTools = shouldLoadToolsSignal()
+              const {
+                client,
+                position,
+                errorTypes,
+                buttonPosition,
+                initialIsOpen,
+              } = devtoolsOptions()
+
+              if (!shouldLoadTools) {
+                // Destroy or do nothing
+                devtools && destroyDevtools()
+                return
+              }
+
+              if (devtools) {
+                // Update existing devtools config
+                client && devtools.setClient(client)
+                position && devtools.setPosition(position)
+                errorTypes && devtools.setErrorTypes(errorTypes)
+                buttonPosition && devtools.setButtonPosition(buttonPosition)
+                typeof initialIsOpen === 'boolean' &&
+                  devtools.setInitialIsOpen(initialIsOpen)
+                return
+              }
+
+              // Create devtools
+              import('@tanstack/query-devtools')
+                .then((queryDevtools) => {
+                  // As this code runs async, the injector could have been destroyed
+                  if (injectorIsDestroyed) return
+
+                  devtools = new queryDevtools.TanstackQueryDevtools({
+                    ...devtoolsOptions(),
+                    client: getResolvedQueryClient(),
+                    queryFlavor: 'Angular Query',
+                    version: '5',
+                    onlineManager,
+                  })
+
+                  el = document.body.appendChild(document.createElement('div'))
+                  el.classList.add('tsqd-parent-container')
+                  devtools.mount(el)
+
+                  destroyRef.onDestroy(destroyDevtools)
+                })
+                .catch((error) => {
+                  console.error(
+                    'Failed to load @tanstack/query-devtools.',
+                    error,
+                  )
+                })
+            },
+            { injector },
+          )
+        })
       })
-
-      const getResolvedQueryClient = () => {
-        const client = devtoolsOptions().client ?? injectedClient
-        if (!client) {
-          throw new Error('No QueryClient found')
-        }
-        return client
-      }
-
-      const destroyDevtools = () => {
-        devtools?.unmount()
-        el?.remove()
-        devtools = null
-      }
-
-      effect(
-        () => {
-          const shouldLoadTools = shouldLoadToolsSignal()
-          const {
-            client,
-            position,
-            errorTypes,
-            buttonPosition,
-            initialIsOpen,
-          } = devtoolsOptions()
-
-          if (!shouldLoadTools) {
-            // Destroy or do nothing
-            devtools && destroyDevtools()
-            return
-          }
-
-          if (devtools) {
-            // Update existing devtools config
-            client && devtools.setClient(client)
-            position && devtools.setPosition(position)
-            errorTypes && devtools.setErrorTypes(errorTypes)
-            buttonPosition && devtools.setButtonPosition(buttonPosition)
-            typeof initialIsOpen === 'boolean' &&
-              devtools.setInitialIsOpen(initialIsOpen)
-            return
-          }
-
-          // Create devtools
-          import('@tanstack/query-devtools')
-            .then((queryDevtools) => {
-              // As this code runs async, the injector could have been destroyed
-              if (injectorIsDestroyed) return
-
-              devtools = new queryDevtools.TanstackQueryDevtools({
-                ...devtoolsOptions(),
-                client: getResolvedQueryClient(),
-                queryFlavor: 'Angular Query',
-                version: '5',
-                onlineManager,
-              })
-
-              el = document.body.appendChild(document.createElement('div'))
-              el.classList.add('tsqd-parent-container')
-              devtools.mount(el)
-
-              destroyRef.onDestroy(destroyDevtools)
-            })
-            .catch((error) => {
-              console.error(
-                'Failed to load @tanstack/query-devtools.',
-                error,
-              )
-            })
-        },
-        { injector },
-      )
     }),
   ])

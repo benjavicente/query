@@ -51,6 +51,7 @@ export { injectQuery } from './inject-query'
 
 export type {
   DevtoolsFeature,
+  HydrationFeature,
   PersistQueryClientFeature,
   QueryFeature,
   QueryFeatures,

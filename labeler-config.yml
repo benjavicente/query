@@ -4,6 +4,9 @@
 'package: angular-query-experimental':
   - changed-files:
       - any-glob-to-any-file: 'packages/angular-query-experimental/**/*'
+'package: angular-query-hydration':
+  - changed-files:
+      - any-glob-to-any-file: 'packages/angular-query-hydration/**/*'
 'package: angular-query-persist-client':
   - changed-files:
       - any-glob-to-any-file: 'packages/angular-query-persist-client/**/*'

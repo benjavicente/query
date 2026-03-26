@@ -115,7 +115,7 @@ export function provideTanStackQuery(
   ]
 }
 
-type QueryFeatureKind = "Devtools" | "PersistQueryClient"
+type QueryFeatureKind = "Devtools" | "Hydration" | "PersistQueryClient"
 
 /**
  * Helper type to represent a Query feature.
@@ -152,10 +152,20 @@ export type DevtoolsFeature = QueryFeature<'Devtools'>
 export type PersistQueryClientFeature = QueryFeature<'PersistQueryClient'>
 
 /**
+ * A type alias that represents a feature which enables SSR dehydrate / client hydrate via TransferState.
+ * The type is used to describe the return value of the `withHydration` function from
+ * `@tanstack/angular-query-hydration/client`.
+ */
+export type HydrationFeature = QueryFeature<'Hydration'>
+
+/**
  * A type alias that represents all Query features available for use with `provideTanStackQuery`.
  * Features can be enabled by adding special functions to the `provideTanStackQuery` call.
  * See documentation for each symbol to find corresponding function name. See also `provideTanStackQuery`
  * documentation on how to use those functions.
  * @see {@link provideTanStackQuery}
  */
-export type QueryFeatures = DevtoolsFeature | PersistQueryClientFeature
+export type QueryFeatures =
+  | DevtoolsFeature
+  | HydrationFeature
+  | PersistQueryClientFeature
