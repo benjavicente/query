@@ -111,6 +111,8 @@ export class DevtoolsOptionsManager {
 }
 ```
 
+See also the runnable example at `examples/angular/dynamic-devtools`.
+
 If you want to use an injectable such as a service in the callback you can use `deps`. The injected value will be passed as parameter to the callback function.
 
 This is similar to `deps` in Angular's [`useFactory`](https://angular.dev/guide/di/dependency-injection-providers#factory-providers-usefactory) provider.

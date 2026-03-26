@@ -337,6 +337,49 @@ importers:
         specifier: 5.8.3
         version: 5.8.3
 
+  examples/angular/dynamic-devtools:
+    dependencies:
+      '@angular/common':
+        specifier: ^20.0.0
+        version: 20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0))(rxjs@7.8.2)
+      '@angular/compiler':
+        specifier: ^20.0.0
+        version: 20.3.18
+      '@angular/core':
+        specifier: ^20.0.0
+        version: 20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0)
+      '@angular/platform-browser':
+        specifier: ^20.0.0
+        version: 20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0))
+      '@tanstack/angular-query-devtools':
+        specifier: ^5.95.2
+        version: link:../../../packages/angular-query-devtools
+      '@tanstack/angular-query-experimental':
+        specifier: ^5.95.2
+        version: link:../../../packages/angular-query-experimental
+      rxjs:
+        specifier: ^7.8.2
+        version: 7.8.2
+      tslib:
+        specifier: ^2.8.1
+        version: 2.8.1
+      zone.js:
+        specifier: 0.16.0
+        version: 0.16.0
+    devDependencies:
+      '@angular/build':
+        specifier: ^20.0.0
+        version: 20.3.21(59019dd34bc7c9a97ebbf28907f9a62b)
+      '@angular/cli':
+        specifier: ^20.0.0
+        version: 20.3.21(@types/node@22.19.15)(chokidar@4.0.3)
+      '@angular/compiler-cli':
+        specifier: ^20.0.0
+        version: 20.3.18(@angular/compiler@20.3.18)(typescript@5.8.3)
+      typescript:
+        specifier: 5.8.3
+        version: 5.8.3
+
   examples/angular/infinite-query-with-max-pages:
     dependencies:
       '@angular/common':
