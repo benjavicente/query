@@ -70,7 +70,7 @@ export class TodosComponent {
 [//]: # 'Example3'
 
 ```angular-ts
-import { skipToken, injectQuery } from '@tanstack/angular-query-experimental'
+import { skipToken, injectQuery } from '@benjavicente/angular-query-experimental'
 
 @Component({
   selector: 'todos',

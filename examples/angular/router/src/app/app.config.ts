@@ -3,9 +3,9 @@ import { provideRouter, withComponentInputBinding } from '@angular/router'
 import {
   QueryClient,
   provideTanStackQuery,
-} from '@tanstack/angular-query-experimental'
+} from '@benjavicente/angular-query-experimental'
 
-import { withDevtools } from '@tanstack/angular-query-devtools'
+import { withDevtools } from '@benjavicente/angular-query-devtools'
 import { routes } from './app.routes'
 import type { ApplicationConfig } from '@angular/core'
 

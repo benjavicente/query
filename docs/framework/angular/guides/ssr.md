@@ -23,8 +23,8 @@ import {
   QueryClient,
   provideTanStackQuery,
   withHydration,
-} from '@tanstack/angular-query-experimental'
-import { withDevtools } from '@tanstack/angular-query-devtools'
+} from '@benjavicente/angular-query-experimental'
+import { withDevtools } from '@benjavicente/angular-query-devtools'
 
 export const sharedQueryDefaults = {
   staleTime: 1000 * 30,
@@ -62,8 +62,8 @@ Each SSR request should bootstrap a new application with a **fresh** `QueryClien
 import type { BootstrapContext } from '@angular/platform-browser'
 import { mergeApplicationConfig } from '@angular/core'
 import { provideServerRendering, withRoutes } from '@angular/ssr'
-import { QueryClient } from '@tanstack/angular-query-experimental'
-import { provideServerTanStackQueryHydration } from '@tanstack/angular-query-experimental/server'
+import { QueryClient } from '@benjavicente/angular-query-experimental'
+import { provideServerTanStackQueryHydration } from '@benjavicente/angular-query-experimental/server'
 import { getBaseAppConfig, sharedQueryDefaults } from './app.config'
 import { serverRoutes } from './app.routes.server'
 

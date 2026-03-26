@@ -49,7 +49,7 @@ export function provideQueryClient(
  * import {
  *   provideTanStackQuery,
  *   QueryClient,
- * } from '@tanstack/angular-query-experimental'
+ * } from '@benjavicente/angular-query-experimental'
  *
  * bootstrapApplication(AppComponent, {
  *   providers: [provideTanStackQuery(new QueryClient())],
@@ -62,7 +62,7 @@ export function provideQueryClient(
  * import {
  *   provideTanStackQuery,
  *   QueryClient,
- * } from '@tanstack/angular-query-experimental'
+ * } from '@benjavicente/angular-query-experimental'
  *
  * @NgModule({
  *   declarations: [AppComponent],
@@ -74,13 +74,13 @@ export function provideQueryClient(
  * ```
  *
  * You can also enable optional developer tools by adding `withDevtools` from
- * `@tanstack/angular-query-devtools`. That package uses conditional exports: optimized builds
+ * `@benjavicente/angular-query-devtools`. That package uses conditional exports: optimized builds
  * typically resolve a no-op stub, while dev servers resolve the real implementation (see the
  * Angular Devtools guide). When the real implementation runs, devtools mount when `loadDevtools` is
  * omitted, true, or `'auto'` and `isDevMode()` is true.
  * ```ts
- * import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental'
- * import { withDevtools } from '@tanstack/angular-query-devtools'
+ * import { provideTanStackQuery, QueryClient } from '@benjavicente/angular-query-experimental'
+ * import { withDevtools } from '@benjavicente/angular-query-devtools'
  *
  * bootstrapApplication(AppComponent, {
  *   providers: [provideTanStackQuery(new QueryClient(), withDevtools())],

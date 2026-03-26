@@ -1,9 +1,9 @@
 ---
-id: "@tanstack/angular-query-experimental"
-title: "@tanstack/angular-query-experimental"
+id: "@benjavicente/angular-query-experimental"
+title: "@benjavicente/angular-query-experimental"
 ---
 
-# @tanstack/angular-query-experimental
+# @benjavicente/angular-query-experimental
 
 ## Interfaces
 

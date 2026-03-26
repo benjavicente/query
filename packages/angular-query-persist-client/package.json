@@ -1,13 +1,12 @@
 {
-  "name": "@tanstack/angular-query-persist-client",
-  "private": true,
+  "name": "@benjavicente/angular-query-persist-client",
   "version": "5.95.2",
   "description": "Angular bindings to work with persisters in TanStack/angular-query",
   "author": "Omer Gronich",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/TanStack/query.git",
+    "url": "git+https://github.com/benjavicente/query.git",
     "directory": "packages/angular-query-persist-client"
   },
   "homepage": "https://tanstack.com/query",
@@ -64,7 +63,7 @@
     "@angular/core": "^20.0.0",
     "@angular/platform-browser": "^20.0.0",
     "@angular/router": "^20.0.0",
-    "@tanstack/angular-query-experimental": "workspace:*",
+    "@benjavicente/angular-query-experimental": "workspace:*",
     "@tanstack/query-test-utils": "workspace:*",
     "@testing-library/angular": "^18.0.0",
     "@testing-library/dom": "^10.4.0",
@@ -76,6 +75,9 @@
   "peerDependencies": {
     "@angular/common": ">=19.0.0",
     "@angular/core": ">=19.0.0",
-    "@tanstack/angular-query-experimental": "workspace:^"
+    "@benjavicente/angular-query-experimental": "workspace:^"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

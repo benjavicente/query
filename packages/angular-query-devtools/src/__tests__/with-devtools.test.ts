@@ -11,7 +11,7 @@ import {
   provideZonelessChangeDetection,
   signal,
 } from '@angular/core'
-import { provideTanStackQuery } from '@tanstack/angular-query-experimental'
+import { provideTanStackQuery } from '@benjavicente/angular-query-experimental'
 import { withDevtools } from '../index'
 import { flushQueryUpdates } from './test-utils'
 import type {

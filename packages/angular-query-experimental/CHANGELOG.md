@@ -1,4 +1,4 @@
-# @tanstack/angular-query-experimental
+# @benjavicente/angular-query-experimental
 
 ## 5.95.2
 

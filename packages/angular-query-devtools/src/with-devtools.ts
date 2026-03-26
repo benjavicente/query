@@ -13,7 +13,7 @@ import {
   afterNextRender
 } from '@angular/core'
 import { QueryClient, onlineManager } from '@tanstack/query-core'
-import { queryFeature } from '@tanstack/angular-query-experimental'
+import { queryFeature } from '@benjavicente/angular-query-experimental'
 import type { Signal } from '@angular/core'
 import type {
   DevtoolsOptions,

@@ -4,7 +4,7 @@ import {
   computed,
   inject,
 } from '@angular/core'
-import { injectInfiniteQuery } from '@tanstack/angular-query-experimental'
+import { injectInfiniteQuery } from '@benjavicente/angular-query-experimental'
 import { lastValueFrom } from 'rxjs'
 import { ProjectStyleDirective } from '../directives/project-style.directive'
 import { ProjectsService } from '../services/projects.service'

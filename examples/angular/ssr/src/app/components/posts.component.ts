@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
-import { injectQuery } from '@tanstack/angular-query-experimental'
+import { injectQuery } from '@benjavicente/angular-query-experimental'
 import { lastValueFrom } from 'rxjs'
 import { PostsService } from '../services/posts.service'
 

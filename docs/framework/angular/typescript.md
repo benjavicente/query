@@ -152,9 +152,9 @@ computed(() => {
 [//]: # 'RegisterErrorType'
 
 ```ts
-import '@tanstack/angular-query-experimental'
+import '@benjavicente/angular-query-experimental'
 
-declare module '@tanstack/angular-query-experimental' {
+declare module '@benjavicente/angular-query-experimental' {
   interface Register {
     defaultError: AxiosError
   }

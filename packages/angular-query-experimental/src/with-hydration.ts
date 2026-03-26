@@ -14,7 +14,7 @@ import type { HydrationFeature } from './providers'
 
 /**
  * Hydrates the {@link QueryClient} in the browser.
- * Use `provideServerTanStackQueryHydration` from `@tanstack/angular-query-experimental/server`
+ * Use `provideServerTanStackQueryHydration` from `@benjavicente/angular-query-experimental/server`
  * in your server config to serialize the query cache for dehydration.
  * @public
  */

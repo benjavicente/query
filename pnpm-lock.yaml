@@ -170,10 +170,10 @@ importers:
       '@angular/platform-browser':
         specifier: ^20.0.0
         version: 20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0))
-      '@tanstack/angular-query-devtools':
+      '@benjavicente/angular-query-devtools':
         specifier: ^5.90.25
         version: link:../../../packages/angular-query-devtools
-      '@tanstack/angular-query-experimental':
+      '@benjavicente/angular-query-experimental':
         specifier: ^5.90.25
         version: link:../../../packages/angular-query-experimental
       rxjs:
@@ -213,10 +213,10 @@ importers:
       '@angular/platform-browser':
         specifier: ^20.0.0
         version: 20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0))
-      '@tanstack/angular-query-devtools':
+      '@benjavicente/angular-query-devtools':
         specifier: ^5.90.25
         version: link:../../../packages/angular-query-devtools
-      '@tanstack/angular-query-experimental':
+      '@benjavicente/angular-query-experimental':
         specifier: ^5.90.25
         version: link:../../../packages/angular-query-experimental
       rxjs:
@@ -256,13 +256,13 @@ importers:
       '@angular/platform-browser':
         specifier: ^20.0.0
         version: 20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0))
-      '@tanstack/angular-query-devtools':
+      '@benjavicente/angular-query-devtools':
         specifier: ^5.90.25
         version: link:../../../packages/angular-query-devtools
-      '@tanstack/angular-query-experimental':
+      '@benjavicente/angular-query-experimental':
         specifier: ^5.90.25
         version: link:../../../packages/angular-query-experimental
-      '@tanstack/angular-query-persist-client':
+      '@benjavicente/angular-query-persist-client':
         specifier: ^5.62.27
         version: link:../../../packages/angular-query-persist-client
       '@tanstack/query-async-storage-persister':
@@ -308,10 +308,10 @@ importers:
       '@angular/router':
         specifier: ^20.0.0
         version: 20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0))(@angular/platform-browser@20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0)))(rxjs@7.8.2)
-      '@tanstack/angular-query-devtools':
+      '@benjavicente/angular-query-devtools':
         specifier: ^5.90.25
         version: link:../../../packages/angular-query-devtools
-      '@tanstack/angular-query-experimental':
+      '@benjavicente/angular-query-experimental':
         specifier: ^5.90.25
         version: link:../../../packages/angular-query-experimental
       rxjs:
@@ -351,10 +351,10 @@ importers:
       '@angular/platform-browser':
         specifier: ^20.0.0
         version: 20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0))
-      '@tanstack/angular-query-devtools':
+      '@benjavicente/angular-query-devtools':
         specifier: ^5.95.2
         version: link:../../../packages/angular-query-devtools
-      '@tanstack/angular-query-experimental':
+      '@benjavicente/angular-query-experimental':
         specifier: ^5.95.2
         version: link:../../../packages/angular-query-experimental
       rxjs:
@@ -394,10 +394,10 @@ importers:
       '@angular/platform-browser':
         specifier: ^20.0.0
         version: 20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0))
-      '@tanstack/angular-query-devtools':
+      '@benjavicente/angular-query-devtools':
         specifier: ^5.90.25
         version: link:../../../packages/angular-query-devtools
-      '@tanstack/angular-query-experimental':
+      '@benjavicente/angular-query-experimental':
         specifier: ^5.90.25
         version: link:../../../packages/angular-query-experimental
       rxjs:
@@ -440,10 +440,10 @@ importers:
       '@angular/platform-browser':
         specifier: ^20.0.0
         version: 20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0))
-      '@tanstack/angular-query-devtools':
+      '@benjavicente/angular-query-devtools':
         specifier: ^5.90.25
         version: link:../../../packages/angular-query-devtools
-      '@tanstack/angular-query-experimental':
+      '@benjavicente/angular-query-experimental':
         specifier: ^5.90.25
         version: link:../../../packages/angular-query-experimental
       rxjs:
@@ -483,10 +483,10 @@ importers:
       '@angular/platform-browser':
         specifier: ^20.0.0
         version: 20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0))
-      '@tanstack/angular-query-devtools':
+      '@benjavicente/angular-query-devtools':
         specifier: ^5.90.25
         version: link:../../../packages/angular-query-devtools
-      '@tanstack/angular-query-experimental':
+      '@benjavicente/angular-query-experimental':
         specifier: ^5.90.25
         version: link:../../../packages/angular-query-experimental
       rxjs:
@@ -529,10 +529,10 @@ importers:
       '@angular/router':
         specifier: ^20.0.0
         version: 20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0))(@angular/platform-browser@20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0)))(rxjs@7.8.2)
-      '@tanstack/angular-query-devtools':
+      '@benjavicente/angular-query-devtools':
         specifier: ^5.90.25
         version: link:../../../packages/angular-query-devtools
-      '@tanstack/angular-query-experimental':
+      '@benjavicente/angular-query-experimental':
         specifier: ^5.90.25
         version: link:../../../packages/angular-query-experimental
       rxjs:
@@ -575,10 +575,10 @@ importers:
       '@angular/router':
         specifier: ^20.0.0
         version: 20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0))(@angular/platform-browser@20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0)))(rxjs@7.8.2)
-      '@tanstack/angular-query-devtools':
+      '@benjavicente/angular-query-devtools':
         specifier: ^5.90.25
         version: link:../../../packages/angular-query-devtools
-      '@tanstack/angular-query-experimental':
+      '@benjavicente/angular-query-experimental':
         specifier: ^5.90.25
         version: link:../../../packages/angular-query-experimental
       rxjs:
@@ -621,10 +621,10 @@ importers:
       '@angular/platform-browser':
         specifier: ^20.0.0
         version: 20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0))
-      '@tanstack/angular-query-devtools':
+      '@benjavicente/angular-query-devtools':
         specifier: ^5.90.25
         version: link:../../../packages/angular-query-devtools
-      '@tanstack/angular-query-experimental':
+      '@benjavicente/angular-query-experimental':
         specifier: ^5.90.25
         version: link:../../../packages/angular-query-experimental
       rxjs:
@@ -664,10 +664,10 @@ importers:
       '@angular/platform-browser':
         specifier: ^20.0.0
         version: 20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0))
-      '@tanstack/angular-query-devtools':
+      '@benjavicente/angular-query-devtools':
         specifier: ^5.90.25
         version: link:../../../packages/angular-query-devtools
-      '@tanstack/angular-query-experimental':
+      '@benjavicente/angular-query-experimental':
         specifier: ^5.90.25
         version: link:../../../packages/angular-query-experimental
       rxjs:
@@ -713,7 +713,7 @@ importers:
       '@angular/ssr':
         specifier: ^20.0.0
         version: 20.3.21(9d274730e90cf87ea0aee07e78095bf7)
-      '@tanstack/angular-query-experimental':
+      '@benjavicente/angular-query-experimental':
         specifier: ^5.95.0
         version: link:../../../packages/angular-query-experimental
       express:
@@ -738,7 +738,7 @@ importers:
       '@angular/compiler-cli':
         specifier: ^20.0.0
         version: 20.3.18(@angular/compiler@20.3.18)(typescript@5.8.3)
-      '@tanstack/angular-query-devtools':
+      '@benjavicente/angular-query-devtools':
         specifier: workspace:^
         version: link:../../../packages/angular-query-devtools
       '@types/express':
@@ -2266,7 +2266,7 @@ importers:
       '@angular/router':
         specifier: ^20.0.0
         version: 20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0))(@angular/platform-browser@20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0)))(rxjs@7.8.2)
-      '@tanstack/angular-query-experimental':
+      '@benjavicente/angular-query-experimental':
         specifier: ^5.95.2
         version: link:../../packages/angular-query-experimental
       rxjs:
@@ -2565,7 +2565,7 @@ importers:
       '@angular/core':
         specifier: ^20.0.0
         version: 20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0)
-      '@tanstack/angular-query-experimental':
+      '@benjavicente/angular-query-experimental':
         specifier: workspace:*
         version: link:../angular-query-experimental
       npm-run-all2:
@@ -2689,7 +2689,7 @@ importers:
       '@angular/router':
         specifier: ^20.0.0
         version: 20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0))(@angular/platform-browser@20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0)))(rxjs@7.8.2)
-      '@tanstack/angular-query-experimental':
+      '@benjavicente/angular-query-experimental':
         specifier: workspace:*
         version: link:../angular-query-experimental
       '@tanstack/query-test-utils':

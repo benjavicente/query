@@ -10,29 +10,29 @@ title: Installation
 _Angular Query is compatible with Angular v19 and higher_
 
 ```bash
-npm i @tanstack/angular-query-experimental
+npm i @benjavicente/angular-query-experimental
 ```
 
 or
 
 ```bash
-pnpm add @tanstack/angular-query-experimental
+pnpm add @benjavicente/angular-query-experimental
 ```
 
 or
 
 ```bash
-yarn add @tanstack/angular-query-experimental
+yarn add @benjavicente/angular-query-experimental
 ```
 
 or
 
 ```bash
-bun add @tanstack/angular-query-experimental
+bun add @benjavicente/angular-query-experimental
 ```
 
-To use [Devtools](./devtools), install `@tanstack/angular-query-devtools`.
+To use [Devtools](./devtools), install `@benjavicente/angular-query-devtools`.
 
-For [SSR with dehydration / hydration](./guides/ssr), use `withHydration` from `@tanstack/angular-query-experimental` and `provideServerTanStackQueryHydration` from `@tanstack/angular-query-experimental/server`.
+For [SSR with dehydration / hydration](./guides/ssr), use `withHydration` from `@benjavicente/angular-query-experimental` and `provideServerTanStackQueryHydration` from `@benjavicente/angular-query-experimental/server`.
 
 > Wanna give it a spin before you download? Try out the [simple](./examples/simple) or [basic](./examples/basic) examples!

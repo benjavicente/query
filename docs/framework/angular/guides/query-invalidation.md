@@ -9,7 +9,7 @@ replace: { 'useQuery': 'injectQuery', 'hooks': 'functions' }
 
 ```ts
 import { Component, inject } from '@angular/core'
-import { injectQuery, QueryClient } from '@tanstack/angular-query-experimental'
+import { injectQuery, QueryClient } from '@benjavicente/angular-query-experimental'
 
 @Component({
   // ...

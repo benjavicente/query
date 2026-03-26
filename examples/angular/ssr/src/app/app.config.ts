@@ -4,8 +4,8 @@ import {
   QueryClient,
   provideTanStackQuery,
   withHydration,
-} from '@tanstack/angular-query-experimental'
-import { withDevtools } from '@tanstack/angular-query-devtools'
+} from '@benjavicente/angular-query-experimental'
+import { withDevtools } from '@benjavicente/angular-query-devtools'
 
 export const sharedQueryDefaults = {
   staleTime: 1000 * 30,

@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
 import {
   injectMutation,
   injectQuery,
-} from '@tanstack/angular-query-experimental'
+} from '@benjavicente/angular-query-experimental'
 import { FormsModule } from '@angular/forms'
 import { DatePipe } from '@angular/common'
 import { TasksService } from '../services/tasks.service'

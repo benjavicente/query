@@ -6,7 +6,7 @@ replace:
   {
     'useIsFetching': 'injectIsFetching',
     'hook': 'function',
-    '@tanstack/react-query': '@tanstack/angular-query-experimental',
+    '@tanstack/react-query': '@benjavicente/angular-query-experimental',
   }
 ---
 
@@ -42,7 +42,7 @@ class TodosComponent {
 [//]: # 'Example2'
 
 ```angular-ts
-import { injectIsFetching } from '@tanstack/angular-query-experimental'
+import { injectIsFetching } from '@benjavicente/angular-query-experimental'
 
 @Component({
   selector: 'global-loading-indicator',

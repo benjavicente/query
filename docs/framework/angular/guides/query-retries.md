@@ -15,7 +15,7 @@ replace:
 [//]: # 'Example'
 
 ```ts
-import { injectQuery } from '@tanstack/angular-query-experimental'
+import { injectQuery } from '@benjavicente/angular-query-experimental'
 
 // Make a specific query retry a certain number of times
 const result = injectQuery(() => ({
@@ -33,7 +33,7 @@ const result = injectQuery(() => ({
 import {
   QueryClient,
   provideTanStackQuery,
-} from '@tanstack/angular-query-experimental'
+} from '@benjavicente/angular-query-experimental'
 import { bootstrapApplication } from '@angular/platform-browser'
 
 const queryClient = new QueryClient({

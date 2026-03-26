@@ -4,7 +4,7 @@ import {
   injectQueries,
   injectQuery,
   provideTanStackQuery,
-} from '@tanstack/angular-query-experimental'
+} from '@benjavicente/angular-query-experimental'
 import { persistQueryClientSave } from '@tanstack/query-persist-client-core'
 import {
   Component,

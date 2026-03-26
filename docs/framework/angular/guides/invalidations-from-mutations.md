@@ -26,7 +26,7 @@ import { Component, inject } from '@angular/core'
 import {
   injectMutation,
   QueryClient,
-} from '@tanstack/angular-query-experimental'
+} from '@benjavicente/angular-query-experimental'
 
 @Component({
   // ...

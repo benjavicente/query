@@ -6,7 +6,7 @@ import {
   numberAttribute,
 } from '@angular/core'
 import { RouterLink } from '@angular/router'
-import { injectQuery } from '@tanstack/angular-query-experimental'
+import { injectQuery } from '@benjavicente/angular-query-experimental'
 import { QueriesService } from '../services/queries-service'
 
 @Component({

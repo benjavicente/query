@@ -17,7 +17,7 @@ replace:
 [//]: # 'Example'
 
 ```ts
-import { injectQuery } from '@tanstack/angular-query-experimental'
+import { injectQuery } from '@benjavicente/angular-query-experimental'
 
 @Component({
   // ...
