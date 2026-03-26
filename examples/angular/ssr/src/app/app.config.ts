@@ -3,26 +3,30 @@ import { provideClientHydration, withEventReplay } from '@angular/platform-brows
 import {
   QueryClient,
   provideTanStackQuery,
+  withHydration,
 } from '@tanstack/angular-query-experimental'
 import { withDevtools } from '@tanstack/angular-query-devtools'
-import { withHydration } from '@tanstack/angular-query-hydration/client'
 
-export const getAppConfig = (): ApplicationConfig => {
+export const sharedQueryDefaults = {
+  staleTime: 1000 * 30,
+  gcTime: 1000 * 60 * 60 * 24,
+} as const
+
+export const createBrowserQueryClient = () =>
+  new QueryClient({
+    defaultOptions: {
+      queries: { ...sharedQueryDefaults },
+    },
+  })
+
+export const getBaseAppConfig = (queryClient: QueryClient): ApplicationConfig => {
   return {
     providers: [
       provideClientHydration(withEventReplay()),
-      provideTanStackQuery(
-        new QueryClient({
-          defaultOptions: {
-            queries: {
-              staleTime: 1000 * 30,
-              gcTime: 1000 * 60 * 60 * 24,
-            },
-          },
-        }),
-        withDevtools(),
-        withHydration()
-      ),
+      provideTanStackQuery(queryClient, withDevtools(), withHydration()),
     ],
   }
 }
+
+export const getClientAppConfig = (): ApplicationConfig =>
+  getBaseAppConfig(createBrowserQueryClient())

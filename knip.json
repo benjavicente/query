@@ -16,9 +16,6 @@
       "ignore": ["src/**/*.test-d.ts"],
       "ignoreDependencies": ["@angular/compiler-cli"]
     },
-    "packages/angular-query-hydration": {
-      "ignoreDependencies": ["@angular/compiler-cli"]
-    },
     "packages/angular-query-persist-client": {
       "ignoreDependencies": ["@angular/compiler-cli"]
     },

@@ -4,7 +4,9 @@ import {
   dehydrate,
   injectQuery,
   provideTanStackQuery,
-} from '@tanstack/angular-query-experimental'
+  withHydration,
+  TANSTACK_QUERY_HYDRATION_STATE_KEY,
+} from '..'
 import {
   Component,
   ENVIRONMENT_INITIALIZER,
@@ -16,11 +18,7 @@ import {
 } from '@angular/core'
 import { render } from '@testing-library/angular'
 import { queryKey, sleep } from '@tanstack/query-test-utils'
-import {
-  TANSTACK_QUERY_HYDRATION_STATE_KEY,
-  withHydration,
-} from '../client'
-import { provideServerQueryHydration } from '../server'
+import { provideServerTanStackQueryHydration } from '../server'
 
 beforeEach(() => {
   vi.useFakeTimers()
@@ -116,7 +114,7 @@ describe('withHydration (client)', () => {
   })
 })
 
-describe('provideServerQueryHydration (server)', () => {
+describe('provideServerTanStackQueryHydration (server)', () => {
   test('includes dehydrated queries when TransferState.toJson runs on server', async () => {
     const key = queryKey()
     const queryClient = new QueryClient()
@@ -126,7 +124,7 @@ describe('provideServerQueryHydration (server)', () => {
       providers: [
         { provide: PLATFORM_ID, useValue: 'server' },
         ...provideTanStackQuery(queryClient),
-        provideServerQueryHydration(),
+        provideServerTanStackQueryHydration(),
       ],
     })
 
@@ -162,7 +160,7 @@ describe('provideServerQueryHydration (server)', () => {
       providers: [
         { provide: PLATFORM_ID, useValue: 'server' },
         ...provideTanStackQuery(queryClient),
-        provideServerQueryHydration(),
+        provideServerTanStackQueryHydration(),
       ],
     })
 
@@ -196,7 +194,7 @@ describe('provideServerQueryHydration (server)', () => {
       providers: [
         { provide: PLATFORM_ID, useValue: 'browser' },
         ...provideTanStackQuery(queryClient),
-        provideServerQueryHydration(),
+        provideServerTanStackQueryHydration(),
       ],
     })
 

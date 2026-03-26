@@ -6,32 +6,16 @@ import {
   provideEnvironmentInitializer,
   signal,
 } from '@angular/core'
-import {
-  QueryClient,
-  hydrate,
-  provideIsRestoring,
-  queryFeature,
-} from '@tanstack/angular-query-experimental'
+import { QueryClient, hydrate } from '@tanstack/query-core'
 import { TANSTACK_QUERY_HYDRATION_STATE_KEY } from './hydration-state-key'
-import type { DehydratedState, HydrationFeature } from '@tanstack/angular-query-experimental'
+import { provideIsRestoring } from './inject-is-restoring'
+import { queryFeature } from './providers'
+import type { HydrationFeature } from './providers'
 
 /**
- * Hydrates the {@link QueryClient} in the browser from {@link TransferState}.
- * Use `provideServerQueryHydration` from `@tanstack/angular-query-hydration/server` in your server config to dehydrate before HTML serialization.
- *
- * **Example**
- *
- * ```ts
- * // app.config.ts
- * import { withHydration } from '@tanstack/angular-query-hydration/client'
- *
- * export const appConfig: ApplicationConfig = {
- *   providers: [
- *     provideTanStackQuery(new QueryClient(), withHydration()),
- *   ],
- * };
- * ```
- * @returns A set of providers for use with {@link provideTanStackQuery}.
+ * Hydrates the {@link QueryClient} in the browser.
+ * Use `provideServerTanStackQueryHydration` from `@tanstack/angular-query-experimental/server`
+ * in your server config to serialize the query cache for dehydration.
  * @public
  */
 export function withHydration(): HydrationFeature {
@@ -48,7 +32,7 @@ export function withHydration(): HydrationFeature {
 
       const transferState = inject(TransferState)
       const client = inject(QueryClient)
-      const dehydratedState = transferState.get<DehydratedState | null>(
+      const dehydratedState = transferState.get(
         TANSTACK_QUERY_HYDRATION_STATE_KEY,
         null,
       )

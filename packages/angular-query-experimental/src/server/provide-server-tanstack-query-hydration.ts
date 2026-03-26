@@ -6,15 +6,16 @@ import {
   makeEnvironmentProviders,
   provideEnvironmentInitializer,
 } from '@angular/core'
-import { QueryClient, dehydrate } from '@tanstack/angular-query-experimental'
-import { TANSTACK_QUERY_HYDRATION_STATE_KEY } from './hydration-state-key'
+import { QueryClient, dehydrate } from '@tanstack/query-core'
+import { TANSTACK_QUERY_HYDRATION_STATE_KEY } from '../hydration-state-key'
 import type { EnvironmentProviders } from '@angular/core'
 
 /**
- * Serializes the state with {@link TransferState} to provide the dehydrated state to the client.
+ * Serializes the query cache for dehydration.
+ * Use `provideServerTanStackQueryHydration` in your server config to serialize the query cache for dehydration.
  * @public
  */
-export function provideServerQueryHydration(): EnvironmentProviders {
+export function provideServerTanStackQueryHydration(): EnvironmentProviders {
   return makeEnvironmentProviders([
     provideEnvironmentInitializer(() => {
       if (!isPlatformServer(inject(PLATFORM_ID))) {

@@ -27,7 +27,6 @@
     "@angular/cli": "^20.0.0",
     "@angular/compiler-cli": "^20.0.0",
     "@tanstack/angular-query-devtools": "workspace:^",
-    "@tanstack/angular-query-hydration": "workspace:^",
     "@types/express": "^5.0.1",
     "typescript": "5.8.3"
   }

@@ -36,6 +36,7 @@ title: "@tanstack/angular-query-experimental"
 - [DefinedInitialDataInfiniteOptions](type-aliases/DefinedInitialDataInfiniteOptions.md)
 - [DefinedInitialDataOptions](type-aliases/DefinedInitialDataOptions.md)
 - [DevtoolsFeature](type-aliases/DevtoolsFeature.md)
+- [HydrationFeature](type-aliases/HydrationFeature.md)
 - [PersistQueryClientFeature](type-aliases/PersistQueryClientFeature.md)
 - [QueriesOptions](type-aliases/QueriesOptions.md)
 - [QueriesResults](type-aliases/QueriesResults.md)
@@ -44,6 +45,10 @@ title: "@tanstack/angular-query-experimental"
 - [UndefinedInitialDataOptions](type-aliases/UndefinedInitialDataOptions.md)
 - [UnusedSkipTokenInfiniteOptions](type-aliases/UnusedSkipTokenInfiniteOptions.md)
 - [UnusedSkipTokenOptions](type-aliases/UnusedSkipTokenOptions.md)
+
+## Variables
+
+- [TANSTACK\_QUERY\_HYDRATION\_STATE\_KEY](variables/TANSTACK_QUERY_HYDRATION_STATE_KEY.md)
 
 ## Functions
 
@@ -62,3 +67,4 @@ title: "@tanstack/angular-query-experimental"
 - [provideTanStackQuery](functions/provideTanStackQuery.md)
 - [queryFeature](functions/queryFeature.md)
 - [queryOptions](functions/queryOptions.md)
+- [withHydration](functions/withHydration.md)

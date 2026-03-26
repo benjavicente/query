@@ -9,7 +9,7 @@ title: provideTanStackQuery
 function provideTanStackQuery(queryClient, ...features): (Provider | EnvironmentProviders)[];
 ```
 
-Defined in: [providers.ts:108](https://github.com/TanStack/query/blob/main/packages/angular-query-experimental/src/providers.ts#L108)
+Defined in: [providers.ts:111](https://github.com/benjavicente/query/blob/main/packages/angular-query-experimental/src/providers.ts#L111)
 
 Sets up providers necessary to enable TanStack Query functionality for Angular applications.
 
@@ -46,8 +46,10 @@ export class AppModule {}
 ```
 
 You can also enable optional developer tools by adding `withDevtools` from
-`@tanstack/angular-query-devtools`. By default the tools will then be loaded
-when your app is in development mode.
+`@tanstack/angular-query-devtools`. That package uses conditional exports: optimized builds
+typically resolve a no-op stub, while dev servers resolve the real implementation (see the
+Angular Devtools guide). When the real implementation runs, devtools mount when `loadDevtools` is
+omitted, true, or `'auto'` and `isDevMode()` is true.
 ```ts
 import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental'
 import { withDevtools } from '@tanstack/angular-query-devtools'
@@ -96,3 +98,4 @@ A set of providers to set up TanStack Query.
 
  - https://tanstack.com/query/v5/docs/framework/angular/quick-start
  - https://tanstack.com/query/v5/docs/framework/angular/devtools
+ - https://tanstack.com/query/latest/docs/framework/angular/guides/ssr

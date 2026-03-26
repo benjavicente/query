@@ -33,4 +33,6 @@ bun add @tanstack/angular-query-experimental
 
 To use [Devtools](./devtools), install `@tanstack/angular-query-devtools`.
 
+For [SSR with dehydration / hydration](./guides/ssr), use `withHydration` from `@tanstack/angular-query-experimental` and `provideServerTanStackQueryHydration` from `@tanstack/angular-query-experimental/server`.
+
 > Wanna give it a spin before you download? Try out the [simple](./examples/simple) or [basic](./examples/basic) examples!

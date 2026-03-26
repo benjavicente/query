@@ -8,10 +8,11 @@ title: QueryFeatures
 ```ts
 type QueryFeatures = 
   | DevtoolsFeature
+  | HydrationFeature
   | PersistQueryClientFeature;
 ```
 
-Defined in: [providers.ts:161](https://github.com/TanStack/query/blob/main/packages/angular-query-experimental/src/providers.ts#L161)
+Defined in: [providers.ts:170](https://github.com/TanStack/query/blob/main/packages/angular-query-experimental/src/providers.ts#L170)
 
 A type alias that represents all Query features available for use with `provideTanStackQuery`.
 Features can be enabled by adding special functions to the `provideTanStackQuery` call.

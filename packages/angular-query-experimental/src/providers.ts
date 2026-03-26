@@ -74,8 +74,10 @@ export function provideQueryClient(
  * ```
  *
  * You can also enable optional developer tools by adding `withDevtools` from
- * `@tanstack/angular-query-devtools`. By default the tools will then be loaded
- * when your app is in development mode.
+ * `@tanstack/angular-query-devtools`. That package uses conditional exports: optimized builds
+ * typically resolve a no-op stub, while dev servers resolve the real implementation (see the
+ * Angular Devtools guide). When the real implementation runs, devtools mount when `loadDevtools` is
+ * omitted, true, or `'auto'` and `isDevMode()` is true.
  * ```ts
  * import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental'
  * import { withDevtools } from '@tanstack/angular-query-devtools'
@@ -104,6 +106,7 @@ export function provideQueryClient(
  * @returns A set of providers to set up TanStack Query.
  * @see https://tanstack.com/query/v5/docs/framework/angular/quick-start
  * @see https://tanstack.com/query/v5/docs/framework/angular/devtools
+ * @see https://tanstack.com/query/latest/docs/framework/angular/guides/ssr
  */
 export function provideTanStackQuery(
   queryClient: QueryClient | InjectionToken<QueryClient>,
@@ -153,8 +156,7 @@ export type PersistQueryClientFeature = QueryFeature<'PersistQueryClient'>
 
 /**
  * A type alias that represents a feature which enables SSR dehydrate / client hydrate via TransferState.
- * The type is used to describe the return value of the `withHydration` function from
- * `@tanstack/angular-query-hydration/client`.
+ * The type is used to describe the return value of the `withHydration` function.
  */
 export type HydrationFeature = QueryFeature<'Hydration'>
 

@@ -5,7 +5,7 @@ title: QueryFeature
 
 # Interface: QueryFeature\<TFeatureKind\>
 
-Defined in: [providers.ts:123](https://github.com/TanStack/query/blob/main/packages/angular-query-experimental/src/providers.ts#L123)
+Defined in: [providers.ts:126](https://github.com/TanStack/query/blob/main/packages/angular-query-experimental/src/providers.ts#L126)
 
 Helper type to represent a Query feature.
 
@@ -23,7 +23,7 @@ Helper type to represent a Query feature.
 ɵkind: TFeatureKind;
 ```
 
-Defined in: [providers.ts:124](https://github.com/TanStack/query/blob/main/packages/angular-query-experimental/src/providers.ts#L124)
+Defined in: [providers.ts:127](https://github.com/TanStack/query/blob/main/packages/angular-query-experimental/src/providers.ts#L127)
 
 ***
 
@@ -33,4 +33,4 @@ Defined in: [providers.ts:124](https://github.com/TanStack/query/blob/main/packa
 ɵproviders: (Provider | EnvironmentProviders)[];
 ```
 
-Defined in: [providers.ts:125](https://github.com/TanStack/query/blob/main/packages/angular-query-experimental/src/providers.ts#L125)
+Defined in: [providers.ts:128](https://github.com/TanStack/query/blob/main/packages/angular-query-experimental/src/providers.ts#L128)

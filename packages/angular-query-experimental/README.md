@@ -26,6 +26,7 @@ Visit https://tanstack.com/query/latest/docs/framework/angular/overview
 - Load-More + Infinite Scroll Queries w/ Scroll Recovery
 - Request Cancellation
 - Dedicated Devtools (see the [Angular Devtools guide](https://tanstack.com/query/latest/docs/framework/angular/devtools))
+- Optional SSR hydration via `withHydration` and `@tanstack/angular-query-experimental/server` (see the [SSR guide](https://tanstack.com/query/latest/docs/framework/angular/guides/ssr))
 
 # Quick Start
 

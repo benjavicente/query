@@ -19,7 +19,7 @@ npm install @tanstack/angular-query-devtools
 
 The devtools help you debug and inspect your queries and mutations. You can enable the devtools by adding `withDevtools` to `provideTanStackQuery`.
 
-By default, Angular Query Devtools are only included in development mode bundles, so you don't need to worry about excluding them during a production build.
+By default, Angular Query Devtools are only included in development, so you don't need to worry about excluding them in production.
 
 ```ts
 import {
@@ -36,9 +36,7 @@ export const appConfig: ApplicationConfig = {
 
 ## Devtools in production
 
-Devtools are automatically excluded from production builds. However, it might be desirable to lazy load the devtools in production.
-
-To use `withDevtools` in production builds, import using the `production` sub-path. The function exported from the production subpath is identical to the main one, but won't be excluded from production builds.
+If you need the real implementation in production, import from the `production` entrypoint.
 
 ```ts
 import { withDevtools } from '@tanstack/angular-query-devtools/production'
@@ -46,7 +44,7 @@ import { withDevtools } from '@tanstack/angular-query-devtools/production'
 
 To control when devtools are loaded, you can use the `loadDevtools` option.
 
-When not setting the option or setting it to 'auto', the devtools will be loaded automatically only when Angular runs in development mode.
+When not setting the option or setting it to `'auto'`, devtools will only be loaded in development mode.
 
 ```ts
 import { withDevtools } from '@tanstack/angular-query-devtools'
@@ -146,8 +144,8 @@ export const appConfig: ApplicationConfig = {
 Of these options `loadDevtools`, `client`, `position`, `errorTypes`, `buttonPosition`, and `initialIsOpen` support reactivity through signals.
 
 - `loadDevtools?: 'auto' | boolean`
-  - Defaults to `auto`: lazily loads devtools when in development mode. Skips loading in production mode.
-  - Use this to control if the devtools are loaded.
+  - Omit or `'auto'`: uses **`isDevMode()`** to decide whether to mount devtools (see above; only when the full implementation is bundled).
+  - Use this to control whether devtools load when using the `/production` import or in other setups where the stub is not used.
 - `initialIsOpen?: Boolean`
   - Set this to `true` if you want the tools to default to being open
 - `buttonPosition?: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "relative"`

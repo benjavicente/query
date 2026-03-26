@@ -1,14 +1,25 @@
+import type { BootstrapContext } from '@angular/platform-browser'
 import { mergeApplicationConfig } from '@angular/core'
 import { provideServerRendering, withRoutes } from '@angular/ssr'
-import { getAppConfig } from './app.config'
+import { QueryClient } from '@tanstack/angular-query-experimental'
+import { provideServerTanStackQueryHydration } from '@tanstack/angular-query-experimental/server'
+import { getBaseAppConfig, sharedQueryDefaults } from './app.config'
 import { serverRoutes } from './app.routes.server'
-import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental'
-import { provideServerQueryHydration } from '@tanstack/angular-query-hydration/server'
 
-export const getServerConfig = () => mergeApplicationConfig(getAppConfig(), {
-  providers: [
-    provideServerRendering(withRoutes(serverRoutes)),
-    provideTanStackQuery(new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 1000 * 60 * 60 * 24, staleTime: 1000 * 30 } } })),
-    provideServerQueryHydration()
-  ],
-})
+const createServerQueryClient = () =>
+  new QueryClient({
+    defaultOptions: {
+      queries: {
+        ...sharedQueryDefaults,
+        retry: false,
+      },
+    },
+  })
+
+export const getServerConfig = (_context: BootstrapContext) =>
+  mergeApplicationConfig(getBaseAppConfig(createServerQueryClient()), {
+    providers: [
+      provideServerRendering(withRoutes(serverRoutes)),
+      provideServerTanStackQueryHydration(),
+    ],
+  })

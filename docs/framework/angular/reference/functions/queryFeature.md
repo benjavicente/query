@@ -9,7 +9,7 @@ title: queryFeature
 function queryFeature<TFeatureKind>(kind, providers): QueryFeature<TFeatureKind>;
 ```
 
-Defined in: [providers.ts:134](https://github.com/TanStack/query/blob/main/packages/angular-query-experimental/src/providers.ts#L134)
+Defined in: [providers.ts:137](https://github.com/TanStack/query/blob/main/packages/angular-query-experimental/src/providers.ts#L137)
 
 Helper function to create an object that represents a Query feature.
 

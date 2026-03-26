@@ -6,6 +6,6 @@ import { getServerConfig } from './app/app.config.server'
 import { SsrExampleComponent } from './app/app.component'
 
 const bootstrap = (context: BootstrapContext) =>
-  bootstrapApplication(SsrExampleComponent, getServerConfig(), context)
+  bootstrapApplication(SsrExampleComponent, getServerConfig(context), context)
 
 export default bootstrap
