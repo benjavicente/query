@@ -8,6 +8,7 @@ import {
 import { persistQueryClientSave } from '@tanstack/query-persist-client-core'
 import {
   Component,
+  InjectionToken,
   effect,
   provideZonelessChangeDetection,
 } from '@angular/core'
@@ -672,5 +673,59 @@ describe('withPersistQueryClient', () => {
     expect(rendered.getByText('fetched')).toBeInTheDocument()
 
     onErrorMock.mockRestore()
+  })
+
+  test('factory form with deps receives injected token and restores cache', async () => {
+    const key = queryKey()
+    const holder = { persister: createMockPersister() }
+    const HOLDER = new InjectionToken<{ persister: Persister }>(
+      'persist-test-holder',
+    )
+
+    const queryClient = new QueryClient()
+    queryClient.prefetchQuery({
+      queryKey: key,
+      queryFn: () => sleep(10).then(() => 'hydrated'),
+    })
+    await vi.advanceTimersByTimeAsync(10)
+
+    persistQueryClientSave({ queryClient, persister: holder.persister })
+    await vi.advanceTimersByTimeAsync(0)
+
+    queryClient.clear()
+
+    @Component({
+      template: `
+        <div>
+          <h1>{{ state.data() }}</h1>
+        </div>
+      `,
+    })
+    class Page {
+      state = injectQuery(() => ({
+        queryKey: key,
+        queryFn: () => sleep(10).then(() => 'fetched'),
+      }))
+    }
+
+    const rendered = await render(Page, {
+      providers: [
+        provideZonelessChangeDetection(),
+        { provide: HOLDER, useValue: holder },
+        provideTanStackQuery(
+          queryClient,
+          withPersistQueryClient(
+            (h) => ({
+              persistOptions: { persister: h.persister },
+            }),
+            { deps: [HOLDER] },
+          ),
+        ),
+      ],
+    })
+
+    await vi.advanceTimersByTimeAsync(10)
+    rendered.fixture.detectChanges()
+    expect(rendered.getByText('hydrated')).toBeInTheDocument()
   })
 })

@@ -7,6 +7,8 @@ For [Angular's SSR](https://angular.dev/guide/ssr), you can run queries on the s
 
 To wire that up with TanStack Query correctly, you will need `withHydration` and `provideServerTanStackQueryHydration`.
 
+An end-to-end sample lives at `examples/angular/ssr`; **SSR plus `localStorage` persistence** (factory-only on the client, optional `dehydrateOptions`, and a client-only query mounted with `afterNextRender` in `examples/angular/ssr-persist`) builds on that setup.
+
 ## Client application config
 
 Import **`withHydration`** add it to [`provideTanStackQuery`](../reference/functions/provideTanStackQuery.md) in your app config.
