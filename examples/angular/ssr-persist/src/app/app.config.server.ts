@@ -2,7 +2,6 @@ import type { BootstrapContext } from '@angular/platform-browser'
 import { mergeApplicationConfig } from '@angular/core'
 import { provideServerRendering, withRoutes } from '@angular/ssr'
 import { QueryClient } from '@benjavicente/angular-query-experimental'
-import { provideServerTanStackQueryHydration } from '@benjavicente/angular-query-experimental/server'
 import { getBaseAppConfig, sharedQueryDefaults } from './app.config'
 import { serverRoutes } from './app.routes.server'
 
@@ -18,8 +17,5 @@ const createServerQueryClient = () =>
 
 export const getServerConfig = (_context: BootstrapContext) =>
   mergeApplicationConfig(getBaseAppConfig(createServerQueryClient()), {
-    providers: [
-      provideServerRendering(withRoutes(serverRoutes)),
-      provideServerTanStackQueryHydration(),
-    ],
+    providers: [provideServerRendering(withRoutes(serverRoutes))],
   })

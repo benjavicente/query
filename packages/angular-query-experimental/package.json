@@ -53,11 +53,6 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.mjs"
     },
-    "./server": {
-      "@tanstack/custom-condition": "./src/server/index.ts",
-      "types": "./dist/server/index.d.ts",
-      "default": "./dist/server/index.mjs"
-    },
     "./package.json": "./package.json"
   },
   "sideEffects": false,

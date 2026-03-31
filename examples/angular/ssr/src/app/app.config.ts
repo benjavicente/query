@@ -3,7 +3,6 @@ import { provideClientHydration, withEventReplay } from '@angular/platform-brows
 import {
   QueryClient,
   provideTanStackQuery,
-  withHydration,
 } from '@benjavicente/angular-query-experimental'
 import { withDevtools } from '@benjavicente/angular-query-devtools'
 
@@ -23,7 +22,7 @@ export const getBaseAppConfig = (queryClient: QueryClient): ApplicationConfig =>
   return {
     providers: [
       provideClientHydration(withEventReplay()),
-      provideTanStackQuery(queryClient, withDevtools(), withHydration()),
+      provideTanStackQuery(queryClient, withDevtools()),
     ],
   }
 }

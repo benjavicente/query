@@ -51,7 +51,6 @@ export { injectQuery } from './inject-query'
 
 export type {
   DevtoolsFeature,
-  HydrationFeature,
   PersistQueryClientFeature,
   QueryFeature,
   QueryFeatures,
@@ -60,7 +59,10 @@ export {
   provideQueryClient,
   provideTanStackQuery,
   queryFeature,
+  withHydrationKey,
 } from './providers'
 
-export { TANSTACK_QUERY_HYDRATION_STATE_KEY } from './hydration-state-key'
-export { withHydration } from './with-hydration'
+export {
+  INTERNAL_TANSTACK_QUERY_HYDRATION_STATE_KEY,
+  INTERNAL_TANSTACK_QUERY_HYDRATION_TRANSFER_KEY,
+} from './hydration-state-key'

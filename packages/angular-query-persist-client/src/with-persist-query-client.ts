@@ -7,6 +7,7 @@ import {
   DestroyRef,
   PLATFORM_ID,
   inject,
+  makeEnvironmentProviders,
   provideEnvironmentInitializer,
   signal,
 } from '@angular/core'
@@ -100,7 +101,7 @@ export function withPersistQueryClient(
   withOptions?: WithPersistQueryClientOptions,
 ): PersistQueryClientFeature {
   const isRestoring = signal(true)
-  const providers = [
+  return queryFeature('PersistQueryClient', makeEnvironmentProviders([
     provideIsRestoring(isRestoring.asReadonly()),
     provideEnvironmentInitializer(() => {
       if (!isPlatformBrowser(inject(PLATFORM_ID))) {
@@ -138,6 +139,5 @@ export function withPersistQueryClient(
         cleanup = persistQueryClientSubscribe(options)
       })
     }),
-  ]
-  return queryFeature('PersistQueryClient', providers)
+  ]))
 }

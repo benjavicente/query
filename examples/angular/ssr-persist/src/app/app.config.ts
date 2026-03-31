@@ -6,7 +6,6 @@ import {
 import {
   QueryClient,
   provideTanStackQuery,
-  withHydration,
 } from '@benjavicente/angular-query-experimental'
 import { withDevtools } from '@benjavicente/angular-query-devtools'
 import { withPersistQueryClient } from '@benjavicente/angular-query-persist-client'
@@ -41,7 +40,6 @@ export const getBaseAppConfig = (
       provideTanStackQuery(
         queryClient,
         withDevtools(),
-        withHydration(),
         withPersistQueryClient(() => ({
           persistOptions: {
             persister: createAsyncStoragePersister({

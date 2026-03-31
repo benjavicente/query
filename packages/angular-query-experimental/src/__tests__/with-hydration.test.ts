@@ -4,9 +4,10 @@ import {
   dehydrate,
   injectQuery,
   provideTanStackQuery,
-  withHydration,
-  TANSTACK_QUERY_HYDRATION_STATE_KEY,
+  INTERNAL_TANSTACK_QUERY_HYDRATION_STATE_KEY,
+  withHydrationKey,
 } from '..'
+import type { DehydratedState } from '@tanstack/query-core'
 import {
   Component,
   ENVIRONMENT_INITIALIZER,
@@ -14,11 +15,11 @@ import {
   TransferState,
   effect,
   inject,
+  makeStateKey,
   provideEnvironmentInitializer,
 } from '@angular/core'
 import { render } from '@testing-library/angular'
 import { queryKey, sleep } from '@tanstack/query-test-utils'
-import { provideServerTanStackQueryHydration } from '../server'
 
 beforeEach(() => {
   vi.useFakeTimers()
@@ -29,7 +30,7 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
-describe('withHydration (client)', () => {
+describe('TransferState hydration (client)', () => {
   test('hydrates QueryClient from TransferState in the browser', async () => {
     const key = queryKey()
     const sourceClient = new QueryClient()
@@ -56,9 +57,9 @@ describe('withHydration (client)', () => {
       providers: [
         provideEnvironmentInitializer(() => {
           const transferState = inject(TransferState)
-          transferState.set(TANSTACK_QUERY_HYDRATION_STATE_KEY, dehydrated)
+          transferState.set(INTERNAL_TANSTACK_QUERY_HYDRATION_STATE_KEY, dehydrated)
         }),
-        provideTanStackQuery(appClient, withHydration()),
+        provideTanStackQuery(appClient),
       ],
     })
 
@@ -69,7 +70,43 @@ describe('withHydration (client)', () => {
       TransferState,
     )
     expect(
-      transferState.get(TANSTACK_QUERY_HYDRATION_STATE_KEY, null),
+      transferState.get(INTERNAL_TANSTACK_QUERY_HYDRATION_STATE_KEY, null),
+    ).toBeNull()
+  })
+
+  test('hydrates using a custom TransferState key from withHydrationKey', async () => {
+    const customKeyName = 'tanstack-test-custom-hydration'
+    const customKey = makeStateKey<DehydratedState>(customKeyName)
+    const key = queryKey()
+    const sourceClient = new QueryClient()
+    sourceClient.setQueryData(key, 'from-custom-key')
+    const dehydrated = dehydrate(sourceClient)
+    const appClient = new QueryClient()
+
+    @Component({
+      template: `<div>{{ state.data() ?? '' }}</div>`,
+    })
+    class Page {
+      state = injectQuery(() => ({
+        queryKey: key,
+        queryFn: () => Promise.resolve('from-client'),
+      }))
+    }
+
+    const rendered = await render(Page, {
+      providers: [
+        provideEnvironmentInitializer(() => {
+          const transferState = inject(TransferState)
+          transferState.set(customKey, dehydrated)
+        }),
+        provideTanStackQuery(appClient, withHydrationKey(customKeyName)),
+      ],
+    })
+
+    rendered.fixture.detectChanges()
+    expect(rendered.getByText('from-custom-key')).toBeTruthy()
+    expect(
+      rendered.fixture.debugElement.injector.get(TransferState).get(customKey, null),
     ).toBeNull()
   })
 
@@ -103,9 +140,9 @@ describe('withHydration (client)', () => {
       providers: [
         provideEnvironmentInitializer(() => {
           const transferState = inject(TransferState)
-          transferState.set(TANSTACK_QUERY_HYDRATION_STATE_KEY, dehydrated)
+          transferState.set(INTERNAL_TANSTACK_QUERY_HYDRATION_STATE_KEY, dehydrated)
         }),
-        provideTanStackQuery(appClient, withHydration()),
+        provideTanStackQuery(appClient),
       ],
     })
 
@@ -114,7 +151,7 @@ describe('withHydration (client)', () => {
   })
 })
 
-describe('provideServerTanStackQueryHydration (server)', () => {
+describe('TransferState dehydration (server)', () => {
   test('includes dehydrated queries when TransferState.toJson runs on server', async () => {
     const key = queryKey()
     const queryClient = new QueryClient()
@@ -123,8 +160,7 @@ describe('provideServerTanStackQueryHydration (server)', () => {
     TestBed.configureTestingModule({
       providers: [
         { provide: PLATFORM_ID, useValue: 'server' },
-        ...provideTanStackQuery(queryClient),
-        provideServerTanStackQueryHydration(),
+        provideTanStackQuery(queryClient),
       ],
     })
 
@@ -140,7 +176,7 @@ describe('provideServerTanStackQueryHydration (server)', () => {
     TestBed.inject(TransferState).toJson()
 
     const stored = TestBed.inject(TransferState).get(
-      TANSTACK_QUERY_HYDRATION_STATE_KEY,
+      INTERNAL_TANSTACK_QUERY_HYDRATION_STATE_KEY,
       null,
     )
     expect(stored).not.toBeNull()
@@ -159,8 +195,7 @@ describe('provideServerTanStackQueryHydration (server)', () => {
     TestBed.configureTestingModule({
       providers: [
         { provide: PLATFORM_ID, useValue: 'server' },
-        ...provideTanStackQuery(queryClient),
-        provideServerTanStackQueryHydration(),
+        provideTanStackQuery(queryClient),
       ],
     })
 
@@ -175,7 +210,7 @@ describe('provideServerTanStackQueryHydration (server)', () => {
     TestBed.inject(TransferState).toJson()
 
     const stored = TestBed.inject(TransferState).get(
-      TANSTACK_QUERY_HYDRATION_STATE_KEY,
+      INTERNAL_TANSTACK_QUERY_HYDRATION_STATE_KEY,
       null,
     )
     expect(stored).not.toBeNull()
@@ -185,7 +220,7 @@ describe('provideServerTanStackQueryHydration (server)', () => {
     expect(stored.queries.length).toBe(0)
   })
 
-  test('does not register TanStack dehydrate onSerialize when platform is browser', async () => {
+  test('does not populate TanStack dehydrate key when platform is browser', async () => {
     const key = queryKey()
     const queryClient = new QueryClient()
 
@@ -193,8 +228,7 @@ describe('provideServerTanStackQueryHydration (server)', () => {
     TestBed.configureTestingModule({
       providers: [
         { provide: PLATFORM_ID, useValue: 'browser' },
-        ...provideTanStackQuery(queryClient),
-        provideServerTanStackQueryHydration(),
+        provideTanStackQuery(queryClient),
       ],
     })
 
@@ -210,7 +244,7 @@ describe('provideServerTanStackQueryHydration (server)', () => {
     TestBed.inject(TransferState).toJson()
 
     expect(
-      TestBed.inject(TransferState).get(TANSTACK_QUERY_HYDRATION_STATE_KEY, null),
+      TestBed.inject(TransferState).get(INTERNAL_TANSTACK_QUERY_HYDRATION_STATE_KEY, null),
     ).toBeNull()
   })
 })
