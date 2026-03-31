@@ -29,7 +29,7 @@ TestBed.configureTestingModule({
 
 > If your applications actual TanStack Query config is used in unit tests, make sure `withDevtools` is not accidentally included in test providers. This can cause slow tests. It is best to keep test and production configs separate.
 
-If you share helpers, remember to call `queryClient.clear()` (or build a new instance) in `afterEach` so data from one test never bleeds into another. Prefer creating a fresh `QueryClient` per test: clearing only removes cached data, not custom defaults or listeners, so a reused client can leak configuration changes between specs and make failures harder to reason about. A new client keeps setup explicit and avoids any “invisible globals” influencing results.
+If you share helpers, remember to clear or recreate the `QueryClient` between tests so cached data and listeners do not bleed across specs.
 
 ## First query test
 

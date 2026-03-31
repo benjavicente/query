@@ -90,9 +90,7 @@ providers: [
 
 ## Derive options through reactivity
 
-Options are passed to `withDevtools` from a callback function to support reactivity through signals. In the following example, a signal is created from an RxJS observable that emits on a keyboard shortcut. When the derived signal is set to true, the devtools are lazily loaded.
-
-The example below always loads devtools in development mode and loads on-demand in production mode when a keyboard shortcut is pressed.
+Options can be returned from a callback so they can react to signals. For example, a signal derived from a keyboard shortcut can enable devtools on demand:
 
 ```ts
 import { Injectable, isDevMode } from '@angular/core'
@@ -116,11 +114,7 @@ export class DevtoolsOptionsManager {
 }
 ```
 
-See also the runnable example at `examples/angular/dynamic-devtools`.
-
-If you want to use an injectable such as a service in the callback you can use `deps`. The injected value will be passed as parameter to the callback function.
-
-This is similar to `deps` in Angular's [`useFactory`](https://angular.dev/guide/di/dependency-injection-providers#factory-providers-usefactory) provider.
+To use an injectable such as a service in the callback, pass it through `deps`:
 
 ```ts
 // ...
@@ -137,7 +131,6 @@ export const appConfig: ApplicationConfig = {
           loadDevtools: devToolsOptionsManager.loadDevtools(),
         }),
         {
-          // `deps` is used to inject and pass `DevtoolsOptionsManager` to the `withDevtools` callback.
           deps: [DevtoolsOptionsManager],
         },
       ),
