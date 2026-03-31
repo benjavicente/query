@@ -1,9 +1,9 @@
 ---
-id: "@benjavicente/angular-query-experimental"
-title: "@benjavicente/angular-query-experimental"
+id: "@tanstack/angular-query-experimental"
+title: "@tanstack/angular-query-experimental"
 ---
 
-# @benjavicente/angular-query-experimental
+# @tanstack/angular-query-experimental
 
 ## Interfaces
 
@@ -18,7 +18,6 @@ title: "@benjavicente/angular-query-experimental"
 - [InjectMutationStateOptions](interfaces/InjectMutationStateOptions.md)
 - [InjectQueriesOptions](interfaces/InjectQueriesOptions.md)
 - [InjectQueryOptions](interfaces/InjectQueryOptions.md)
-- [QueryFeature](interfaces/QueryFeature.md)
 
 ## Type Aliases
 
@@ -36,7 +35,6 @@ title: "@benjavicente/angular-query-experimental"
 - [DefinedInitialDataInfiniteOptions](type-aliases/DefinedInitialDataInfiniteOptions.md)
 - [DefinedInitialDataOptions](type-aliases/DefinedInitialDataOptions.md)
 - [DevtoolsFeature](type-aliases/DevtoolsFeature.md)
-- [HydrationFeature](type-aliases/HydrationFeature.md)
 - [PersistQueryClientFeature](type-aliases/PersistQueryClientFeature.md)
 - [QueriesOptions](type-aliases/QueriesOptions.md)
 - [QueriesResults](type-aliases/QueriesResults.md)
@@ -45,10 +43,6 @@ title: "@benjavicente/angular-query-experimental"
 - [UndefinedInitialDataOptions](type-aliases/UndefinedInitialDataOptions.md)
 - [UnusedSkipTokenInfiniteOptions](type-aliases/UnusedSkipTokenInfiniteOptions.md)
 - [UnusedSkipTokenOptions](type-aliases/UnusedSkipTokenOptions.md)
-
-## Variables
-
-- [TANSTACK\_QUERY\_HYDRATION\_STATE\_KEY](variables/TANSTACK_QUERY_HYDRATION_STATE_KEY.md)
 
 ## Functions
 
@@ -62,9 +56,6 @@ title: "@benjavicente/angular-query-experimental"
 - [injectQueries](functions/injectQueries.md)
 - [injectQuery](functions/injectQuery.md)
 - [mutationOptions](functions/mutationOptions.md)
-- [provideIsRestoring](functions/provideIsRestoring.md)
-- [provideQueryClient](functions/provideQueryClient.md)
 - [provideTanStackQuery](functions/provideTanStackQuery.md)
-- [queryFeature](functions/queryFeature.md)
 - [queryOptions](functions/queryOptions.md)
-- [withHydration](functions/withHydration.md)
+- [withHydrationKey](functions/withHydrationKey.md)

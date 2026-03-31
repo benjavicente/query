@@ -19,7 +19,7 @@ npm install @benjavicente/angular-query-devtools
 
 The devtools help you debug and inspect your queries and mutations. You can enable the devtools by adding `withDevtools` to `provideTanStackQuery`.
 
-By default, Angular Query Devtools are only included in development, so you don't need to worry about excluding them in production.
+By default, Angular Query Devtools only load in development.
 
 ```ts
 import {
@@ -42,20 +42,22 @@ If you need the real implementation in production, import from the `production` 
 import { withDevtools } from '@benjavicente/angular-query-devtools/production'
 ```
 
-To control when devtools are loaded, you can use the `loadDevtools` option.
+To control when devtools are loaded, use the `loadDevtools` option.
 
-When not setting the option or setting it to `'auto'`, devtools will only be loaded in development mode.
+When omitted or set to `'auto'`, devtools only load in development mode.
 
 ```ts
 import { withDevtools } from '@benjavicente/angular-query-devtools'
 
-provideTanStackQuery(new QueryClient(), withDevtools())
+providers: [provideTanStackQuery(new QueryClient(), withDevtools())]
 
 // which is equivalent to
-provideTanStackQuery(
-  new QueryClient(),
-  withDevtools(() => ({ loadDevtools: 'auto' })),
-)
+providers: [
+  provideTanStackQuery(
+    new QueryClient(),
+    withDevtools(() => ({ loadDevtools: 'auto' })),
+  ),
+]
 ```
 
 When setting the option to true, the devtools will be loaded in both development and production mode.
@@ -67,25 +69,28 @@ import { environment } from './environments/environment'
 // Make sure to use the production sub-path to load devtools in production builds
 import { withDevtools } from '@benjavicente/angular-query-devtools/production'
 
-provideTanStackQuery(
-  new QueryClient(),
-  withDevtools(() => ({ loadDevtools: environment.loadDevtools })),
-)
+providers: [
+  provideTanStackQuery(
+    new QueryClient(),
+    withDevtools(() => ({ loadDevtools: environment.loadDevtools })),
+  ),
+]
 ```
 
 When setting the option to false, the devtools will not be loaded.
 
 ```ts
-provideTanStackQuery(
-  new QueryClient(),
-  withDevtools(() => ({ loadDevtools: false })),
-)
+providers: [
+  provideTanStackQuery(
+    new QueryClient(),
+    withDevtools(() => ({ loadDevtools: false })),
+  ),
+]
 ```
 
 ## Derive options through reactivity
 
-Options are passed to `withDevtools` from a callback function to support reactivity through signals. In the following example
-a signal is created from a RxJS observable that emits on a keyboard shortcut. When the derived signal is set to true, the devtools are lazily loaded.
+Options are passed to `withDevtools` from a callback function to support reactivity through signals. In the following example, a signal is created from an RxJS observable that emits on a keyboard shortcut. When the derived signal is set to true, the devtools are lazily loaded.
 
 The example below always loads devtools in development mode and loads on-demand in production mode when a keyboard shortcut is pressed.
 
@@ -146,8 +151,8 @@ export const appConfig: ApplicationConfig = {
 Of these options `loadDevtools`, `client`, `position`, `errorTypes`, `buttonPosition`, and `initialIsOpen` support reactivity through signals.
 
 - `loadDevtools?: 'auto' | boolean`
-  - Omit or `'auto'`: uses **`isDevMode()`** to decide whether to mount devtools (see above; only when the full implementation is bundled).
-  - Use this to control whether devtools load when using the `/production` import or in other setups where the stub is not used.
+  - Omit or `'auto'`: load devtools only in development mode.
+  - Use this to control whether devtools load when using the `/production` import.
 - `initialIsOpen?: Boolean`
   - Set this to `true` if you want the tools to default to being open
 - `buttonPosition?: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "relative"`

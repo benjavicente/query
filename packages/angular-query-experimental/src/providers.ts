@@ -9,7 +9,7 @@ import {
   makeStateKey,
   provideEnvironmentInitializer,
 } from '@angular/core'
-import type { EnvironmentProviders, Provider } from '@angular/core'
+import type { EnvironmentProviders } from '@angular/core'
 import {
   QueryClient,
   dehydrate,

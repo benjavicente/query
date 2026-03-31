@@ -11,7 +11,7 @@ This means tests and SSR can wait until mutations and queries resolve. In unit t
 
 ## TestBed setup
 
-Create a fresh `QueryClient` for every spec and provide it with `provideTanStackQuery` or `provideQueryClient`. This keeps caches isolated and lets you change default options per test:
+Create a fresh `QueryClient` for every spec and provide it with `provideTanStackQuery`. This keeps caches isolated and lets you change default options per test:
 
 ```ts
 const queryClient = new QueryClient({

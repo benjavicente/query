@@ -5,13 +5,13 @@ title: SSR
 
 For [Angular's SSR](https://angular.dev/guide/ssr), you can run queries on the server, embed the serialized cache in the HTML response, and **hydrate** the same data in the browser so the client does not refetch immediately.
 
-[`provideTanStackQuery`](../reference/functions/provideTanStackQuery.md) and [`provideQueryClient`](../reference/functions/provideQueryClient.md) serialize the `QueryClient` cache during SSR and restore it when the browser app boots, so the client can skip immediate refetches for data that was already loaded on the server.
+[`provideTanStackQuery`](../reference/functions/provideTanStackQuery.md) serializes the `QueryClient` cache during SSR and restores it when the browser app boots, so the client can skip immediate refetches for data that was already loaded on the server.
 
-An end-to-end sample lives at `examples/angular/ssr`; **SSR plus `localStorage` persistence** (factory-only on the client, optional `dehydrateOptions`, and a client-only query mounted with `afterNextRender` in `examples/angular/ssr-persist`) builds on that setup.
+An end-to-end sample lives at `examples/angular/ssr`. The `examples/angular/ssr-persist` example builds on the same setup with browser persistence.
 
 ## Client application config
 
-Use [`provideTanStackQuery`](../reference/functions/provideTanStackQuery.md) (or `provideQueryClient`) in your **application** or **merged** config. Each call returns a single [`EnvironmentProviders`](https://angular.dev/api/core/EnvironmentProviders) value (not for [`@Component({ providers })`](https://angular.dev/api/core/Component#providers)). No separate hydration feature is required.
+Use [`provideTanStackQuery`](../reference/functions/provideTanStackQuery.md) in your application, module, merged app config, or route-level providers. Do not add it to [`@Component({ providers })`](https://angular.dev/api/core/Component#providers).
 
 ```ts
 import type { ApplicationConfig } from '@angular/core'
@@ -37,7 +37,7 @@ export const createBrowserQueryClient = () =>
     },
   })
 
-// This allows the setup to provide an unique query client per request
+// This allows the setup to provide a unique query client per request.
 export const getBaseAppConfig = (
   queryClient: QueryClient,
 ): ApplicationConfig => ({
@@ -53,7 +53,7 @@ export const getClientAppConfig = () =>
 
 ## Server application config
 
-Merge the same base config with [`provideServerRendering`](https://angular.dev/api/ssr/provideServerRendering) (and route setup as needed). You do **not** need a separate TanStack server-only provider for cache dehydration—it runs as part of `provideTanStackQuery` / `provideQueryClient` on the server.
+Merge the same base config with [`provideServerRendering`](https://angular.dev/api/ssr/provideServerRendering) (and route setup as needed).
 
 Each SSR request should bootstrap a new application with a **fresh** `QueryClient`. The server entry typically exports a **`bootstrap` function**; use that to build config on each request instead of reusing a single static `ApplicationConfig` with one shared client.
 

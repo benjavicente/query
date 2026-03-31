@@ -33,6 +33,6 @@ bun add @benjavicente/angular-query-experimental
 
 To use [Devtools](./devtools), install `@benjavicente/angular-query-devtools`.
 
-For [SSR with dehydration / hydration](./guides/ssr), use `withHydration` from `@benjavicente/angular-query-experimental` and `provideServerTanStackQueryHydration` from `@benjavicente/angular-query-experimental/server`.
+For [SSR with dehydration / hydration](./guides/ssr), `provideTanStackQuery` sets up serialization and hydration automatically; see the SSR guide.
 
 > Wanna give it a spin before you download? Try out the [simple](./examples/simple) or [basic](./examples/basic) examples!

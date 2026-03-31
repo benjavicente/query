@@ -56,13 +56,7 @@ export type {
   QueryFeatures,
 } from './providers'
 export {
-  provideQueryClient,
   provideTanStackQuery,
   queryFeature,
   withHydrationKey,
 } from './providers'
-
-export {
-  INTERNAL_TANSTACK_QUERY_HYDRATION_STATE_KEY,
-  INTERNAL_TANSTACK_QUERY_HYDRATION_TRANSFER_KEY,
-} from './hydration-state-key'
