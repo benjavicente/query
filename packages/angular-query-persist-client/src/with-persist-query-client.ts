@@ -5,9 +5,10 @@ import {
 } from '@tanstack/angular-query'
 import {
   DestroyRef,
-  ENVIRONMENT_INITIALIZER,
   PLATFORM_ID,
   inject,
+  makeEnvironmentProviders,
+  provideEnvironmentInitializer,
   signal,
 } from '@angular/core'
 import { isPlatformBrowser } from '@angular/common'
@@ -62,7 +63,7 @@ function resolvePersistOptions(
  *
  * export const appConfig: ApplicationConfig = {
  *   providers: [
- *     ...provideTanStackQuery(
+ *     provideTanStackQuery(
  *       new QueryClient(),
  *       withPersistQueryClient({
  *         persistOptions: {
@@ -112,12 +113,11 @@ export function withPersistQueryClient(
   withOptions?: WithPersistQueryClientOptions,
 ): PersistQueryClientFeature {
   const isRestoring = signal(true)
-  return queryFeature('PersistQueryClient', [
-    provideIsRestoring(isRestoring.asReadonly()),
-    {
-      provide: ENVIRONMENT_INITIALIZER,
-      multi: true,
-      useValue: () => {
+  return queryFeature(
+    'PersistQueryClient',
+    makeEnvironmentProviders([
+      provideIsRestoring(isRestoring.asReadonly()),
+      provideEnvironmentInitializer(() => {
         if (!isPlatformBrowser(inject(PLATFORM_ID))) {
           isRestoring.set(false)
           return
@@ -144,7 +144,7 @@ export function withPersistQueryClient(
             const cleanup = persistQueryClientSubscribe(options)
             destroyRef.onDestroy(cleanup)
           })
-      },
-    },
-  ])
+      }),
+    ]),
+  )
 }
