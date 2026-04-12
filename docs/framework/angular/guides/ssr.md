@@ -15,7 +15,7 @@ For SSR, define an `InjectionToken` with a factory and provide that token to `pr
 
 ```ts
 import { InjectionToken } from '@angular/core'
-import { QueryClient } from '@tanstack/angular-query-experimental'
+import { QueryClient } from '@tanstack/angular-query'
 
 export const SHARED_QUERY_DEFAULTS = {
   staleTime: 1000 * 30,
@@ -45,7 +45,7 @@ import {
   provideClientHydration,
   withEventReplay,
 } from '@angular/platform-browser'
-import { provideTanStackQuery } from '@tanstack/angular-query-experimental'
+import { provideTanStackQuery } from '@tanstack/angular-query'
 import { withDevtools } from '@tanstack/angular-query-devtools'
 import { QUERY_CLIENT } from './query-client'
 
@@ -53,7 +53,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideHttpClient(),
     provideClientHydration(withEventReplay()),
-    ...provideTanStackQuery(QUERY_CLIENT, withDevtools()),
+    provideTanStackQuery(QUERY_CLIENT, withDevtools()),
   ],
 }
 ```
@@ -79,7 +79,7 @@ Built-in hydration uses a default transfer key. For a second `QueryClient` in a 
 
 ```ts
 providers: [
-  ...provideTanStackQuery(
+  provideTanStackQuery(
     SECONDARY_QUERY_CLIENT,
     withHydrationKey('my-secondary-query-cache'),
   ),
@@ -91,7 +91,7 @@ providers: [
 If you need to opt out of TanStack Query's built-in `TransferState` integration for a specific injector, add `withNoQueryHydration()`.
 
 ```ts
-providers: [...provideTanStackQuery(QUERY_CLIENT, withNoQueryHydration())]
+providers: [provideTanStackQuery(QUERY_CLIENT, withNoQueryHydration())]
 ```
 
 ## See also
