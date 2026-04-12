@@ -9,7 +9,7 @@ title: injectMutationState
 function injectMutationState<TResult>(injectMutationStateFn, options?): Signal<TResult[]>;
 ```
 
-Defined in: [inject-mutation-state.ts:60](https://github.com/TanStack/query/blob/main/packages/angular-query-experimental/src/inject-mutation-state.ts#L60)
+Defined in: [inject-mutation-state.ts:60](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-mutation-state.ts#L60)
 
 Injects a signal that tracks the state of all mutations.
 

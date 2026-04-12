@@ -9,7 +9,7 @@ title: injectIsMutating
 function injectIsMutating(filters?, options?): Signal<number>;
 ```
 
-Defined in: [inject-is-mutating.ts:30](https://github.com/TanStack/query/blob/main/packages/angular-query-experimental/src/inject-is-mutating.ts#L30)
+Defined in: [inject-is-mutating.ts:30](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-is-mutating.ts#L30)
 
 Injects a signal that tracks the number of mutations that your application is fetching.
 

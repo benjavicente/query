@@ -12,7 +12,7 @@ import type { ApplicationConfig } from '@angular/core'
 export const appConfig: ApplicationConfig = {
   providers: [
     provideHttpClient(withFetch()),
-    ...provideTanStackQuery(new QueryClient(), withDevtools()),
+    provideTanStackQuery(new QueryClient(), withDevtools()),
     provideRouter(routes, withComponentInputBinding()),
   ],
 }

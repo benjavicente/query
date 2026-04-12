@@ -15,7 +15,7 @@ const localStoragePersister = createAsyncStoragePersister({
 export const appConfig: ApplicationConfig = {
   providers: [
     provideHttpClient(withFetch()),
-    ...provideTanStackQuery(
+    provideTanStackQuery(
       new QueryClient({
         defaultOptions: {
           queries: {

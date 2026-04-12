@@ -47,7 +47,7 @@ The mutation options.
 function mutationOptions<TData, TError, TVariables, TOnMutateResult>(options): WithRequired<CreateMutationOptions<TData, TError, TVariables, TOnMutateResult>, "mutationKey">;
 ```
 
-Defined in: [mutation-options.ts:39](https://github.com/TanStack/query/blob/main/packages/angular-query-experimental/src/mutation-options.ts#L39)
+Defined in: [mutation-options.ts:39](https://github.com/TanStack/query/blob/main/packages/angular-query/src/mutation-options.ts#L39)
 
 Allows to share and re-use mutation options in a type-safe way.
 
@@ -119,7 +119,7 @@ Mutation options.
 function mutationOptions<TData, TError, TVariables, TOnMutateResult>(options): Omit<CreateMutationOptions<TData, TError, TVariables, TOnMutateResult>, "mutationKey">;
 ```
 
-Defined in: [mutation-options.ts:53](https://github.com/TanStack/query/blob/main/packages/angular-query-experimental/src/mutation-options.ts#L53)
+Defined in: [mutation-options.ts:53](https://github.com/TanStack/query/blob/main/packages/angular-query/src/mutation-options.ts#L53)
 
 Allows to share and re-use mutation options in a type-safe way.
 

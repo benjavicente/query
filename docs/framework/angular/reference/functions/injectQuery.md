@@ -58,7 +58,7 @@ https://tanstack.com/query/latest/docs/framework/angular/guides/queries
 function injectQuery<TQueryFnData, TError, TData, TQueryKey>(injectQueryFn, options?): DefinedCreateQueryResult<TData, TError>;
 ```
 
-Defined in: [inject-query.ts:34](https://github.com/TanStack/query/blob/main/packages/angular-query-experimental/src/inject-query.ts#L34)
+Defined in: [inject-query.ts:34](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-query.ts#L34)
 
 ### Type Parameters
 
@@ -98,7 +98,7 @@ Defined in: [inject-query.ts:34](https://github.com/TanStack/query/blob/main/pac
 function injectQuery<TQueryFnData, TError, TData, TQueryKey>(injectQueryFn, options?): CreateQueryResult<TData, TError>;
 ```
 
-Defined in: [inject-query.ts:49](https://github.com/TanStack/query/blob/main/packages/angular-query-experimental/src/inject-query.ts#L49)
+Defined in: [inject-query.ts:49](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-query.ts#L49)
 
 ### Type Parameters
 
@@ -138,7 +138,7 @@ Defined in: [inject-query.ts:49](https://github.com/TanStack/query/blob/main/pac
 function injectQuery<TQueryFnData, TError, TData, TQueryKey>(injectQueryFn, options?): CreateQueryResult<TData, TError>;
 ```
 
-Defined in: [inject-query.ts:64](https://github.com/TanStack/query/blob/main/packages/angular-query-experimental/src/inject-query.ts#L64)
+Defined in: [inject-query.ts:64](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-query.ts#L64)
 
 ### Type Parameters
 

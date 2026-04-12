@@ -10,7 +10,7 @@ import { DevtoolsOptionsManager } from './devtools-options.manager'
 export const appConfig: ApplicationConfig = {
   providers: [
     provideHttpClient(withFetch()),
-    ...provideTanStackQuery(
+    provideTanStackQuery(
       new QueryClient(),
       withDevtools(
         (devToolsOptionsManager: DevtoolsOptionsManager) => ({

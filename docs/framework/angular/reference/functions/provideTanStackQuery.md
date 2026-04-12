@@ -6,10 +6,10 @@ title: provideTanStackQuery
 # Function: provideTanStackQuery()
 
 ```ts
-function provideTanStackQuery(queryClient, ...features): Provider[];
+function provideTanStackQuery(queryClient, ...features): EnvironmentProviders;
 ```
 
-Defined in: [providers.ts:151](https://github.com/TanStack/query/blob/main/packages/angular-query-experimental/src/providers.ts#L151)
+Defined in: [providers.ts:151](https://github.com/TanStack/query/blob/main/packages/angular-query/src/providers.ts#L151)
 
 Sets up providers necessary to enable TanStack Query functionality for Angular applications.
 
@@ -21,10 +21,10 @@ Allows to configure a `QueryClient` and optional features such as developer tool
 import {
   provideTanStackQuery,
   QueryClient,
-} from '@tanstack/angular-query-experimental'
+} from '@tanstack/angular-query'
 
 bootstrapApplication(AppComponent, {
-  providers: [...provideTanStackQuery(new QueryClient())],
+  providers: [provideTanStackQuery(new QueryClient())],
 })
 ```
 
@@ -34,12 +34,12 @@ bootstrapApplication(AppComponent, {
 import {
   provideTanStackQuery,
   QueryClient,
-} from '@tanstack/angular-query-experimental'
+} from '@tanstack/angular-query'
 
 @NgModule({
   declarations: [AppComponent],
   imports: [BrowserModule],
-  providers: [...provideTanStackQuery(new QueryClient())],
+  providers: [provideTanStackQuery(new QueryClient())],
   bootstrap: [AppComponent],
 })
 export class AppModule {}
@@ -49,11 +49,11 @@ You can also enable optional developer tools by adding `withDevtools`. By
 default the tools will then be loaded when your app is in development mode.
 
 ```ts
-import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental'
+import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query'
 import { withDevtools } from '@tanstack/angular-query-devtools'
 
 bootstrapApplication(AppComponent, {
-  providers: [...provideTanStackQuery(new QueryClient(), withDevtools())],
+  providers: [provideTanStackQuery(new QueryClient(), withDevtools())],
 })
 ```
 
@@ -65,7 +65,7 @@ export const MY_QUERY_CLIENT = new InjectionToken('', {
 })
 
 // In a lazy loaded route or lazy loaded component's providers array:
-providers: [...provideTanStackQuery(MY_QUERY_CLIENT)]
+providers: [provideTanStackQuery(MY_QUERY_CLIENT)]
 ```
 Using an InjectionToken for the QueryClient is an advanced optimization which allows TanStack Query to be absent from the main application bundle.
 This can be beneficial if you want to include TanStack Query on lazy loaded routes only while still sharing a `QueryClient`.
@@ -88,9 +88,9 @@ Optional features to configure additional Query functionality.
 
 ## Returns
 
-`Provider`[]
+`EnvironmentProviders`
 
-A set of providers to set up TanStack Query (spread into `providers`).
+A single EnvironmentProviders value (do not spread into `providers`).
 
 ## See
 

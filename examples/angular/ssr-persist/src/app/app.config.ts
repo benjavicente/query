@@ -14,7 +14,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideHttpClient(withFetch()),
     provideClientHydration(withEventReplay()),
-    ...provideTanStackQuery(
+    provideTanStackQuery(
       QUERY_CLIENT,
       withDevtools(),
       withPersistQueryClient(() => ({

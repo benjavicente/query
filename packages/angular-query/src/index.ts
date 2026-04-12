@@ -56,7 +56,6 @@ export type {
   QueryFeatures,
 } from './providers'
 export {
-  provideAngularQuery,
   provideQueryClient,
   provideTanStackQuery,
   queryFeature,

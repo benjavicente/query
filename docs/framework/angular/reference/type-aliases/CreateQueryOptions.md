@@ -9,7 +9,7 @@ title: CreateQueryOptions
 type CreateQueryOptions<TQueryFnData, TError, TData, TQueryKey> = OmitKeyof<CreateBaseQueryOptions<TQueryFnData, TError, TData, TQueryFnData, TQueryKey>, "suspense">;
 ```
 
-Defined in: [types.ts:29](https://github.com/TanStack/query/blob/main/packages/angular-query-experimental/src/types.ts#L29)
+Defined in: [types.ts:29](https://github.com/TanStack/query/blob/main/packages/angular-query/src/types.ts#L29)
 
 ## Type Parameters
 
