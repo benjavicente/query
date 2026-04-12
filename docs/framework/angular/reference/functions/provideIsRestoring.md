@@ -9,7 +9,7 @@ title: provideIsRestoring
 function provideIsRestoring(isRestoring): Provider;
 ```
 
-Defined in: [inject-is-restoring.ts:43](https://github.com/TanStack/query/blob/main/packages/angular-query-experimental/src/inject-is-restoring.ts#L43)
+Defined in: [inject-is-restoring.ts:43](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-is-restoring.ts#L43)
 
 Used by TanStack Query Angular persist client plugin to provide the signal that tracks the restore state
 

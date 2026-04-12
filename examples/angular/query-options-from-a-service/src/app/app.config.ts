@@ -13,6 +13,6 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideHttpClient(withFetch()),
     provideRouter(routes, withComponentInputBinding()),
-    ...provideTanStackQuery(new QueryClient(), withDevtools()),
+    provideTanStackQuery(new QueryClient(), withDevtools()),
   ],
 }

@@ -9,7 +9,7 @@ title: DefinedInitialDataOptions
 type DefinedInitialDataOptions<TQueryFnData, TError, TData, TQueryKey> = CreateQueryOptions<TQueryFnData, TError, TData, TQueryKey> & object;
 ```
 
-Defined in: [query-options.ts:39](https://github.com/TanStack/query/blob/main/packages/angular-query-experimental/src/query-options.ts#L39)
+Defined in: [query-options.ts:39](https://github.com/TanStack/query/blob/main/packages/angular-query/src/query-options.ts#L39)
 
 ## Type Declaration
 

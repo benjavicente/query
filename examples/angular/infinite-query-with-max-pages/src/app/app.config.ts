@@ -14,7 +14,7 @@ import type { ApplicationConfig } from '@angular/core'
 export const appConfig: ApplicationConfig = {
   providers: [
     provideHttpClient(withInterceptors([projectsMockInterceptor]), withFetch()),
-    ...provideTanStackQuery(
+    provideTanStackQuery(
       new QueryClient({
         defaultOptions: {
           queries: {

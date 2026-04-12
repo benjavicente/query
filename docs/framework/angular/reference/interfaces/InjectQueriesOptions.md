@@ -5,7 +5,7 @@ title: InjectQueriesOptions
 
 # Interface: InjectQueriesOptions\<T, TCombinedResult\>
 
-Defined in: [inject-queries.ts:257](https://github.com/TanStack/query/blob/main/packages/angular-query-experimental/src/inject-queries.ts#L257)
+Defined in: [inject-queries.ts:257](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-queries.ts#L257)
 
 ## Type Parameters
 
@@ -25,7 +25,7 @@ Defined in: [inject-queries.ts:257](https://github.com/TanStack/query/blob/main/
 optional combine: (result) => TCombinedResult;
 ```
 
-Defined in: [inject-queries.ts:266](https://github.com/TanStack/query/blob/main/packages/angular-query-experimental/src/inject-queries.ts#L266)
+Defined in: [inject-queries.ts:266](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-queries.ts#L266)
 
 #### Parameters
 
@@ -47,4 +47,4 @@ queries:
   | readonly [T extends [] ? [] : T extends [Head] ? [GetCreateQueryOptionsForCreateQueries<Head>] : T extends [Head, ...Tails[]] ? [...Tails[]] extends [] ? [] : [...Tails[]] extends [Head] ? [GetCreateQueryOptionsForCreateQueries<Head>, GetCreateQueryOptionsForCreateQueries<Head>] : [...Tails[]] extends [Head, ...Tails[]] ? [...Tails[]] extends [] ? [] : [...(...)[]] extends [...] ? [..., ..., ...] : ... extends ... ? ... : ... : readonly unknown[] extends [...Tails[]] ? [...Tails[]] : [...(...)[]] extends ...[] ? ...[] : ...[] : readonly unknown[] extends T ? T : T extends QueryObserverOptionsForCreateQueries<TQueryFnData, TError, TData, TQueryKey>[] ? QueryObserverOptionsForCreateQueries<TQueryFnData, TError, TData, TQueryKey>[] : QueryObserverOptionsForCreateQueries<unknown, Error, unknown, readonly unknown[]>[]];
 ```
 
-Defined in: [inject-queries.ts:261](https://github.com/TanStack/query/blob/main/packages/angular-query-experimental/src/inject-queries.ts#L261)
+Defined in: [inject-queries.ts:261](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-queries.ts#L261)

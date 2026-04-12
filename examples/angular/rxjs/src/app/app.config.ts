@@ -17,7 +17,7 @@ export const appConfig: ApplicationConfig = {
       withFetch(),
       withInterceptors([autocompleteMockInterceptor]),
     ),
-    ...provideTanStackQuery(
+    provideTanStackQuery(
       new QueryClient({
         defaultOptions: {
           queries: {
