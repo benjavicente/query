@@ -1,7 +1,6 @@
 import { isPlatformBrowser } from '@angular/common'
 import {
   DestroyRef,
-  ENVIRONMENT_INITIALIZER,
   InjectionToken,
   Injector,
   PLATFORM_ID,
@@ -10,6 +9,8 @@ import {
   effect,
   inject,
   isDevMode,
+  makeEnvironmentProviders,
+  provideEnvironmentInitializer,
   runInInjectionContext,
 } from '@angular/core'
 import { QueryClient, onlineManager } from '@tanstack/query-core'
@@ -45,7 +46,7 @@ const DEVTOOLS_OPTIONS_SIGNAL = new InjectionToken<Signal<DevtoolsOptions>>('')
  * ```ts
  * export const appConfig: ApplicationConfig = {
  *   providers: [
- *     ...provideTanStackQuery(new QueryClient(), withDevtools()),
+ *     provideTanStackQuery(new QueryClient(), withDevtools()),
  *   ]
  * }
  * ```
@@ -64,17 +65,16 @@ export const withDevtools: WithDevtools = (
   withDevtoolsFn?: WithDevtoolsFn,
   options: WithDevtoolsOptions = {},
 ) =>
-  queryFeature('Devtools', [
-    {
-      provide: DEVTOOLS_OPTIONS_SIGNAL,
-      useFactory: (...deps: Array<any>) =>
-        computed(() => withDevtoolsFn?.(...deps) ?? {}),
-      deps: options.deps || [],
-    },
-    {
-      provide: ENVIRONMENT_INITIALIZER,
-      multi: true,
-      useValue: () => {
+  queryFeature(
+    'Devtools',
+    makeEnvironmentProviders([
+      {
+        provide: DEVTOOLS_OPTIONS_SIGNAL,
+        useFactory: (...deps: Array<any>) =>
+          computed(() => withDevtoolsFn?.(...deps) ?? {}),
+        deps: options.deps || [],
+      },
+      provideEnvironmentInitializer(() => {
         const devtoolsProvided = inject(DEVTOOLS_PROVIDED)
         if (
           !isPlatformBrowser(inject(PLATFORM_ID)) ||
@@ -183,6 +183,6 @@ export const withDevtools: WithDevtools = (
             )
           })
         })
-      },
-    },
-  ])
+      }),
+    ]),
+  )
