@@ -1,6 +1,6 @@
 import { isPlatformServer } from '@angular/common'
 import { InjectionToken, PLATFORM_ID, inject } from '@angular/core'
-import { QueryClient } from '@tanstack/angular-query-experimental'
+import { QueryClient } from '@tanstack/angular-query'
 
 export const SHARED_QUERY_DEFAULTS = {
   staleTime: 1000 * 30,

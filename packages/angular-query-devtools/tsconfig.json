@@ -16,7 +16,7 @@
   },
   "include": ["src", "scripts", "test-setup.ts", "*.config.*", "package.json"],
   "references": [
-    { "path": "../angular-query-experimental" },
+    { "path": "../angular-query" },
     { "path": "../query-core" },
     { "path": "../query-devtools" }
   ]

@@ -13,7 +13,7 @@ import {
   runInInjectionContext,
 } from '@angular/core'
 import { QueryClient, onlineManager } from '@tanstack/query-core'
-import { queryFeature } from '@tanstack/angular-query-experimental'
+import { queryFeature } from '@tanstack/angular-query'
 import type { Signal } from '@angular/core'
 import type {
   DevtoolsOptions,
@@ -164,7 +164,9 @@ export const withDevtools: WithDevtools = (
                       onlineManager,
                     })
 
-                    el = document.body.appendChild(document.createElement('div'))
+                    el = document.body.appendChild(
+                      document.createElement('div'),
+                    )
                     el.classList.add('tsqd-parent-container')
                     devtools.mount(el)
 

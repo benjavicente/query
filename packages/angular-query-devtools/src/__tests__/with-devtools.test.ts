@@ -11,7 +11,7 @@ import {
   provideZonelessChangeDetection,
   signal,
 } from '@angular/core'
-import { provideTanStackQuery } from '@tanstack/angular-query-experimental'
+import { provideTanStackQuery } from '@tanstack/angular-query'
 import { withDevtools } from '../index'
 import { flushQueryUpdates } from './test-utils'
 import type {
@@ -125,11 +125,11 @@ describe('withDevtools feature', () => {
           new QueryClient(),
           loadDevtools !== undefined
             ? withDevtools(
-              () =>
-                ({
-                  loadDevtools,
-                }) as DevtoolsOptions,
-            )
+                () =>
+                  ({
+                    loadDevtools,
+                  }) as DevtoolsOptions,
+              )
             : withDevtools(),
         ),
       ]

@@ -13,6 +13,10 @@ export default defineConfig({
   plugins: [angular({ tsconfig: './tsconfig.spec.json' })],
   resolve: {
     alias: {
+      '@tanstack/angular-query': path.join(
+        packageDir,
+        '../angular-query/src/index.ts',
+      ),
       '@tanstack/query-devtools': path.join(
         packageDir,
         '../query-devtools/src/index.ts',

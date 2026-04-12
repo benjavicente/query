@@ -92,7 +92,7 @@ export function provideQueryClient(
  * import {
  *   provideTanStackQuery,
  *   QueryClient,
- * } from '@tanstack/angular-query-experimental'
+ * } from '@tanstack/angular-query'
  *
  * bootstrapApplication(AppComponent, {
  *   providers: [...provideTanStackQuery(new QueryClient())],
@@ -105,7 +105,7 @@ export function provideQueryClient(
  * import {
  *   provideTanStackQuery,
  *   QueryClient,
- * } from '@tanstack/angular-query-experimental'
+ * } from '@tanstack/angular-query'
  *
  * @NgModule({
  *   declarations: [AppComponent],
@@ -120,7 +120,7 @@ export function provideQueryClient(
  * default the tools will then be loaded when your app is in development mode.
  *
  * ```ts
- * import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental'
+ * import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query'
  * import { withDevtools } from '@tanstack/angular-query-devtools'
  *
  * bootstrapApplication(AppComponent, {

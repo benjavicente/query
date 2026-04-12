@@ -6,7 +6,7 @@ import {
 import {
   QueryClient,
   provideTanStackQuery,
-} from '@tanstack/angular-query-experimental'
+} from '@tanstack/angular-query'
 import { withDevtools } from '@tanstack/angular-query-devtools'
 import { projectsMockInterceptor } from './api/projects-mock.interceptor'
 import type { ApplicationConfig } from '@angular/core'

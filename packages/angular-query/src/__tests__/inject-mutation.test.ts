@@ -26,7 +26,7 @@ describe('injectMutation', () => {
     TestBed.configureTestingModule({
       providers: [
         provideZonelessChangeDetection(),
-        ...provideTanStackQuery(queryClient),
+        provideTanStackQuery(queryClient),
       ],
     })
   })
@@ -374,7 +374,6 @@ describe('injectMutation', () => {
       mutate(): void {
         this.mutation.mutate()
       }
-
     }
 
     const name = signal('value')
@@ -442,13 +441,15 @@ describe('injectMutation', () => {
       const err = new Error('Expected mock error. All is well!')
       const zone = TestBed.inject(NgZone)
       const zoneErrorEmitSpy = vi.spyOn(zone.onError, 'emit')
-      const runSpy = vi.spyOn(zone, 'run').mockImplementation((callback: any) => {
-        try {
-          return callback()
-        } catch {
-          return undefined
-        }
-      })
+      const runSpy = vi
+        .spyOn(zone, 'run')
+        .mockImplementation((callback: any) => {
+          try {
+            return callback()
+          } catch {
+            return undefined
+          }
+        })
 
       const { mutate } = TestBed.runInInjectionContext(() =>
         injectMutation(() => ({
@@ -564,7 +565,7 @@ describe('injectMutation', () => {
       TestBed.configureTestingModule({
         providers: [
           provideZonelessChangeDetection(),
-          ...provideTanStackQuery(queryClient),
+          provideTanStackQuery(queryClient),
         ],
       })
 
@@ -614,7 +615,7 @@ describe('injectMutation', () => {
       TestBed.configureTestingModule({
         providers: [
           provideZonelessChangeDetection(),
-          ...provideTanStackQuery(queryClient),
+          provideTanStackQuery(queryClient),
         ],
       })
 
@@ -666,7 +667,7 @@ describe('injectMutation', () => {
       TestBed.configureTestingModule({
         providers: [
           provideZonelessChangeDetection(),
-          ...provideTanStackQuery(queryClient),
+          provideTanStackQuery(queryClient),
         ],
       })
 
@@ -730,7 +731,7 @@ describe('injectMutation', () => {
       TestBed.configureTestingModule({
         providers: [
           provideZonelessChangeDetection(),
-          ...provideTanStackQuery(queryClient),
+          provideTanStackQuery(queryClient),
         ],
       })
 

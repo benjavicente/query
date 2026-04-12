@@ -104,7 +104,7 @@ describe('injectQueries', () => {
     const rendered = await render(Page, {
       providers: [
         provideZonelessChangeDetection(),
-        ...provideTanStackQuery(queryClient),
+        provideTanStackQuery(queryClient),
       ],
     })
 
@@ -227,7 +227,8 @@ describe('injectQueries', () => {
     await vi.advanceTimersByTimeAsync(25)
     await Promise.resolve()
 
-    const [errorQuery, successQuery] = rendered.fixture.componentInstance.queries()
+    const [errorQuery, successQuery] =
+      rendered.fixture.componentInstance.queries()
     expect(errorQuery.status()).toBe('error')
     expect(errorQuery.error()?.message).toBe('mixed-error')
     expect(successQuery.status()).toBe('success')
@@ -361,8 +362,7 @@ describe('injectQueries', () => {
     rendered.fixture.detectChanges()
     await vi.advanceTimersByTimeAsync(11)
     await Promise.resolve()
-
-      ;[firstQuery, secondQuery] = rendered.fixture.componentInstance.queries()
+    ;[firstQuery, secondQuery] = rendered.fixture.componentInstance.queries()
     expect(firstQuery.data()).toBe('first-c')
     expect(secondQuery.data()).toBe('second-b')
     expect(firstSpy).toHaveBeenCalledTimes(2)
@@ -436,7 +436,10 @@ describe('injectQueries', () => {
         snapshot[1]?.data === 4,
     )
     expect(hasOptimisticTransition).toBe(true)
-    expect(results[results.length - 1]).toMatchObject([{ data: 3 }, { data: 4 }])
+    expect(results[results.length - 1]).toMatchObject([
+      { data: 3 },
+      { data: 4 },
+    ])
 
     queries.set([])
     await rendered.findByText('data: empty')

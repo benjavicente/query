@@ -42,7 +42,7 @@ describe('injectQuery', () => {
     TestBed.configureTestingModule({
       providers: [
         provideZonelessChangeDetection(),
-        ...provideTanStackQuery(queryClient),
+        provideTanStackQuery(queryClient),
       ],
     })
   })
@@ -879,7 +879,7 @@ describe('injectQuery', () => {
     TestBed.configureTestingModule({
       providers: [
         provideZonelessChangeDetection(),
-        ...provideTanStackQuery(queryClient),
+        provideTanStackQuery(queryClient),
         provideIsRestoring(isRestoring.asReadonly()),
       ],
     })
@@ -992,7 +992,7 @@ describe('injectQuery', () => {
       TestBed.configureTestingModule({
         providers: [
           provideZonelessChangeDetection(),
-          ...provideTanStackQuery(queryClient),
+          provideTanStackQuery(queryClient),
           provideHttpClient(),
           provideHttpClientTesting(),
         ],
@@ -1047,7 +1047,7 @@ describe('injectQuery', () => {
       TestBed.configureTestingModule({
         providers: [
           provideZonelessChangeDetection(),
-          ...provideTanStackQuery(queryClient),
+          provideTanStackQuery(queryClient),
         ],
       })
 
@@ -1098,7 +1098,7 @@ describe('injectQuery', () => {
       TestBed.configureTestingModule({
         providers: [
           provideZonelessChangeDetection(),
-          ...provideTanStackQuery(queryClient),
+          provideTanStackQuery(queryClient),
         ],
       })
 
@@ -1153,7 +1153,7 @@ describe('injectQuery', () => {
       TestBed.configureTestingModule({
         providers: [
           provideZonelessChangeDetection(),
-          ...provideTanStackQuery(queryClient),
+          provideTanStackQuery(queryClient),
         ],
       })
 

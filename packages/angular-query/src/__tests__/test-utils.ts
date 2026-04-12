@@ -1,4 +1,8 @@
-import { isSignal, provideZonelessChangeDetection, untracked } from '@angular/core'
+import {
+  isSignal,
+  provideZonelessChangeDetection,
+  untracked,
+} from '@angular/core'
 import { TestBed } from '@angular/core/testing'
 import { expect, vi } from 'vitest'
 import { provideTanStackQuery } from '..'
@@ -48,7 +52,7 @@ export function setupTanStackQueryTestBed(
   TestBed.configureTestingModule({
     providers: [
       provideZonelessChangeDetection(),
-      ...provideTanStackQuery(queryClient),
+      provideTanStackQuery(queryClient),
       ...(options.providers ?? []),
     ],
   })
