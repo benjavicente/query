@@ -2,22 +2,22 @@ import { isPlatformBrowser, isPlatformServer } from '@angular/common'
 import {
   DOCUMENT,
   DestroyRef,
-  ENVIRONMENT_INITIALIZER,
   InjectionToken,
   PLATFORM_ID,
   TransferState,
   inject,
+  makeEnvironmentProviders,
   makeStateKey,
+  provideEnvironmentInitializer,
 } from '@angular/core'
 import {
-  
   QueryClient,
   dehydrate,
-  hydrate
+  hydrate,
+  type DehydratedState,
 } from '@tanstack/query-core'
 import { INTERNAL_TANSTACK_QUERY_HYDRATION_TRANSFER_KEY } from './hydration-state-key'
-import type {DehydratedState} from '@tanstack/query-core';
-import type { Provider } from '@angular/core'
+import type { EnvironmentProviders, Provider } from '@angular/core'
 
 const INTERNAL_QUERY_CLIENT_SHOULD_HYDRATE = new InjectionToken<boolean>('', {
   providedIn: 'root',
@@ -29,7 +29,9 @@ function configureQueryClient() {
   const destroyRef = inject(DestroyRef)
   const platformId = inject(PLATFORM_ID)
   const shouldHydrate = inject(INTERNAL_QUERY_CLIENT_SHOULD_HYDRATE)
-  const hydrationStateKey = inject(INTERNAL_TANSTACK_QUERY_HYDRATION_TRANSFER_KEY)
+  const hydrationStateKey = inject(
+    INTERNAL_TANSTACK_QUERY_HYDRATION_TRANSFER_KEY,
+  )
 
   if (inject(DOCUMENT, { optional: true })) {
     const transferState = inject(TransferState)
@@ -47,12 +49,6 @@ function configureQueryClient() {
 
   queryClient.mount()
   destroyRef.onDestroy(() => queryClient.unmount())
-}
-
-const queryClientInitializerProvider: Provider = {
-  provide: ENVIRONMENT_INITIALIZER,
-  multi: true,
-  useValue: configureQueryClient,
 }
 
 function createQueryClientProviders(
@@ -73,12 +69,15 @@ function createQueryClientProviders(
  * of the application or for unit testing purposes.
  *
  * @param queryClient - A `QueryClient` instance, or an `InjectionToken` which provides a `QueryClient`.
- * @returns Providers to register with the spread operator, e.g. `providers: [...provideQueryClient(client)]`.
+ * @returns A single {@link EnvironmentProviders} value to add to environment `providers` (do not spread).
  */
 export function provideQueryClient(
   queryClient: QueryClient | InjectionToken<QueryClient>,
-): Array<Provider> {
-  return [...createQueryClientProviders(queryClient), queryClientInitializerProvider]
+): EnvironmentProviders {
+  return makeEnvironmentProviders([
+    ...createQueryClientProviders(queryClient),
+    provideEnvironmentInitializer(configureQueryClient),
+  ])
 }
 
 /**
@@ -95,7 +94,7 @@ export function provideQueryClient(
  * } from '@tanstack/angular-query'
  *
  * bootstrapApplication(AppComponent, {
- *   providers: [...provideTanStackQuery(new QueryClient())],
+ *   providers: [provideTanStackQuery(new QueryClient())],
  * })
  * ```
  *
@@ -110,7 +109,7 @@ export function provideQueryClient(
  * @NgModule({
  *   declarations: [AppComponent],
  *   imports: [BrowserModule],
- *   providers: [...provideTanStackQuery(new QueryClient())],
+ *   providers: [provideTanStackQuery(new QueryClient())],
  *   bootstrap: [AppComponent],
  * })
  * export class AppModule {}
@@ -124,7 +123,7 @@ export function provideQueryClient(
  * import { withDevtools } from '@tanstack/angular-query-devtools'
  *
  * bootstrapApplication(AppComponent, {
- *   providers: [...provideTanStackQuery(new QueryClient(), withDevtools())],
+ *   providers: [provideTanStackQuery(new QueryClient(), withDevtools())],
  * })
  * ```
  *
@@ -136,7 +135,7 @@ export function provideQueryClient(
  * })
  *
  * // In a lazy loaded route or lazy loaded component's providers array:
- * providers: [...provideTanStackQuery(MY_QUERY_CLIENT)]
+ * providers: [provideTanStackQuery(MY_QUERY_CLIENT)]
  * ```
  * Using an InjectionToken for the QueryClient is an advanced optimization which allows TanStack Query to be absent from the main application bundle.
  * This can be beneficial if you want to include TanStack Query on lazy loaded routes only while still sharing a `QueryClient`.
@@ -144,7 +143,7 @@ export function provideQueryClient(
  * Note that this is a small optimization and for most applications it's preferable to provide the `QueryClient` in the main application config.
  * @param queryClient - A `QueryClient` instance, or an `InjectionToken` which provides a `QueryClient`.
  * @param features - Optional features to configure additional Query functionality.
- * @returns A set of providers to set up TanStack Query (spread into `providers`).
+ * @returns A single {@link EnvironmentProviders} value (do not spread into `providers`).
  * @see https://tanstack.com/query/v5/docs/framework/angular/quick-start
  * @see https://tanstack.com/query/v5/docs/framework/angular/devtools
  * @see https://tanstack.com/query/latest/docs/framework/angular/guides/ssr
@@ -152,27 +151,12 @@ export function provideQueryClient(
 export function provideTanStackQuery(
   queryClient: QueryClient | InjectionToken<QueryClient>,
   ...features: Array<QueryFeatures>
-): Array<Provider> {
-  return [
+): EnvironmentProviders {
+  return makeEnvironmentProviders([
     ...createQueryClientProviders(queryClient),
-    ...features.flatMap((feature) => feature.ɵproviders),
-    queryClientInitializerProvider,
-  ]
-}
-
-/**
- * Sets up providers necessary to enable TanStack Query functionality for Angular applications.
- *
- * Allows to configure a `QueryClient`.
- * @param queryClient - A `QueryClient` instance.
- * @returns A set of providers to set up TanStack Query.
- * @see https://tanstack.com/query/v5/docs/framework/angular/quick-start
- * @deprecated Use `provideTanStackQuery` instead.
- */
-export function provideAngularQuery(
-  queryClient: QueryClient,
-): Array<Provider> {
-  return provideTanStackQuery(queryClient)
+    ...features.map((feature) => feature.ɵproviders),
+    provideEnvironmentInitializer(configureQueryClient),
+  ])
 }
 
 const queryFeatures = ['Devtools', 'Hydration', 'PersistQueryClient'] as const
@@ -184,7 +168,7 @@ type QueryFeatureKind = (typeof queryFeatures)[number]
  */
 export interface QueryFeature<TFeatureKind extends QueryFeatureKind> {
   ɵkind: TFeatureKind
-  ɵproviders: Array<Provider>
+  ɵproviders: EnvironmentProviders
 }
 
 /**
@@ -195,9 +179,14 @@ export interface QueryFeature<TFeatureKind extends QueryFeatureKind> {
  */
 export function queryFeature<TFeatureKind extends QueryFeatureKind>(
   kind: TFeatureKind,
-  providers: Array<Provider>,
+  providers: Array<Provider> | EnvironmentProviders,
 ): QueryFeature<TFeatureKind> {
-  return { ɵkind: kind, ɵproviders: providers }
+  return {
+    ɵkind: kind,
+    ɵproviders: Array.isArray(providers)
+      ? makeEnvironmentProviders(providers)
+      : providers,
+  }
 }
 
 /**
@@ -220,31 +209,37 @@ export type PersistQueryClientFeature = QueryFeature<'PersistQueryClient'>
  *
  * ```ts
  * providers: [
- *   ...provideTanStackQuery(secondaryClient, withHydrationKey('my-secondary-query-cache')),
+ *   provideTanStackQuery(secondaryClient, withHydrationKey('my-secondary-query-cache')),
  * ]
  * ```
  *
  * @param key - A unique string for this client's `TransferState` entry.
  */
 export function withHydrationKey(key: string): QueryFeature<'Hydration'> {
-  return queryFeature('Hydration', [
-    {
-      provide: INTERNAL_TANSTACK_QUERY_HYDRATION_TRANSFER_KEY,
-      useValue: makeStateKey<DehydratedState>(key),
-    },
-  ])
+  return queryFeature(
+    'Hydration',
+    makeEnvironmentProviders([
+      {
+        provide: INTERNAL_TANSTACK_QUERY_HYDRATION_TRANSFER_KEY,
+        useValue: makeStateKey<DehydratedState>(key),
+      },
+    ]),
+  )
 }
 
 /**
  * Disables `TransferState` hydration and dehydration for the current environment injector.
  */
 export function withNoQueryHydration(): QueryFeature<'Hydration'> {
-  return queryFeature('Hydration', [
-    {
-      provide: INTERNAL_QUERY_CLIENT_SHOULD_HYDRATE,
-      useValue: false,
-    },
-  ])
+  return queryFeature(
+    'Hydration',
+    makeEnvironmentProviders([
+      {
+        provide: INTERNAL_QUERY_CLIENT_SHOULD_HYDRATE,
+        useValue: false,
+      },
+    ]),
+  )
 }
 
 /**

@@ -121,7 +121,7 @@ describe('withDevtools feature', () => {
 
       const providers = [
         provideZonelessChangeDetection(),
-        ...provideTanStackQuery(
+        provideTanStackQuery(
           new QueryClient(),
           loadDevtools !== undefined
             ? withDevtools(
@@ -158,7 +158,7 @@ describe('withDevtools feature', () => {
     TestBed.configureTestingModule({
       providers: [
         provideZonelessChangeDetection(),
-        ...provideTanStackQuery(
+        provideTanStackQuery(
           new QueryClient(),
           withDevtools(() => ({
             loadDevtools: true,
@@ -180,7 +180,7 @@ describe('withDevtools feature', () => {
     TestBed.configureTestingModule({
       providers: [
         provideZonelessChangeDetection(),
-        ...provideTanStackQuery(
+        provideTanStackQuery(
           new QueryClient(),
           withDevtools(() => ({
             loadDevtools: true,
@@ -219,7 +219,7 @@ describe('withDevtools feature', () => {
           useValue: 'server',
         },
         provideZonelessChangeDetection(),
-        ...provideTanStackQuery(
+        provideTanStackQuery(
           new QueryClient(),
           withDevtools(() => ({
             loadDevtools: true,
@@ -240,7 +240,7 @@ describe('withDevtools feature', () => {
     TestBed.configureTestingModule({
       providers: [
         provideZonelessChangeDetection(),
-        ...provideTanStackQuery(
+        provideTanStackQuery(
           new QueryClient(),
           withDevtools(() => ({
             loadDevtools: true,
@@ -280,7 +280,7 @@ describe('withDevtools feature', () => {
     TestBed.configureTestingModule({
       providers: [
         provideZonelessChangeDetection(),
-        ...provideTanStackQuery(
+        provideTanStackQuery(
           new QueryClient(),
           withDevtools(() => ({
             loadDevtools: true,
@@ -312,7 +312,7 @@ describe('withDevtools feature', () => {
     TestBed.configureTestingModule({
       providers: [
         provideZonelessChangeDetection(),
-        ...provideTanStackQuery(
+        provideTanStackQuery(
           new QueryClient(),
           withDevtools(() => ({
             loadDevtools: true,
@@ -343,7 +343,7 @@ describe('withDevtools feature', () => {
     TestBed.configureTestingModule({
       providers: [
         provideZonelessChangeDetection(),
-        ...provideTanStackQuery(
+        provideTanStackQuery(
           new QueryClient(),
           withDevtools(() => ({
             loadDevtools: true,
@@ -376,7 +376,7 @@ describe('withDevtools feature', () => {
     TestBed.configureTestingModule({
       providers: [
         provideZonelessChangeDetection(),
-        ...provideTanStackQuery(
+        provideTanStackQuery(
           new QueryClient(),
           withDevtools(() => ({
             loadDevtools: true,
@@ -407,7 +407,7 @@ describe('withDevtools feature', () => {
     TestBed.configureTestingModule({
       providers: [
         provideZonelessChangeDetection(),
-        ...provideTanStackQuery(
+        provideTanStackQuery(
           new QueryClient(),
           withDevtools(() => ({
             loadDevtools: loadDevtools(),
@@ -433,7 +433,7 @@ describe('withDevtools feature', () => {
     TestBed.configureTestingModule({
       providers: [
         provideZonelessChangeDetection(),
-        ...provideTanStackQuery(
+        provideTanStackQuery(
           new QueryClient(),
           withDevtools(() => ({
             loadDevtools: true,
@@ -463,7 +463,7 @@ describe('withDevtools feature', () => {
     TestBed.configureTestingModule({
       providers: [
         provideZonelessChangeDetection(),
-        ...provideTanStackQuery(
+        provideTanStackQuery(
           new QueryClient(),
           withDevtools(() => ({
             loadDevtools: loadDevtools(),
@@ -520,7 +520,7 @@ describe('withDevtools feature', () => {
             provide: mockService2Token,
             useValue: mockService2,
           },
-          ...provideTanStackQuery(
+          provideTanStackQuery(
             new QueryClient(),
             withDevtools(withDevtoolsFn, {
               deps: [mockService1Token, mockService2Token],
@@ -541,7 +541,7 @@ describe('withDevtools feature', () => {
       TestBed.configureTestingModule({
         providers: [
           provideZonelessChangeDetection(),
-          ...provideTanStackQuery(
+          provideTanStackQuery(
             new QueryClient(),
             withDevtools(withDevtoolsFn, {
               deps: [],
@@ -571,7 +571,7 @@ describe('withDevtools feature', () => {
         providers: [
           provideZonelessChangeDetection(),
           ReactiveService,
-          ...provideTanStackQuery(
+          provideTanStackQuery(
             new QueryClient(),
             withDevtools(withDevtoolsFn, {
               deps: [ReactiveService],

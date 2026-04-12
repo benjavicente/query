@@ -7,7 +7,7 @@ import dts from 'vite-plugin-dts'
 import type { Options } from '@tanstack/vite-config'
 
 const packageDir = path.dirname(fileURLToPath(import.meta.url))
-const angularQueryEntry = path.join(packageDir, '../angular-query/src/index.ts')
+const angularQueryEntry = path.join(packageDir, '../angular-query/dist/index.mjs')
 const queryDevtoolsEntry = path.join(
   packageDir,
   '../query-devtools/src/index.ts',

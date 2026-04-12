@@ -5,6 +5,7 @@ import { defineConfig } from 'vitest/config'
 import packageJson from './package.json' with { type: 'json' }
 
 const packageDir = path.dirname(fileURLToPath(import.meta.url))
+const angularQueryEntry = path.join(packageDir, '../angular-query/dist/index.mjs')
 
 export default defineConfig({
   esbuild: {
@@ -13,10 +14,7 @@ export default defineConfig({
   plugins: [angular({ tsconfig: './tsconfig.spec.json' })],
   resolve: {
     alias: {
-      '@tanstack/angular-query': path.join(
-        packageDir,
-        '../angular-query/src/index.ts',
-      ),
+      '@tanstack/angular-query': angularQueryEntry,
       '@tanstack/query-devtools': path.join(
         packageDir,
         '../query-devtools/src/index.ts',
