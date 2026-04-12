@@ -61,7 +61,7 @@ describe('TransferState hydration (client)', () => {
             dehydrated,
           )
         }),
-        ...provideTanStackQuery(appClient),
+        provideTanStackQuery(appClient),
       ],
     })
 
@@ -99,13 +99,17 @@ describe('TransferState hydration (client)', () => {
         provideEnvironmentInitializer(() => {
           inject(TransferState).set(customKey, dehydrated)
         }),
-        ...provideTanStackQuery(appClient, withHydrationKey(customKeyName)),
+        provideTanStackQuery(appClient, withHydrationKey(customKeyName)),
       ],
     })
 
     rendered.fixture.detectChanges()
     expect(rendered.getByText('from-custom-key')).toBeTruthy()
-    expect(rendered.fixture.debugElement.injector.get(TransferState).get(customKey, null)).toBeNull()
+    expect(
+      rendered.fixture.debugElement.injector
+        .get(TransferState)
+        .get(customKey, null),
+    ).toBeNull()
   })
 
   test('browser does not re-fetch when hydrated state is fresh', async () => {
@@ -143,7 +147,7 @@ describe('TransferState hydration (client)', () => {
             dehydrated,
           )
         }),
-        ...provideTanStackQuery(appClient),
+        provideTanStackQuery(appClient),
       ],
     })
 
@@ -177,7 +181,7 @@ describe('TransferState hydration (client)', () => {
             dehydrated,
           )
         }),
-        ...provideTanStackQuery(appClient, withNoQueryHydration()),
+        provideTanStackQuery(appClient, withNoQueryHydration()),
       ],
     })
 
@@ -208,7 +212,7 @@ describe('TransferState dehydration (server)', () => {
     })
 
     return createEnvironmentInjector(
-      [...provideTanStackQuery(queryClient, ...features)],
+      [provideTanStackQuery(queryClient, ...features)],
       TestBed.inject(EnvironmentInjector),
     )
   }
@@ -226,10 +230,9 @@ describe('TransferState dehydration (server)', () => {
 
     injector.get(TransferState).toJson()
 
-    const stored = injector.get(TransferState).get(
-      INTERNAL_TANSTACK_QUERY_HYDRATION_STATE_KEY,
-      null,
-    )
+    const stored = injector
+      .get(TransferState)
+      .get(INTERNAL_TANSTACK_QUERY_HYDRATION_STATE_KEY, null)
     expect(stored).not.toBeNull()
     if (!stored) throw new Error('expected dehydrated state')
     expect(stored.queries.length).toBe(1)
@@ -250,10 +253,9 @@ describe('TransferState dehydration (server)', () => {
     injector.get(TransferState).toJson()
 
     expect(
-      injector.get(TransferState).get(
-        INTERNAL_TANSTACK_QUERY_HYDRATION_STATE_KEY,
-        null,
-      ),
+      injector
+        .get(TransferState)
+        .get(INTERNAL_TANSTACK_QUERY_HYDRATION_STATE_KEY, null),
     ).toBeNull()
   })
 
@@ -275,10 +277,9 @@ describe('TransferState dehydration (server)', () => {
     injector.get(TransferState).toJson()
 
     expect(
-      injector.get(TransferState).get(
-        INTERNAL_TANSTACK_QUERY_HYDRATION_STATE_KEY,
-        null,
-      ),
+      injector
+        .get(TransferState)
+        .get(INTERNAL_TANSTACK_QUERY_HYDRATION_STATE_KEY, null),
     ).toBeNull()
   })
 
@@ -296,11 +297,11 @@ describe('TransferState dehydration (server)', () => {
     })
 
     createEnvironmentInjector(
-      [...provideTanStackQuery(clientA, withHydrationKey('client-a'))],
+      [provideTanStackQuery(clientA, withHydrationKey('client-a'))],
       TestBed.inject(EnvironmentInjector),
     )
     createEnvironmentInjector(
-      [...provideTanStackQuery(clientB, withHydrationKey('client-b'))],
+      [provideTanStackQuery(clientB, withHydrationKey('client-b'))],
       TestBed.inject(EnvironmentInjector),
     )
 
@@ -310,7 +311,13 @@ describe('TransferState dehydration (server)', () => {
     const transferState = TestBed.inject(TransferState)
     transferState.toJson()
 
-    expect(transferState.get(makeStateKey<DehydratedState>('client-a'), null)?.queries[0]?.queryKey).toEqual(keyA)
-    expect(transferState.get(makeStateKey<DehydratedState>('client-b'), null)?.queries[0]?.queryKey).toEqual(keyB)
+    expect(
+      transferState.get(makeStateKey<DehydratedState>('client-a'), null)
+        ?.queries[0]?.queryKey,
+    ).toEqual(keyA)
+    expect(
+      transferState.get(makeStateKey<DehydratedState>('client-b'), null)
+        ?.queries[0]?.queryKey,
+    ).toEqual(keyB)
   })
 })

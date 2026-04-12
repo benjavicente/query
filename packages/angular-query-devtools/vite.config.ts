@@ -7,6 +7,7 @@ import dts from 'vite-plugin-dts'
 import type { Options } from '@tanstack/vite-config'
 
 const packageDir = path.dirname(fileURLToPath(import.meta.url))
+const angularQueryEntry = path.join(packageDir, '../angular-query/src/index.ts')
 const queryDevtoolsEntry = path.join(
   packageDir,
   '../query-devtools/src/index.ts',
@@ -35,8 +36,9 @@ const config = defineConfig({
   resolve: {
     conditions: ['@tanstack/custom-condition'],
     ...(process.env.VITEST === 'true'
-      ? {
+        ? {
           alias: {
+            '@tanstack/angular-query': angularQueryEntry,
             '@tanstack/query-devtools': queryDevtoolsEntry,
           },
         }

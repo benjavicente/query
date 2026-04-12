@@ -10,9 +10,6 @@
     "target": "ES2022"
   },
   "files": ["test-setup.ts"],
-  "include": [
-    "src/**/*.test.ts",
-    "../query-test-utils/src/**/*.ts"
-  ],
+  "include": ["src/**/*.test.ts", "../query-test-utils/src/**/*.ts"],
   "exclude": ["src/**/*.test-d.ts"]
 }

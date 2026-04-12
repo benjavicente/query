@@ -68,7 +68,9 @@ export function injectMutation<
    */
   const optionsSignal = computed(injectMutationFn)
 
-  const observerSignal = computed(() => new MutationObserver(queryClient, untracked(optionsSignal)))
+  const observerSignal = computed(
+    () => new MutationObserver(queryClient, untracked(optionsSignal)),
+  )
 
   let destroyed = false
   let taskCleanupRef: (() => void) | null = null

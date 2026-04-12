@@ -1,15 +1,15 @@
-import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { TestBed } from '@angular/core/testing'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { Injector, provideZonelessChangeDetection } from '@angular/core'
 import { queryKey, sleep } from '@tanstack/query-test-utils'
 import {
   QueryClient,
-  injectIsMutating,
-  injectMutation,
+  injectIsFetching,
+  injectQuery,
   provideTanStackQuery,
 } from '..'
 
-describe('injectIsMutating', () => {
+describe('injectIsFetching', () => {
   let queryClient: QueryClient
 
   beforeEach(() => {
@@ -19,7 +19,7 @@ describe('injectIsMutating', () => {
     TestBed.configureTestingModule({
       providers: [
         provideZonelessChangeDetection(),
-        ...provideTanStackQuery(queryClient),
+        provideTanStackQuery(queryClient),
       ],
     })
   })
@@ -28,39 +28,33 @@ describe('injectIsMutating', () => {
     vi.useRealTimers()
   })
 
-  test('should properly return isMutating state', async () => {
+  test('Returns number of fetching queries', async () => {
     const key = queryKey()
-    const [mutation, isMutating] = TestBed.runInInjectionContext(() => [
-      injectMutation(() => ({
-        mutationKey: key,
-        mutationFn: (params: { par1: string }) => sleep(10).then(() => params),
-      })),
-      injectIsMutating(),
-    ])
-
-    expect(isMutating()).toBe(0)
-
-    mutation.mutate({
-      par1: 'par1',
+    const isFetching = TestBed.runInInjectionContext(() => {
+      injectQuery(() => ({
+        queryKey: key,
+        queryFn: () => sleep(100).then(() => 'Some data'),
+      }))
+      return injectIsFetching()
     })
 
-    expect(isMutating()).toBe(0)
-    await vi.advanceTimersByTimeAsync(0)
-    expect(isMutating()).toBe(1)
-    await vi.advanceTimersByTimeAsync(11)
-    expect(isMutating()).toBe(0)
+    expect(isFetching()).toStrictEqual(0)
+    await vi.advanceTimersByTimeAsync(1)
+    expect(isFetching()).toStrictEqual(1)
+    await vi.advanceTimersByTimeAsync(100)
+    expect(isFetching()).toStrictEqual(0)
   })
 
   describe('injection context', () => {
     test('throws NG0203 with descriptive error outside injection context', () => {
       expect(() => {
-        injectIsMutating()
-      }).toThrow(/NG0203(.*?)injectIsMutating/)
+        injectIsFetching()
+      }).toThrow(/NG0203(.*?)injectIsFetching/)
     })
 
     test('can be used outside injection context when passing an injector', () => {
       expect(
-        injectIsMutating(undefined, {
+        injectIsFetching(undefined, {
           injector: TestBed.inject(Injector),
         }),
       ).not.toThrow()

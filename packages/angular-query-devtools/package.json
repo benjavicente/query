@@ -82,7 +82,7 @@
     "@angular/compiler-cli": "^20.0.0",
     "@angular/core": "^20.0.0",
     "@angular/platform-browser": "^20.0.0",
-    "@tanstack/angular-query-experimental": "workspace:*",
+    "@tanstack/angular-query": "workspace:*",
     "@testing-library/jest-dom": "^6.8.0",
     "npm-run-all2": "^5.0.0",
     "rxjs": "^7.8.2",
@@ -95,7 +95,7 @@
   "peerDependencies": {
     "@angular/common": ">=19.0.0",
     "@angular/core": ">=19.0.0",
-    "@tanstack/angular-query-experimental": "workspace:^"
+    "@tanstack/angular-query": "workspace:^"
   },
   "publishConfig": {
     "directory": "dist",
