@@ -2,7 +2,7 @@ import { provideHttpClient, withFetch } from '@angular/common/http'
 import {
   QueryClient,
   provideTanStackQuery,
-} from '@tanstack/angular-query-experimental'
+} from '@tanstack/angular-query'
 import { withDevtools } from '@tanstack/angular-query-devtools/production'
 import type { ApplicationConfig } from '@angular/core'
 import { DevtoolsOptionsManager } from './devtools-options.manager'

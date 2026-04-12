@@ -4,7 +4,7 @@ import { provideRouter } from '@angular/router'
 import {
   QueryClient,
   provideTanStackQuery,
-} from '@tanstack/angular-query-experimental'
+} from '@tanstack/angular-query'
 import { routes } from './app.routes'
 import type { ApplicationConfig } from '@angular/core'
 

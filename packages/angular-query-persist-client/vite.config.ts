@@ -1,11 +1,19 @@
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vitest/config'
 
 import packageJson from './package.json'
+
+const packageDir = path.dirname(fileURLToPath(import.meta.url))
+const angularQueryEntry = path.join(packageDir, '../angular-query/src/index.ts')
 
 export default defineConfig({
   // fix from https://github.com/vitest-dev/vitest/issues/6992#issuecomment-2509408660
   resolve: {
     conditions: ['@tanstack/custom-condition'],
+    alias: {
+      '@tanstack/angular-query': angularQueryEntry,
+    },
   },
   environments: {
     ssr: {
