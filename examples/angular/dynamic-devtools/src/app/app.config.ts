@@ -2,7 +2,7 @@ import { provideHttpClient, withFetch } from '@angular/common/http'
 import {
   QueryClient,
   provideTanStackQuery,
-} from '@tanstack/angular-query-experimental'
+} from '@tanstack/angular-query'
 import { withDevtools } from '@tanstack/angular-query-devtools/production'
 import type { ApplicationConfig } from '@angular/core'
 import { DevtoolsOptionsManager } from './devtools-options.manager'
@@ -10,7 +10,7 @@ import { DevtoolsOptionsManager } from './devtools-options.manager'
 export const appConfig: ApplicationConfig = {
   providers: [
     provideHttpClient(withFetch()),
-    ...provideTanStackQuery(
+    provideTanStackQuery(
       new QueryClient(),
       withDevtools(
         (devToolsOptionsManager: DevtoolsOptionsManager) => ({

@@ -6,12 +6,12 @@ import {
 import {
   provideTanStackQuery,
   QueryClient,
-} from '@tanstack/angular-query-experimental'
+} from '@tanstack/angular-query'
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
-    ...provideTanStackQuery(new QueryClient()),
+    provideTanStackQuery(new QueryClient()),
   ],
 }

@@ -9,7 +9,7 @@ title: DefinedInitialDataInfiniteOptions
 type DefinedInitialDataInfiniteOptions<TQueryFnData, TError, TData, TQueryKey, TPageParam> = CreateInfiniteQueryOptions<TQueryFnData, TError, TData, TQueryKey, TPageParam> & object;
 ```
 
-Defined in: [infinite-query-options.ts:62](https://github.com/TanStack/query/blob/main/packages/angular-query-experimental/src/infinite-query-options.ts#L62)
+Defined in: [infinite-query-options.ts:62](https://github.com/TanStack/query/blob/main/packages/angular-query/src/infinite-query-options.ts#L62)
 
 ## Type Declaration
 

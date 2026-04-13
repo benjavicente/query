@@ -1,7 +1,7 @@
 import { provideZonelessChangeDetection } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
 import { vi } from 'vitest'
-import { provideTanStackQuery } from '@tanstack/angular-query-experimental'
+import { provideTanStackQuery } from '@tanstack/angular-query'
 import type { QueryClient } from '@tanstack/query-core'
 import type { EnvironmentProviders, Provider } from '@angular/core'
 
@@ -13,7 +13,7 @@ export function setupTanStackQueryTestBed(
   TestBed.configureTestingModule({
     providers: [
       provideZonelessChangeDetection(),
-      ...provideTanStackQuery(queryClient),
+      provideTanStackQuery(queryClient),
       ...(options.providers ?? []),
     ],
   })
