@@ -1,5 +1,14 @@
-import { describe, expect, it } from 'vitest'
-import { deleteNestedDataByPath, updateNestedDataByPath } from '../utils'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import {
+  convertRemToPixels,
+  deleteNestedDataByPath,
+  displayValue,
+  getMutationStatusColor,
+  getQueryStatusColorByLabel,
+  getSidedProp,
+  updateNestedDataByPath,
+} from '../utils'
+import type { MutationStatus } from '@tanstack/query-core'
 
 describe('Utils tests', () => {
   describe('updatedNestedDataByPath', () => {
@@ -727,6 +736,155 @@ describe('Utils tests', () => {
         `)
         /* eslint-enable */
       })
+    })
+  })
+
+  describe('getMutationStatusColor', () => {
+    const cases: Array<{
+      label: string
+      status: MutationStatus
+      isPaused: boolean
+      expected: string
+    }> = [
+      {
+        label: 'paused',
+        status: 'pending',
+        isPaused: true,
+        expected: 'purple',
+      },
+      {
+        label: 'paused even when status is "error"',
+        status: 'error',
+        isPaused: true,
+        expected: 'purple',
+      },
+      { label: '"error"', status: 'error', isPaused: false, expected: 'red' },
+      {
+        label: '"pending"',
+        status: 'pending',
+        isPaused: false,
+        expected: 'yellow',
+      },
+      {
+        label: '"success"',
+        status: 'success',
+        isPaused: false,
+        expected: 'green',
+      },
+      { label: '"idle"', status: 'idle', isPaused: false, expected: 'gray' },
+    ]
+
+    it.each(cases)(
+      'should return "$expected" when mutation is $label',
+      ({ status, isPaused, expected }) => {
+        expect(getMutationStatusColor({ status, isPaused })).toBe(expected)
+      },
+    )
+  })
+
+  describe('getQueryStatusColorByLabel', () => {
+    it('should return "green" for "fresh"', () => {
+      expect(getQueryStatusColorByLabel('fresh')).toBe('green')
+    })
+
+    it('should return "yellow" for "stale"', () => {
+      expect(getQueryStatusColorByLabel('stale')).toBe('yellow')
+    })
+
+    it('should return "purple" for "paused"', () => {
+      expect(getQueryStatusColorByLabel('paused')).toBe('purple')
+    })
+
+    it('should return "gray" for "inactive"', () => {
+      expect(getQueryStatusColorByLabel('inactive')).toBe('gray')
+    })
+
+    it('should return "blue" for "fetching"', () => {
+      expect(getQueryStatusColorByLabel('fetching')).toBe('blue')
+    })
+  })
+
+  describe('displayValue', () => {
+    it('should stringify a primitive value', () => {
+      expect(displayValue('hello')).toBe('"hello"')
+    })
+
+    it('should stringify a number', () => {
+      expect(displayValue(42)).toBe('42')
+    })
+
+    it('should serialize an object using superjson and discard meta', () => {
+      expect(displayValue({ a: 1, b: 'two' })).toBe('{"a":1,"b":"two"}')
+    })
+
+    it('should return "null" for "undefined" since only the json part is used', () => {
+      expect(displayValue(undefined)).toBe('null')
+    })
+
+    it('should return a single-line string by default', () => {
+      expect(displayValue({ a: 1 })).toBe('{"a":1}')
+    })
+
+    it('should return an indented multi-line string when "beautify" is true', () => {
+      expect(displayValue({ a: 1 }, true)).toBe('{\n  "a": 1\n}')
+    })
+  })
+
+  describe('getSidedProp', () => {
+    it('should append capitalized "top" to the prop', () => {
+      expect(getSidedProp('margin', 'top')).toBe('marginTop')
+    })
+
+    it('should append capitalized "bottom" to the prop', () => {
+      expect(getSidedProp('margin', 'bottom')).toBe('marginBottom')
+    })
+
+    it('should append capitalized "left" to the prop', () => {
+      expect(getSidedProp('padding', 'left')).toBe('paddingLeft')
+    })
+
+    it('should append capitalized "right" to the prop', () => {
+      expect(getSidedProp('padding', 'right')).toBe('paddingRight')
+    })
+  })
+
+  describe('convertRemToPixels', () => {
+    beforeEach(() => {
+      document.documentElement.style.fontSize = '16px'
+    })
+
+    afterEach(() => {
+      document.documentElement.style.fontSize = ''
+    })
+
+    it('should convert 1 rem to the document root font size in pixels', () => {
+      expect(convertRemToPixels(1)).toBe(16)
+    })
+
+    it('should return 0 for 0 rem', () => {
+      expect(convertRemToPixels(0)).toBe(0)
+    })
+
+    it('should multiply rem by the document root font size', () => {
+      expect(convertRemToPixels(2)).toBe(32)
+    })
+
+    it('should support decimal rem values', () => {
+      expect(convertRemToPixels(0.5)).toBe(8)
+    })
+
+    it('should reflect the current document root font size', () => {
+      document.documentElement.style.fontSize = '20px'
+      expect(convertRemToPixels(1)).toBe(20)
+    })
+
+    it('should support negative rem values', () => {
+      expect(convertRemToPixels(-1)).toBe(-16)
+    })
+
+    it('should support non-integer font sizes', () => {
+      document.documentElement.style.fontSize = '15.5px'
+      expect(convertRemToPixels(1)).toBe(15.5)
     })
   })
 })
