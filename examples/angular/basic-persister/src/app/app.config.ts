@@ -2,7 +2,7 @@ import { provideHttpClient, withFetch } from '@angular/common/http'
 import {
   QueryClient,
   provideTanStackQuery,
-} from '@tanstack/angular-query-experimental'
+} from '@tanstack/angular-query'
 import { withPersistQueryClient } from '@tanstack/angular-query-persist-client'
 import { withDevtools } from '@tanstack/angular-query-devtools'
 import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister'
@@ -15,7 +15,7 @@ const localStoragePersister = createAsyncStoragePersister({
 export const appConfig: ApplicationConfig = {
   providers: [
     provideHttpClient(withFetch()),
-    ...provideTanStackQuery(
+    provideTanStackQuery(
       new QueryClient({
         defaultOptions: {
           queries: {

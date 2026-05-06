@@ -33,7 +33,7 @@ The query options to tag with the type from `queryFn`.
 function queryOptions<TQueryFnData, TError, TData, TQueryKey>(options): CreateQueryOptions<TQueryFnData, TError, TData, TQueryKey> & object & object;
 ```
 
-Defined in: [query-options.ts:50](https://github.com/TanStack/query/blob/main/packages/angular-query-experimental/src/query-options.ts#L50)
+Defined in: [query-options.ts:50](https://github.com/TanStack/query/blob/main/packages/angular-query/src/query-options.ts#L50)
 
 ### Type Parameters
 
@@ -69,7 +69,7 @@ Defined in: [query-options.ts:50](https://github.com/TanStack/query/blob/main/pa
 function queryOptions<TQueryFnData, TError, TData, TQueryKey>(options): OmitKeyof<CreateQueryOptions<TQueryFnData, TError, TData, TQueryKey>, "queryFn"> & object & object;
 ```
 
-Defined in: [query-options.ts:61](https://github.com/TanStack/query/blob/main/packages/angular-query-experimental/src/query-options.ts#L61)
+Defined in: [query-options.ts:61](https://github.com/TanStack/query/blob/main/packages/angular-query/src/query-options.ts#L61)
 
 ### Type Parameters
 
@@ -105,7 +105,7 @@ Defined in: [query-options.ts:61](https://github.com/TanStack/query/blob/main/pa
 function queryOptions<TQueryFnData, TError, TData, TQueryKey>(options): CreateQueryOptions<TQueryFnData, TError, TData, TQueryKey> & object & object;
 ```
 
-Defined in: [query-options.ts:72](https://github.com/TanStack/query/blob/main/packages/angular-query-experimental/src/query-options.ts#L72)
+Defined in: [query-options.ts:72](https://github.com/TanStack/query/blob/main/packages/angular-query/src/query-options.ts#L72)
 
 ### Type Parameters
 

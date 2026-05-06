@@ -4,7 +4,7 @@ import {
   provideClientHydration,
   withEventReplay,
 } from '@angular/platform-browser'
-import { provideTanStackQuery } from '@tanstack/angular-query-experimental'
+import { provideTanStackQuery } from '@tanstack/angular-query'
 import { withDevtools } from '@tanstack/angular-query-devtools'
 import { withPersistQueryClient } from '@tanstack/angular-query-persist-client'
 import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister'
@@ -14,7 +14,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideHttpClient(withFetch()),
     provideClientHydration(withEventReplay()),
-    ...provideTanStackQuery(
+    provideTanStackQuery(
       QUERY_CLIENT,
       withDevtools(),
       withPersistQueryClient(() => ({
