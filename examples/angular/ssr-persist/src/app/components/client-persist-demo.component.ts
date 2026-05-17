@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core'
-import { injectQuery } from '@tanstack/angular-query'
+import { injectQuery } from '@benjavicente/angular-query'
 import { CLIENT_PERSIST_QUERY_ROOT } from '../query-persist-scope'
 
 /**

@@ -14,7 +14,7 @@ import {
   runInInjectionContext,
 } from '@angular/core'
 import { QueryClient, onlineManager } from '@tanstack/query-core'
-import { queryFeature } from '@tanstack/angular-query'
+import { queryFeature } from '@benjavicente/angular-query'
 import type { Signal } from '@angular/core'
 import type {
   DevtoolsOptions,

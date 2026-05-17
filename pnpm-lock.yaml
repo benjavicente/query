@@ -169,10 +169,10 @@ importers:
       '@angular/platform-browser':
         specifier: ^20.0.0
         version: 20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.15.0))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.15.0))
-      '@tanstack/angular-query':
+      '@benjavicente/angular-query':
         specifier: workspace:*
         version: link:../../../packages/angular-query
-      '@tanstack/angular-query-devtools':
+      '@benjavicente/angular-query-devtools':
         specifier: workspace:*
         version: link:../../../packages/angular-query-devtools
       rxjs:
@@ -212,10 +212,10 @@ importers:
       '@angular/platform-browser':
         specifier: ^20.0.0
         version: 20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.15.0))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.15.0))
-      '@tanstack/angular-query':
+      '@benjavicente/angular-query':
         specifier: workspace:*
         version: link:../../../packages/angular-query
-      '@tanstack/angular-query-devtools':
+      '@benjavicente/angular-query-devtools':
         specifier: workspace:*
         version: link:../../../packages/angular-query-devtools
       rxjs:
@@ -255,17 +255,17 @@ importers:
       '@angular/platform-browser':
         specifier: ^20.0.0
         version: 20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.15.0))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.15.0))
-      '@tanstack/angular-query':
+      '@benjavicente/angular-query':
         specifier: workspace:*
         version: link:../../../packages/angular-query
-      '@tanstack/angular-query-devtools':
+      '@benjavicente/angular-query-devtools':
         specifier: workspace:*
         version: link:../../../packages/angular-query-devtools
-      '@tanstack/angular-query-persist-client':
+      '@benjavicente/angular-query-persist-client':
         specifier: workspace:*
         version: link:../../../packages/angular-query-persist-client
       '@tanstack/query-async-storage-persister':
-        specifier: ^5.101.0
+        specifier: ^5.100.14
         version: link:../../../packages/query-async-storage-persister
       rxjs:
         specifier: ^7.8.2
@@ -307,10 +307,10 @@ importers:
       '@angular/router':
         specifier: ^20.0.0
         version: 20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.1))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.1))(@angular/platform-browser@20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.1))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.1)))(rxjs@7.8.2)
-      '@tanstack/angular-query':
+      '@benjavicente/angular-query':
         specifier: workspace:*
         version: link:../../../packages/angular-query
-      '@tanstack/angular-query-devtools':
+      '@benjavicente/angular-query-devtools':
         specifier: workspace:*
         version: link:../../../packages/angular-query-devtools
       rxjs:
@@ -350,10 +350,10 @@ importers:
       '@angular/platform-browser':
         specifier: ^20.0.0
         version: 20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.0))
-      '@tanstack/angular-query':
+      '@benjavicente/angular-query':
         specifier: workspace:*
         version: link:../../../packages/angular-query
-      '@tanstack/angular-query-devtools':
+      '@benjavicente/angular-query-devtools':
         specifier: workspace:*
         version: link:../../../packages/angular-query-devtools
       rxjs:
@@ -393,10 +393,10 @@ importers:
       '@angular/platform-browser':
         specifier: ^20.0.0
         version: 20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.15.0))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.15.0))
-      '@tanstack/angular-query':
+      '@benjavicente/angular-query':
         specifier: workspace:*
         version: link:../../../packages/angular-query
-      '@tanstack/angular-query-devtools':
+      '@benjavicente/angular-query-devtools':
         specifier: workspace:*
         version: link:../../../packages/angular-query-devtools
       rxjs:
@@ -439,10 +439,10 @@ importers:
       '@angular/platform-browser':
         specifier: ^20.0.0
         version: 20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.15.0))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.15.0))
-      '@tanstack/angular-query':
+      '@benjavicente/angular-query':
         specifier: workspace:*
         version: link:../../../packages/angular-query
-      '@tanstack/angular-query-devtools':
+      '@benjavicente/angular-query-devtools':
         specifier: workspace:*
         version: link:../../../packages/angular-query-devtools
       rxjs:
@@ -482,10 +482,10 @@ importers:
       '@angular/platform-browser':
         specifier: ^20.0.0
         version: 20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.15.0))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.15.0))
-      '@tanstack/angular-query':
+      '@benjavicente/angular-query':
         specifier: workspace:*
         version: link:../../../packages/angular-query
-      '@tanstack/angular-query-devtools':
+      '@benjavicente/angular-query-devtools':
         specifier: workspace:*
         version: link:../../../packages/angular-query-devtools
       rxjs:
@@ -528,10 +528,10 @@ importers:
       '@angular/router':
         specifier: ^20.0.0
         version: 20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.15.0))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.15.0))(@angular/platform-browser@20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.15.0))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.15.0)))(rxjs@7.8.2)
-      '@tanstack/angular-query':
+      '@benjavicente/angular-query':
         specifier: workspace:*
         version: link:../../../packages/angular-query
-      '@tanstack/angular-query-devtools':
+      '@benjavicente/angular-query-devtools':
         specifier: workspace:*
         version: link:../../../packages/angular-query-devtools
       rxjs:
@@ -574,10 +574,10 @@ importers:
       '@angular/router':
         specifier: ^20.0.0
         version: 20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.15.0))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.15.0))(@angular/platform-browser@20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.15.0))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.15.0)))(rxjs@7.8.2)
-      '@tanstack/angular-query':
+      '@benjavicente/angular-query':
         specifier: workspace:*
         version: link:../../../packages/angular-query
-      '@tanstack/angular-query-devtools':
+      '@benjavicente/angular-query-devtools':
         specifier: workspace:*
         version: link:../../../packages/angular-query-devtools
       rxjs:
@@ -620,10 +620,10 @@ importers:
       '@angular/platform-browser':
         specifier: ^20.0.0
         version: 20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.15.0))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.15.0))
-      '@tanstack/angular-query':
+      '@benjavicente/angular-query':
         specifier: workspace:*
         version: link:../../../packages/angular-query
-      '@tanstack/angular-query-devtools':
+      '@benjavicente/angular-query-devtools':
         specifier: workspace:*
         version: link:../../../packages/angular-query-devtools
       rxjs:
@@ -663,10 +663,10 @@ importers:
       '@angular/platform-browser':
         specifier: ^20.0.0
         version: 20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.15.0))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.15.0))
-      '@tanstack/angular-query':
+      '@benjavicente/angular-query':
         specifier: workspace:*
         version: link:../../../packages/angular-query
-      '@tanstack/angular-query-devtools':
+      '@benjavicente/angular-query-devtools':
         specifier: workspace:*
         version: link:../../../packages/angular-query-devtools
       rxjs:
@@ -712,10 +712,10 @@ importers:
       '@angular/ssr':
         specifier: ^20.0.0
         version: 20.3.26(fc84b2a5f726bb6bb087682bed60ab55)
-      '@tanstack/angular-query':
+      '@benjavicente/angular-query':
         specifier: workspace:*
         version: link:../../../packages/angular-query
-      '@tanstack/angular-query-devtools':
+      '@benjavicente/angular-query-devtools':
         specifier: workspace:*
         version: link:../../../packages/angular-query-devtools
       express:
@@ -767,13 +767,13 @@ importers:
       '@angular/ssr':
         specifier: ^20.0.0
         version: 20.3.26(fc84b2a5f726bb6bb087682bed60ab55)
-      '@tanstack/angular-query':
+      '@benjavicente/angular-query':
         specifier: workspace:*
         version: link:../../../packages/angular-query
-      '@tanstack/angular-query-devtools':
+      '@benjavicente/angular-query-devtools':
         specifier: workspace:*
         version: link:../../../packages/angular-query-devtools
-      '@tanstack/angular-query-persist-client':
+      '@benjavicente/angular-query-persist-client':
         specifier: workspace:*
         version: link:../../../packages/angular-query-persist-client
       '@tanstack/query-async-storage-persister':
@@ -2331,7 +2331,7 @@ importers:
       '@angular/router':
         specifier: ^20.0.0
         version: 20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.1))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.1))(@angular/platform-browser@20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.1))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.1)))(rxjs@7.8.2)
-      '@tanstack/angular-query':
+      '@benjavicente/angular-query':
         specifier: workspace:*
         version: link:../../packages/angular-query
       rxjs:
@@ -2627,7 +2627,7 @@ importers:
     devDependencies:
       '@analogjs/vite-plugin-angular':
         specifier: ^2.3.1
-        version: 2.5.3(@angular/build@20.3.22(e3a49a64040aeb99b40314e1234cba06))(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3))
+        version: 2.5.2(@angular/build@20.3.22(e3a49a64040aeb99b40314e1234cba06))(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3))
       '@angular/build':
         specifier: ^20.0.0
         version: 20.3.22(e3a49a64040aeb99b40314e1234cba06)
@@ -2689,7 +2689,7 @@ importers:
     devDependencies:
       '@analogjs/vite-plugin-angular':
         specifier: ^2.3.1
-        version: 2.5.3(@angular/build@20.3.22(e3a49a64040aeb99b40314e1234cba06))(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3))
+        version: 2.5.2(@angular/build@20.3.22(e3a49a64040aeb99b40314e1234cba06))(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3))
       '@angular/build':
         specifier: ^20.0.0
         version: 20.3.22(e3a49a64040aeb99b40314e1234cba06)
@@ -2708,7 +2708,7 @@ importers:
       '@angular/platform-browser':
         specifier: ^20.0.0
         version: 20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.1))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.1))
-      '@tanstack/angular-query':
+      '@benjavicente/angular-query':
         specifier: workspace:*
         version: link:../angular-query
       '@testing-library/jest-dom':
@@ -2740,68 +2740,6 @@ importers:
         version: 0.16.1
     publishDirectory: dist
 
-  packages/angular-query-experimental:
-    dependencies:
-      '@tanstack/query-core':
-        specifier: workspace:*
-        version: link:../query-core
-    devDependencies:
-      '@analogjs/vite-plugin-angular':
-        specifier: ^2.3.1
-        version: 2.5.3(@angular/build@20.3.22(e3a49a64040aeb99b40314e1234cba06))(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3))
-      '@angular/build':
-        specifier: ^20.0.0
-        version: 20.3.22(e3a49a64040aeb99b40314e1234cba06)
-      '@angular/common':
-        specifier: ^20.0.0
-        version: 20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.1))(rxjs@7.8.2)
-      '@angular/compiler':
-        specifier: ^20.0.0
-        version: 20.3.18
-      '@angular/compiler-cli':
-        specifier: ^20.0.0
-        version: 20.3.18(@angular/compiler@20.3.18)(typescript@5.9.3)
-      '@angular/core':
-        specifier: ^20.0.0
-        version: 20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.1)
-      '@angular/platform-browser':
-        specifier: ^20.0.0
-        version: 20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.1))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.1))
-      '@angular/router':
-        specifier: ^20.0.0
-        version: 20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.1))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.1))(@angular/platform-browser@20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.1))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.1)))(rxjs@7.8.2)
-      '@tanstack/query-test-utils':
-        specifier: workspace:*
-        version: link:../query-test-utils
-      '@testing-library/angular':
-        specifier: ^18.1.1
-        version: 18.1.1(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.1))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.1))(@angular/platform-browser@20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.1))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.1)))(@angular/router@20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.1))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.1))(@angular/platform-browser@20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.1))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.1)))(rxjs@7.8.2))(@testing-library/dom@10.4.1)
-      npm-run-all2:
-        specifier: ^5.0.0
-        version: 5.0.2
-      rxjs:
-        specifier: ^7.8.2
-        version: 7.8.2
-      typescript:
-        specifier: 5.9.3
-        version: 5.9.3
-      vite-plugin-dts:
-        specifier: 4.2.3
-        version: 4.2.3(@types/node@22.19.15)(rollup@4.60.1)(typescript@5.9.3)(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3))
-      vite-plugin-externalize-deps:
-        specifier: ^0.9.0
-        version: 0.9.0(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3))
-      vite-tsconfig-paths:
-        specifier: ^5.1.4
-        version: 5.1.4(typescript@5.9.3)(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3))
-      zone.js:
-        specifier: ^0.16.0
-        version: 0.16.1
-    optionalDependencies:
-      '@tanstack/query-devtools':
-        specifier: workspace:*
-        version: link:../query-devtools
-
   packages/angular-query-persist-client:
     dependencies:
       '@tanstack/query-persist-client-core':
@@ -2823,7 +2761,7 @@ importers:
       '@angular/router':
         specifier: ^20.0.0
         version: 20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.1))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.1))(@angular/platform-browser@20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.1))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.1)))(rxjs@7.8.2)
-      '@tanstack/angular-query':
+      '@benjavicente/angular-query':
         specifier: workspace:*
         version: link:../angular-query
       '@tanstack/query-test-utils':
@@ -3600,8 +3538,8 @@ packages:
     resolution: {integrity: sha512-30iZtAPgz+LTIYoeivqYo853f02jBYSd5uGnGpkFV0M3xOt9aN73erkgYAmZU43x4VfqcnLxW9Kpg3R5LC4YYw==}
     engines: {node: '>=6.0.0'}
 
-  '@analogjs/vite-plugin-angular@2.5.3':
-    resolution: {integrity: sha512-iPc2mdAsQkk13k94FonoVmRLdjKw3qLx0BK7jQ+gPPuCsFF7LPzndOn8ToCNCXZEkXYTIQsczrcuSRbE61ORiQ==}
+  '@analogjs/vite-plugin-angular@2.5.2':
+    resolution: {integrity: sha512-zJdmYb6B+qwMzcv9N6fWD4uYarrulqyJSPvNg8yzmVABbRV3YkAQXFMlr6ZgwkV9jSNK5CaqiSQSB238wX7RpA==}
     peerDependencies:
       '@angular-devkit/build-angular': ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0 || ^20.0.0 || ^21.0.0
       '@angular/build': ^18.0.0 || ^19.0.0 || ^20.0.0 || ^21.0.0
@@ -17021,7 +16959,7 @@ snapshots:
       '@jridgewell/gen-mapping': 0.3.13
       '@jridgewell/trace-mapping': 0.3.31
 
-  '@analogjs/vite-plugin-angular@2.5.3(@angular/build@20.3.22(e3a49a64040aeb99b40314e1234cba06))(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3))':
+  '@analogjs/vite-plugin-angular@2.5.2(@angular/build@20.3.22(e3a49a64040aeb99b40314e1234cba06))(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3))':
     dependencies:
       magic-string: 0.30.21
       obug: 2.1.1

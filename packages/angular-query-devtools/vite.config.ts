@@ -38,7 +38,7 @@ const config = defineConfig({
     ...(process.env.VITEST === 'true'
         ? {
           alias: {
-            '@tanstack/angular-query': angularQueryEntry,
+            '@benjavicente/angular-query': angularQueryEntry,
             '@tanstack/query-devtools': queryDevtoolsEntry,
           },
         }

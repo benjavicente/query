@@ -6,7 +6,7 @@ import {
 import {
   provideTanStackQuery,
   QueryClient,
-} from '@tanstack/angular-query'
+} from '@benjavicente/angular-query'
 
 export const appConfig: ApplicationConfig = {
   providers: [

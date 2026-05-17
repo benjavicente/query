@@ -1,5 +1,5 @@
 import { Component } from '@angular/core'
-import { injectQuery } from '@tanstack/angular-query'
+import { injectQuery } from '@benjavicente/angular-query'
 
 @Component({
   selector: 'app-root',

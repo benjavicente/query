@@ -4,8 +4,8 @@ import {
   provideClientHydration,
   withEventReplay,
 } from '@angular/platform-browser'
-import { provideTanStackQuery } from '@tanstack/angular-query'
-import { withDevtools } from '@tanstack/angular-query-devtools'
+import { provideTanStackQuery } from '@benjavicente/angular-query'
+import { withDevtools } from '@benjavicente/angular-query-devtools'
 import { QUERY_CLIENT } from './query-client'
 
 export const appConfig: ApplicationConfig = {

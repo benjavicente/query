@@ -10,7 +10,7 @@ import {
   QueryClient,
   injectQuery,
   keepPreviousData,
-} from '@tanstack/angular-query'
+} from '@benjavicente/angular-query'
 import { lastValueFrom } from 'rxjs'
 import { ProjectsService } from '../services/projects.service'
 

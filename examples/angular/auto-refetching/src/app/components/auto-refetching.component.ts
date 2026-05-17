@@ -7,7 +7,7 @@ import {
 import {
   injectMutation,
   injectQuery,
-} from '@tanstack/angular-query'
+} from '@benjavicente/angular-query'
 import { NgStyle } from '@angular/common'
 import { TasksService } from '../services/tasks.service'
 

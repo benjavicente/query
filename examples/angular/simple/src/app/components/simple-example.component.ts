@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
-import { injectQuery } from '@tanstack/angular-query'
+import { injectQuery } from '@benjavicente/angular-query'
 import { HttpClient } from '@angular/common/http'
 import { lastValueFrom } from 'rxjs'
 

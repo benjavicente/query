@@ -4,7 +4,7 @@ import {
   inject,
   output,
 } from '@angular/core'
-import { QueryClient, injectQuery } from '@tanstack/angular-query'
+import { QueryClient, injectQuery } from '@benjavicente/angular-query'
 import { lastValueFrom } from 'rxjs'
 import { PostsService } from '../services/posts-service'
 

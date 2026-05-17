@@ -2,7 +2,7 @@ import {
   QueryClient,
   provideIsRestoring,
   queryFeature,
-} from '@tanstack/angular-query'
+} from '@benjavicente/angular-query'
 import {
   DestroyRef,
   PLATFORM_ID,
@@ -16,7 +16,7 @@ import {
   persistQueryClientRestore,
   persistQueryClientSubscribe,
 } from '@tanstack/query-persist-client-core'
-import type { PersistQueryClientFeature } from '@tanstack/angular-query'
+import type { PersistQueryClientFeature } from '@benjavicente/angular-query'
 import type {
   PersistQueryClientUserOptions,
   WithPersistQueryClientFn,

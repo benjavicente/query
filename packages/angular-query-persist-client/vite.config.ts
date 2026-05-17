@@ -12,7 +12,7 @@ export default defineConfig({
   resolve: {
     conditions: ['@tanstack/custom-condition'],
     alias: {
-      '@tanstack/angular-query': angularQueryEntry,
+      '@benjavicente/angular-query': angularQueryEntry,
     },
   },
   environments: {

@@ -5,7 +5,7 @@ import {
   input,
   output,
 } from '@angular/core'
-import { injectQuery } from '@tanstack/angular-query'
+import { injectQuery } from '@benjavicente/angular-query'
 import { fromEvent, lastValueFrom, takeUntil } from 'rxjs'
 import { PostsService } from '../services/posts-service'
 

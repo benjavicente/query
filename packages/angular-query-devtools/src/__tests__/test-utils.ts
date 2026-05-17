@@ -1,7 +1,7 @@
 import { provideZonelessChangeDetection } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
 import { vi } from 'vitest'
-import { provideTanStackQuery } from '@tanstack/angular-query'
+import { provideTanStackQuery } from '@benjavicente/angular-query'
 import type { QueryClient } from '@tanstack/query-core'
 import type { EnvironmentProviders, Provider } from '@angular/core'
 

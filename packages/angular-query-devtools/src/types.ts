@@ -4,7 +4,7 @@ import type {
   DevtoolsErrorType,
   DevtoolsPosition,
 } from '@tanstack/query-devtools'
-import type { DevtoolsFeature } from '@tanstack/angular-query'
+import type { DevtoolsFeature } from '@benjavicente/angular-query'
 
 /**
  * Options for configuring withDevtools.

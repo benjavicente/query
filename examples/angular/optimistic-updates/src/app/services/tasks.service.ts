@@ -4,7 +4,7 @@ import {
   QueryClient,
   mutationOptions,
   queryOptions,
-} from '@tanstack/angular-query'
+} from '@benjavicente/angular-query'
 
 import { lastValueFrom } from 'rxjs'
 

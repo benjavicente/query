@@ -1,5 +1,5 @@
 {
-  "name": "@tanstack/angular-query-persist-client",
+  "name": "@benjavicente/angular-query-persist-client",
   "private": true,
   "version": "5.101.0",
   "description": "Angular bindings to work with persisters in TanStack/angular-query",
@@ -60,7 +60,7 @@
     "@angular/core": "^20.0.0",
     "@angular/platform-browser": "^20.0.0",
     "@angular/router": "^20.0.0",
-    "@tanstack/angular-query": "workspace:*",
+    "@benjavicente/angular-query": "workspace:*",
     "@tanstack/query-test-utils": "workspace:*",
     "@testing-library/angular": "^18.1.1",
     "@testing-library/dom": "^10.4.0",
@@ -70,8 +70,8 @@
     "zone.js": "^0.16.0"
   },
   "peerDependencies": {
-    "@angular/common": ">=20.0.0",
-    "@angular/core": ">=20.0.0",
-    "@tanstack/angular-query": "workspace:^"
+    "@angular/common": ">=19.0.0",
+    "@angular/core": ">=19.0.0",
+    "@benjavicente/angular-query": "workspace:^"
   }
 }
