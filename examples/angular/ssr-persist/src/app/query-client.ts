@@ -1,6 +1,6 @@
 import { isPlatformServer } from '@angular/common'
 import { InjectionToken, PLATFORM_ID, inject } from '@angular/core'
-import { QueryClient } from '@tanstack/angular-query-experimental'
+import { QueryClient } from '@tanstack/angular-query'
 
 export const PERSIST_STORAGE_KEY = 'tanstack-query-angular-ssr-persist-example'
 

@@ -3,7 +3,7 @@ import { provideRouter, withComponentInputBinding } from '@angular/router'
 import {
   QueryClient,
   provideTanStackQuery,
-} from '@tanstack/angular-query-experimental'
+} from '@tanstack/angular-query'
 
 import { withDevtools } from '@tanstack/angular-query-devtools'
 import { routes } from './app.routes'
@@ -12,7 +12,7 @@ import type { ApplicationConfig } from '@angular/core'
 export const appConfig: ApplicationConfig = {
   providers: [
     provideHttpClient(withFetch()),
-    ...provideTanStackQuery(new QueryClient(), withDevtools()),
+    provideTanStackQuery(new QueryClient(), withDevtools()),
     provideRouter(routes, withComponentInputBinding()),
   ],
 }

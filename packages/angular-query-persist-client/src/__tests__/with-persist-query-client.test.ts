@@ -5,7 +5,7 @@ import {
   injectQueries,
   injectQuery,
   provideTanStackQuery,
-} from '@tanstack/angular-query-experimental'
+} from '@tanstack/angular-query'
 import { persistQueryClientSave } from '@tanstack/query-persist-client-core'
 import {
   Component,
@@ -117,7 +117,7 @@ describe('withPersistQueryClient', () => {
     const rendered = await render(Page, {
       providers: [
         provideZonelessChangeDetection(),
-        ...provideTanStackQuery(
+        provideTanStackQuery(
           queryClient,
           withPersistQueryClient({ persistOptions: { persister } }),
         ),
@@ -229,7 +229,7 @@ describe('withPersistQueryClient', () => {
     const rendered = await render(Page, {
       providers: [
         provideZonelessChangeDetection(),
-        ...provideTanStackQuery(
+        provideTanStackQuery(
           queryClient,
           withPersistQueryClient({ persistOptions: { persister } }),
         ),
@@ -315,7 +315,7 @@ describe('withPersistQueryClient', () => {
     const rendered = await render(Page, {
       providers: [
         provideZonelessChangeDetection(),
-        ...provideTanStackQuery(
+        provideTanStackQuery(
           queryClient,
           withPersistQueryClient({ persistOptions: { persister } }),
         ),
@@ -406,7 +406,7 @@ describe('withPersistQueryClient', () => {
     const rendered = await render(Page, {
       providers: [
         provideZonelessChangeDetection(),
-        ...provideTanStackQuery(
+        provideTanStackQuery(
           queryClient,
           withPersistQueryClient({ persistOptions: { persister } }),
         ),
@@ -470,7 +470,7 @@ describe('withPersistQueryClient', () => {
     const rendered = await render(Page, {
       providers: [
         provideZonelessChangeDetection(),
-        ...provideTanStackQuery(
+        provideTanStackQuery(
           queryClient,
           withPersistQueryClient({
             persistOptions: { persister },
@@ -529,7 +529,7 @@ describe('withPersistQueryClient', () => {
     const rendered = await render(Page, {
       providers: [
         provideZonelessChangeDetection(),
-        ...provideTanStackQuery(
+        provideTanStackQuery(
           queryClient,
           withPersistQueryClient({
             persistOptions: { persister },
@@ -589,7 +589,7 @@ describe('withPersistQueryClient', () => {
     const rendered = await render(Page, {
       providers: [
         provideZonelessChangeDetection(),
-        ...provideTanStackQuery(
+        provideTanStackQuery(
           queryClient,
           withPersistQueryClient({
             persistOptions: { persister },
@@ -646,7 +646,7 @@ describe('withPersistQueryClient', () => {
     const rendered = await render(Page, {
       providers: [
         provideZonelessChangeDetection(),
-        ...provideTanStackQuery(
+        provideTanStackQuery(
           queryClient,
           withPersistQueryClient({
             persistOptions: { persister },
@@ -715,7 +715,7 @@ describe('withPersistQueryClient', () => {
       providers: [
         provideZonelessChangeDetection(),
         { provide: HOLDER, useValue: holder },
-        ...provideTanStackQuery(
+        provideTanStackQuery(
           queryClient,
           withPersistQueryClient(
             (h) => ({
@@ -750,7 +750,7 @@ describe('withPersistQueryClient', () => {
       providers: [
         provideZonelessChangeDetection(),
         { provide: PLATFORM_ID, useValue: 'server' },
-        ...provideTanStackQuery(new QueryClient(), withPersistQueryClient(factory)),
+        provideTanStackQuery(new QueryClient(), withPersistQueryClient(factory)),
       ],
     })
 
@@ -783,7 +783,7 @@ describe('withPersistQueryClient', () => {
 
     const injector = createEnvironmentInjector(
       [
-        ...provideTanStackQuery(
+        provideTanStackQuery(
           queryClient,
           withPersistQueryClient({ persistOptions: { persister } }),
         ),

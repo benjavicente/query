@@ -9,7 +9,7 @@ title: UnusedSkipTokenOptions
 type UnusedSkipTokenOptions<TQueryFnData, TError, TData, TQueryKey> = OmitKeyof<CreateQueryOptions<TQueryFnData, TError, TData, TQueryKey>, "queryFn"> & object;
 ```
 
-Defined in: [query-options.ts:24](https://github.com/TanStack/query/blob/main/packages/angular-query-experimental/src/query-options.ts#L24)
+Defined in: [query-options.ts:24](https://github.com/TanStack/query/blob/main/packages/angular-query/src/query-options.ts#L24)
 
 ## Type Declaration
 

@@ -11,7 +11,7 @@ title: Devtools
 
 ## Enable devtools
 
-Add the devtools package (in addition to `@tanstack/angular-query-experimental`):
+Add the devtools package (in addition to `@tanstack/angular-query`):
 
 ```bash
 npm install @tanstack/angular-query-devtools
@@ -25,12 +25,12 @@ By default, Angular Query Devtools only load in development.
 import {
   QueryClient,
   provideTanStackQuery,
-} from '@tanstack/angular-query-experimental'
+} from '@tanstack/angular-query'
 
 import { withDevtools } from '@tanstack/angular-query-devtools'
 
 export const appConfig: ApplicationConfig = {
-  providers: [...provideTanStackQuery(new QueryClient(), withDevtools())],
+  providers: [provideTanStackQuery(new QueryClient(), withDevtools())],
 }
 ```
 
@@ -49,7 +49,7 @@ When omitted or set to `'auto'`, devtools only load in development mode.
 ```ts
 import { withDevtools } from '@tanstack/angular-query-devtools'
 
-providers: [...provideTanStackQuery(new QueryClient(), withDevtools())]
+providers: [provideTanStackQuery(new QueryClient(), withDevtools())]
 
 // which is equivalent to
 providers: [
