@@ -13,11 +13,19 @@
       "entry": [
         "src/devtools/production/index.ts",
         "src/devtools-panel/production/index.ts"
-      ]
+      ],
+      "ignore": ["src/__tests__/**/*.test-d.ts"],
+      "ignoreDependencies": ["@angular/compiler-cli"]
+    },
+    "packages/angular-query-devtools": {
+      "ignoreDependencies": ["@angular/compiler-cli"]
     },
     "packages/query-codemods": {
       "entry": ["src/v4/**/*.cjs", "src/v5/**/*.cjs"],
       "ignore": ["**/__testfixtures__/**"]
+    },
+    "packages/lit-query": {
+      "ignore": ["src/tests/**"]
     },
     "packages/vue-query": {
       "ignoreDependencies": ["vue2", "vue2.7"]
