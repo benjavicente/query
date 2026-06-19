@@ -4,6 +4,7 @@
 export * from '@tanstack/query-core'
 
 export * from './types'
+export type { QueryResource } from './query-resource'
 
 export type {
   DefinedInitialDataOptions,

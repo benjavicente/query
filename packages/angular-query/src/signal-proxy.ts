@@ -48,12 +48,24 @@ export function signalProxy<
         return prop in untracked(inputSignal)
       },
       ownKeys() {
-        return Reflect.ownKeys(untracked(inputSignal))
+        return Array.from(
+          new Set([
+            ...Reflect.ownKeys(untracked(inputSignal)),
+            ...Reflect.ownKeys(internalState),
+          ]),
+        )
       },
-      getOwnPropertyDescriptor() {
+      getOwnPropertyDescriptor(_, prop) {
+        const targetDescriptor = Reflect.getOwnPropertyDescriptor(
+          internalState,
+          prop,
+        )
+        if (targetDescriptor) return targetDescriptor
+
         return {
           enumerable: true,
           configurable: true,
+          writable: true,
         }
       },
     },

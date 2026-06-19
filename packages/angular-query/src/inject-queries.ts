@@ -18,6 +18,7 @@ import {
 } from '@angular/core'
 import { signalProxy } from './signal-proxy'
 import { injectIsRestoring } from './inject-is-restoring'
+import { createQueryResource } from './query-resource'
 import type {
   DefaultError,
   DefinedQueryObserverResult,
@@ -36,7 +37,6 @@ import type {
   DefinedCreateQueryResult,
 } from './types'
 import type { Signal } from '@angular/core'
-import type { MethodKeys } from './signal-proxy'
 
 // This defines the `CreateQueryOptions` that are accepted in `QueriesOptions` & `GetOptions`.
 // `placeholderData` function always gets undefined passed
@@ -266,7 +266,7 @@ export interface InjectQueriesOptions<
   combine?: (result: RawQueriesResults<T>) => TCombinedResult
 }
 
-const methodsToExclude: Array<MethodKeys<QueryObserverResult>> = ['refetch']
+const methodsToExclude = ['refetch'] as const
 
 const hasPendingQueriesState = (results: Array<QueryObserverResult>): boolean =>
   results.some((result) => result.fetchStatus !== 'idle')
@@ -420,11 +420,17 @@ export function injectQueries<
     // (`result.data()`, `result.status()`, etc.).
     // Solid uses a related proxy approach in useQueries, but there it proxies
     // object fields for store/resource reactivity rather than callable signals.
-    const createResultProxy = (index: number) =>
-      signalProxy(
-        computed(() => (resultSignal() as Array<QueryObserverResult>)[index]!),
-        methodsToExclude,
+    const createResultProxy = (index: number) => {
+      const resultAtIndexSignal = computed(
+        () => (resultSignal() as Array<QueryObserverResult>)[index]!,
       )
+      const resource = createQueryResource(resultAtIndexSignal)
+
+      return Object.assign(
+        signalProxy(resultAtIndexSignal, methodsToExclude),
+        { resource },
+      )
+    }
 
     // Keep this positional to match QueriesObserver semantics.
     // Like Solid/Vue adapters, proxies are rebuilt from current observer output.

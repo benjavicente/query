@@ -6,11 +6,9 @@ import {
   runInInjectionContext,
 } from '@angular/core'
 import { createBaseQuery } from './create-base-query'
-import type { MethodKeys } from './signal-proxy'
 import type {
   DefaultError,
   InfiniteData,
-  InfiniteQueryObserverResult,
   QueryKey,
   QueryObserver,
 } from '@tanstack/query-core'
@@ -120,8 +118,8 @@ export function injectInfiniteQuery<
   )
 }
 
-const methodsToExclude: Array<MethodKeys<InfiniteQueryObserverResult>> = [
+const methodsToExclude = [
   'fetchNextPage',
   'fetchPreviousPage',
   'refetch',
-]
+] as const

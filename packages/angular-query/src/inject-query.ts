@@ -6,12 +6,7 @@ import {
   runInInjectionContext,
 } from '@angular/core'
 import { createBaseQuery } from './create-base-query'
-import type { MethodKeys } from './signal-proxy'
-import type {
-  DefaultError,
-  QueryKey,
-  QueryObserverResult,
-} from '@tanstack/query-core'
+import type { DefaultError, QueryKey } from '@tanstack/query-core'
 import type {
   CreateQueryOptions,
   CreateQueryResult,
@@ -126,4 +121,4 @@ export function injectQuery(
   ) as unknown as CreateQueryResult
 }
 
-const methodsToExclude: Array<MethodKeys<QueryObserverResult>> = ['refetch']
+const methodsToExclude = ['refetch'] as const

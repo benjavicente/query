@@ -16,6 +16,7 @@ import type {
   QueryObserverResult,
 } from '@tanstack/query-core'
 import type { Signal } from '@angular/core'
+import type { QueryResourceAdapter } from './query-resource'
 import type { MapToSignals, MethodKeys } from './signal-proxy'
 
 export type CreateBaseQueryOptions<
@@ -88,6 +89,7 @@ export type CreateBaseQueryResult<
   TError = DefaultError,
   TState = QueryObserverResult<TData, TError>,
 > = BaseQueryNarrowing<TData, TError> &
+  QueryResourceAdapter<TData> &
   MapToSignals<
     OmitKeyof<TState, keyof BaseQueryNarrowing, 'safely'>,
     MethodKeys<OmitKeyof<TState, keyof BaseQueryNarrowing, 'safely'>>
@@ -103,6 +105,7 @@ export type DefinedCreateQueryResult<
   TError = DefaultError,
   TState = DefinedQueryObserverResult<TData, TError>,
 > = BaseQueryNarrowing<TData, TError> &
+  QueryResourceAdapter<TData> &
   MapToSignals<
     OmitKeyof<TState, keyof BaseQueryNarrowing, 'safely'>,
     MethodKeys<OmitKeyof<TState, keyof BaseQueryNarrowing, 'safely'>>
@@ -112,6 +115,7 @@ export type CreateInfiniteQueryResult<
   TData = unknown,
   TError = DefaultError,
 > = BaseQueryNarrowing<TData, TError> &
+  QueryResourceAdapter<TData> &
   MapToSignals<
     InfiniteQueryObserverResult<TData, TError>,
     MethodKeys<InfiniteQueryObserverResult<TData, TError>>
@@ -124,10 +128,11 @@ export type DefinedCreateInfiniteQueryResult<
     TData,
     TError
   >,
-> = MapToSignals<
-  TDefinedInfiniteQueryObserver,
-  MethodKeys<TDefinedInfiniteQueryObserver>
->
+> = QueryResourceAdapter<TData> &
+  MapToSignals<
+    TDefinedInfiniteQueryObserver,
+    MethodKeys<TDefinedInfiniteQueryObserver>
+  >
 
 export interface CreateMutationOptions<
   TData = unknown,

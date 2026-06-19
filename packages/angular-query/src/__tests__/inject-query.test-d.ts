@@ -1,7 +1,7 @@
 import { describe, expectTypeOf, it } from 'vitest'
 import { sleep } from '@tanstack/query-test-utils'
 import { injectQuery, queryOptions } from '..'
-import type { Signal } from '@angular/core'
+import type { Resource, Signal } from '@angular/core'
 
 describe('initialData', () => {
   describe('Config object overload', () => {
@@ -136,6 +136,18 @@ describe('initialData', () => {
 })
 
 describe('Discriminated union return type', () => {
+  it('should expose an Angular resource view', () => {
+    const query = injectQuery(() => ({
+      queryKey: ['key'],
+      queryFn: () => sleep(0).then(() => 'Some data'),
+    }))
+
+    expectTypeOf(query.resource).toMatchTypeOf<
+      Resource<string | undefined>
+    >()
+    expectTypeOf(query.resource.reload).toBeCallableWith()
+  })
+
   it('data should be possibly undefined by default', () => {
     const query = injectQuery(() => ({
       queryKey: ['key'],

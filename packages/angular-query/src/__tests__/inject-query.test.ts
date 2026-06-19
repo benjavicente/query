@@ -338,6 +338,63 @@ describe('injectQuery', () => {
     expect(query.failureReason()).toMatchObject({ message: 'Some error' })
   })
 
+  it('should expose the query result as an Angular resource', async () => {
+    const queryFn = vi.fn(() => sleep(10).then(() => 'result'))
+    const query = TestBed.runInInjectionContext(() =>
+      injectQuery(() => ({
+        queryKey: ['resource-query'],
+        queryFn,
+      })),
+    )
+
+    TestBed.tick()
+    const resource = query.resource
+
+    expect(query.resource).toBe(resource)
+    expect(resource.status()).toBe('loading')
+    expect(resource.isLoading()).toBe(true)
+    expect(resource.hasValue()).toBe(false)
+
+    await vi.advanceTimersByTimeAsync(11)
+
+    expect(resource.status()).toBe('resolved')
+    expect(resource.isLoading()).toBe(false)
+    expect(resource.hasValue()).toBe(true)
+    expect(resource.value()).toBe('result')
+
+    expect(resource.reload()).toBe(true)
+    await Promise.resolve()
+    expect(queryFn).toHaveBeenCalledTimes(2)
+
+    expect(resource.status()).toBe('reloading')
+    expect(resource.isLoading()).toBe(true)
+    expect(resource.value()).toBe('result')
+
+    await vi.advanceTimersByTimeAsync(11)
+
+    expect(resource.status()).toBe('resolved')
+    expect(resource.value()).toBe('result')
+  })
+
+  it('should expose disabled queries as idle resources', () => {
+    const query = TestBed.runInInjectionContext(() =>
+      injectQuery(() => ({
+        enabled: false,
+        queryKey: ['idle-resource-query'],
+        queryFn: () => sleep(10).then(() => 'result'),
+      })),
+    )
+
+    TestBed.tick()
+    const resource = query.resource
+
+    expect(resource.status()).toBe('idle')
+    expect(resource.isLoading()).toBe(false)
+    expect(resource.hasValue()).toBe(false)
+    expect(resource.value()).toBe(undefined)
+    expect(resource.reload()).toBe(false)
+  })
+
   it('should update query on options contained signal change', async () => {
     const key = signal(['key6', 'key7'])
     const spy = vi.fn(() => sleep(10).then(() => 'Some data'))

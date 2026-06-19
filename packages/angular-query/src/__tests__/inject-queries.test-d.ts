@@ -2,9 +2,24 @@ import { describe, expectTypeOf, it } from 'vitest'
 import { injectQueries, skipToken } from '..'
 import { queryOptions } from '../query-options'
 import type { CreateQueryOptions, CreateQueryResult, OmitKeyof } from '..'
-import type { Signal } from '@angular/core'
+import type { Resource, Signal } from '@angular/core'
 
 describe('InjectQueries config object overload', () => {
+  it('should expose Angular resource views', () => {
+    const queryResults = injectQueries(() => ({
+      queries: [
+        {
+          queryKey: ['key'],
+          queryFn: () => Promise.resolve('data'),
+        },
+      ],
+    }))
+
+    expectTypeOf(queryResults()[0].resource).toMatchTypeOf<
+      Resource<string | undefined>
+    >()
+  })
+
   it('TData should always be defined when initialData is provided as an object', () => {
     const query1 = {
       queryKey: ['key1'],

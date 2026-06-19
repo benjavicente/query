@@ -50,14 +50,16 @@ function replaceDist(filePath) {
  */
 function processExports(exports) {
   return Object.fromEntries(
-    Object.entries(exports).map(([key, value]) => [
-      key,
-      typeof value === 'string'
-        ? replaceDist(value)
-        : typeof value === 'object' && value !== null
-          ? processExports(value)
-          : value,
-    ]),
+    Object.entries(exports)
+      .filter(([key]) => key !== '@tanstack/custom-condition')
+      .map(([key, value]) => [
+        key,
+        typeof value === 'string'
+          ? replaceDist(value)
+          : typeof value === 'object' && value !== null
+            ? processExports(value)
+            : value,
+      ]),
   )
 }
 
