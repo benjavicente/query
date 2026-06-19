@@ -95,4 +95,9 @@ class TodosComponent {}
 
 [//]: # 'Example4'
 [//]: # 'Materials'
+
+Angular Query also exposes each query result through a Resource-compatible `resource` property. See
+the [Resource Interface](./resource-interface.md) guide when an Angular API expects a
+[Resource](https://angular.dev/api/core/Resource).
+
 [//]: # 'Materials'

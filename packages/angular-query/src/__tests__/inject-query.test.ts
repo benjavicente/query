@@ -352,12 +352,14 @@ describe('injectQuery', () => {
 
     expect(query.resource).toBe(resource)
     expect(resource.status()).toBe('loading')
+    expect(resource.snapshot()).toEqual({ status: 'loading', value: undefined })
     expect(resource.isLoading()).toBe(true)
     expect(resource.hasValue()).toBe(false)
 
     await vi.advanceTimersByTimeAsync(11)
 
     expect(resource.status()).toBe('resolved')
+    expect(resource.snapshot()).toEqual({ status: 'resolved', value: 'result' })
     expect(resource.isLoading()).toBe(false)
     expect(resource.hasValue()).toBe(true)
     expect(resource.value()).toBe('result')
@@ -367,13 +369,34 @@ describe('injectQuery', () => {
     expect(queryFn).toHaveBeenCalledTimes(2)
 
     expect(resource.status()).toBe('reloading')
+    expect(resource.snapshot()).toEqual({ status: 'reloading', value: 'result' })
     expect(resource.isLoading()).toBe(true)
     expect(resource.value()).toBe('result')
+    expect(resource.reload()).toBe(false)
+    expect(queryFn).toHaveBeenCalledTimes(2)
 
     await vi.advanceTimersByTimeAsync(11)
 
     expect(resource.status()).toBe('resolved')
     expect(resource.value()).toBe('result')
+  })
+
+  it('should not reload fresh query resources', async () => {
+    const queryFn = vi.fn(() => sleep(10).then(() => 'fresh-result'))
+    const query = TestBed.runInInjectionContext(() =>
+      injectQuery(() => ({
+        queryKey: ['fresh-resource-query'],
+        queryFn,
+        staleTime: Infinity,
+      })),
+    )
+
+    TestBed.tick()
+    await vi.advanceTimersByTimeAsync(11)
+
+    expect(query.resource.status()).toBe('resolved')
+    expect(query.resource.reload()).toBe(false)
+    expect(queryFn).toHaveBeenCalledTimes(1)
   })
 
   it('should expose disabled queries as idle resources', () => {
@@ -389,6 +412,7 @@ describe('injectQuery', () => {
     const resource = query.resource
 
     expect(resource.status()).toBe('idle')
+    expect(resource.snapshot()).toEqual({ status: 'idle', value: undefined })
     expect(resource.isLoading()).toBe(false)
     expect(resource.hasValue()).toBe(false)
     expect(resource.value()).toBe(undefined)

@@ -771,6 +771,10 @@
               "to": "framework/angular/guides/default-query-function"
             },
             {
+              "label": "Resource Interface",
+              "to": "framework/angular/guides/resource-interface"
+            },
+            {
               "label": "Testing",
               "to": "framework/angular/guides/testing"
             },

@@ -1,21 +1,30 @@
-import { computed } from '@angular/core'
+import { computed, untracked } from '@angular/core'
+import type { QueryObserverResult } from '@tanstack/query-core'
 import type {
   Resource,
+  ResourceSnapshot,
   ResourceStatus,
-  Signal,
-  WritableResource,
-} from '@angular/core'
-import type { QueryObserverResult } from '@tanstack/query-core'
+} from './resource-types'
+import type { Signal } from '@angular/core'
 
-export type QueryResource<TData> = Resource<TData | undefined> &
-  Pick<WritableResource<TData | undefined>, 'reload'>
-
-export type QueryResourceAdapter<TData = unknown> = {
-  resource: QueryResource<TData>
+export interface QueryResource<TData> extends Resource<TData | undefined> {
+  /**
+   * Requests a new query fetch only when the current query data is stale.
+   *
+   * Used for compatibility with Angular APIs that might want to reload a resource,
+   * like Signal Forms' validateAsync resource interface.
+   *
+   * @returns `true` if a reload was initiated, `false` if a reload was unnecessary or unsupported.
+   */
+  reload: () => boolean
 }
 
-export type QueryObserverResourceResult<TData, TError> =
-  QueryObserverResult<TData, TError> & QueryResourceAdapter<TData>
+export type QueryResourceAdapter<TData = unknown> = {
+  /**
+   * The query result as Angular's Resource interface.
+   */
+  resource: QueryResource<TData>
+}
 
 export function createQueryResource<TData, TError>(
   resultSignal: Signal<QueryObserverResult<TData, TError>>,
@@ -47,6 +56,16 @@ export function createQueryResource<TData, TError>(
     return resultSignal().data
   })
 
+  const snapshot = computed<ResourceSnapshot<TData | undefined>>(() => {
+    const currentStatus = status()
+
+    if (currentStatus === 'error') {
+      return { status: 'error', error: error()! }
+    }
+
+    return { status: currentStatus, value: resultSignal().data }
+  })
+
   const hasValue = (() =>
     status() !== 'error' &&
     resultSignal().data !== undefined) as QueryResource<TData>['hasValue']
@@ -55,18 +74,28 @@ export function createQueryResource<TData, TError>(
     value,
     status,
     error,
+    snapshot,
     isLoading: computed(() => {
       const currentStatus = status()
       return currentStatus === 'loading' || currentStatus === 'reloading'
     }),
     hasValue,
     reload(): boolean {
-      const currentStatus = status()
-      if (currentStatus === 'idle' || currentStatus === 'loading') {
+      const currentStatus = untracked(status)
+      if (
+        currentStatus === 'idle' ||
+        currentStatus === 'loading' ||
+        currentStatus === 'reloading'
+      ) {
         return false
       }
 
-      void resultSignal().refetch()
+      const result = untracked(resultSignal)
+      if (!result.isStale) {
+        return false
+      }
+
+      void result.refetch()
       return true
     },
   }
