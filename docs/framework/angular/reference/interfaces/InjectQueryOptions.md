@@ -5,7 +5,7 @@ title: InjectQueryOptions
 
 # Interface: InjectQueryOptions
 
-Defined in: [inject-query.ts:25](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-query.ts#L25)
+Defined in: [packages/angular-query/src/inject-query.ts:20](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-query.ts#L20)
 
 ## Properties
 
@@ -15,7 +15,7 @@ Defined in: [inject-query.ts:25](https://github.com/TanStack/query/blob/main/pac
 optional injector: Injector;
 ```
 
-Defined in: [inject-query.ts:31](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-query.ts#L31)
+Defined in: [packages/angular-query/src/inject-query.ts:26](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-query.ts#L26)
 
 The `Injector` in which to create the query.
 

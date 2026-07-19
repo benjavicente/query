@@ -55,12 +55,13 @@ $ bun add @tanstack/angular-query
 
 2. Initialize **TanStack Query** by adding **provideTanStackQuery** to your application
 
+Pass a factory; Angular runs it once per injector and in an injection context.
+
 ```ts
-import { provideTanStackQuery } from '@tanstack/angular-query'
-import { QueryClient } from '@tanstack/angular-query'
+import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query'
 
 bootstrapApplication(AppComponent, {
-  providers: [provideTanStackQuery(new QueryClient())],
+  providers: [provideTanStackQuery(() => new QueryClient())],
 })
 ```
 
@@ -76,7 +77,7 @@ import {
 @NgModule({
   declarations: [AppComponent],
   imports: [BrowserModule],
-  providers: [provideTanStackQuery(new QueryClient())],
+  providers: [provideTanStackQuery(() => new QueryClient())],
   bootstrap: [AppComponent],
 })
 ```

@@ -5,7 +5,7 @@ import {
   inject,
   runInInjectionContext,
 } from '@angular/core'
-import { createBaseQuery } from './create-base-query'
+import { injectBaseQuery } from './inject-base-query'
 import type {
   DefaultError,
   InfiniteData,
@@ -98,24 +98,36 @@ export function injectInfiniteQuery<
   TQueryKey extends QueryKey = QueryKey,
   TPageParam = unknown,
 >(
-  injectInfiniteQueryFn: () => CreateInfiniteQueryOptions<
-    TQueryFnData,
-    TError,
-    TData,
-    TQueryKey,
-    TPageParam
-  >,
+  injectInfiniteQueryFn: () =>
+    | DefinedInitialDataInfiniteOptions<
+        TQueryFnData,
+        TError,
+        TData,
+        TQueryKey,
+        TPageParam
+      >
+    | CreateInfiniteQueryOptions<
+        TQueryFnData,
+        TError,
+        TData,
+        TQueryKey,
+        TPageParam
+      >,
   options?: InjectInfiniteQueryOptions,
-) {
+):
+  | DefinedCreateInfiniteQueryResult<TData, TError>
+  | CreateInfiniteQueryResult<TData, TError> {
   !options?.injector && assertInInjectionContext(injectInfiniteQuery)
   const injector = options?.injector ?? inject(Injector)
   return runInInjectionContext(injector, () =>
-    createBaseQuery(
+    injectBaseQuery(
       injectInfiniteQueryFn,
       InfiniteQueryObserver as typeof QueryObserver,
       methodsToExclude,
     ),
-  )
+  ) as unknown as
+    | DefinedCreateInfiniteQueryResult<TData, TError>
+    | CreateInfiniteQueryResult<TData, TError>
 }
 
 const methodsToExclude = [

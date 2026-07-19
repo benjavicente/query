@@ -2628,6 +2628,9 @@ importers:
       '@analogjs/vite-plugin-angular':
         specifier: ^2.3.1
         version: 2.5.2(@angular/build@20.3.22(e3a49a64040aeb99b40314e1234cba06))(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.32.0)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3))
+      '@angular-devkit/schematics':
+        specifier: ^20.0.0
+        version: 20.3.22(chokidar@5.0.0)
       '@angular/build':
         specifier: ^20.0.0
         version: 20.3.22(e3a49a64040aeb99b40314e1234cba06)
@@ -2649,6 +2652,9 @@ importers:
       '@angular/router':
         specifier: ^20.0.0
         version: 20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.1))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.1))(@angular/platform-browser@20.3.18(@angular/common@20.3.18(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.1))(rxjs@7.8.2))(@angular/core@20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.16.1)))(rxjs@7.8.2)
+      '@schematics/angular':
+        specifier: ^20.0.0
+        version: 20.3.22(chokidar@5.0.0)
       '@tanstack/query-test-utils':
         specifier: workspace:*
         version: link:../query-test-utils

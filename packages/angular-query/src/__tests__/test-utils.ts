@@ -52,7 +52,7 @@ export function setupTanStackQueryTestBed(
   TestBed.configureTestingModule({
     providers: [
       provideZonelessChangeDetection(),
-      provideTanStackQuery(queryClient),
+      provideTanStackQuery(() => queryClient),
       ...(options.providers ?? []),
     ],
   })

@@ -7,35 +7,6 @@ import type {
 import type { DevtoolsFeature } from '@benjavicente/angular-query'
 
 /**
- * Options for configuring withDevtools.
- */
-export interface WithDevtoolsOptions {
-  /**
-   * An array of dependencies to be injected and passed to the `withDevtoolsFn` function.
-   *
-   * **Example**
-   * ```ts
-   * export const appConfig: ApplicationConfig = {
-   *   providers: [
-   *     provideTanStackQuery(
-   *       new QueryClient(),
-   *       withDevtools(
-   *         (devToolsOptionsManager: DevtoolsOptionsManager) => ({
-   *           loadDevtools: devToolsOptionsManager.loadDevtools(),
-   *         }),
-   *         {
-   *           deps: [DevtoolsOptionsManager],
-   *         },
-   *       ),
-   *     ),
-   *   ],
-   * }
-   * ```
-   */
-  deps?: Array<any>
-}
-
-/**
  * Options for configuring the TanStack Query devtools.
  */
 export interface DevtoolsOptions {
@@ -90,18 +61,20 @@ export interface DevtoolsOptions {
    *
    * **Example**
    * ```ts
-   *    withDevtools(() => ({
-   *      initialIsOpen: true,
-   *      loadDevtools: inject(ExampleService).loadDevtools()
-   *    }))
-   *  ```
+   * ```ts
+   * withDevtools(() => ({
+   *   initialIsOpen: true,
+   *   loadDevtools: inject(ExampleService).loadDevtools(),
+   * }))
+   * ```
    */
   loadDevtools?: 'auto' | boolean
 }
 
-export type WithDevtoolsFn = (...deps: Array<any>) => DevtoolsOptions
+/**
+ * Returns reactive devtools options. The function runs in an Angular injection
+ * context, so it can call `inject()` and read signals.
+ */
+export type WithDevtoolsFn = () => DevtoolsOptions
 
-export type WithDevtools = (
-  withDevtoolsFn?: WithDevtoolsFn,
-  options?: WithDevtoolsOptions,
-) => DevtoolsFeature
+export type WithDevtools = (withDevtoolsFn?: WithDevtoolsFn) => DevtoolsFeature

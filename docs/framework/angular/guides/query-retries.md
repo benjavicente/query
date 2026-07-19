@@ -36,16 +36,17 @@ import {
   QueryClientProvider,
 } from '@tanstack/angular-query'
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+const createQueryClient = () =>
+  new QueryClient({
+    defaultOptions: {
+      queries: {
+        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      },
     },
-  },
-})
+  })
 
 bootstrapApplication(AppComponent, {
-  providers: [provideTanStackQuery(queryClient)],
+  providers: [provideTanStackQuery(createQueryClient)],
 })
 ```
 

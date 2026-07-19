@@ -5,7 +5,7 @@ import {
   inject,
   runInInjectionContext,
 } from '@angular/core'
-import { createBaseQuery } from './create-base-query'
+import { injectBaseQuery } from './inject-base-query'
 import type { DefaultError, QueryKey } from '@tanstack/query-core'
 import type {
   CreateQueryOptions,
@@ -117,7 +117,7 @@ export function injectQuery(
 ) {
   !options?.injector && assertInInjectionContext(injectQuery)
   return runInInjectionContext(options?.injector ?? inject(Injector), () =>
-    createBaseQuery(injectQueryFn, QueryObserver, methodsToExclude),
+    injectBaseQuery(injectQueryFn, QueryObserver, methodsToExclude),
   ) as unknown as CreateQueryResult
 }
 

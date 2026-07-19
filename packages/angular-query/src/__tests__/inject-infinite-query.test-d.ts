@@ -4,6 +4,38 @@ import type { Signal } from '@angular/core'
 import type { InfiniteData } from '@tanstack/query-core'
 
 describe('injectInfiniteQuery', () => {
+  describe('initialData', () => {
+    it('should narrow a defined result after an isError check', () => {
+      const query = injectInfiniteQuery(() => ({
+        queryKey: ['infiniteQuery'],
+        queryFn: ({ pageParam }) =>
+          Promise.resolve('data on page ' + pageParam),
+        initialData: { pages: ['initial data'], pageParams: [0] },
+        initialPageParam: 0,
+        getNextPageParam: () => 12,
+      }))
+
+      if (query.isError()) {
+        expectTypeOf(query.error).toEqualTypeOf<Signal<Error>>()
+      }
+    })
+
+    it('should keep data possibly undefined when initialData is undefined', () => {
+      const query = injectInfiniteQuery(() => ({
+        queryKey: ['infiniteQuery'],
+        queryFn: ({ pageParam }) =>
+          Promise.resolve('data on page ' + pageParam),
+        initialData: undefined,
+        initialPageParam: 0,
+        getNextPageParam: () => 12,
+      }))
+
+      expectTypeOf(query.data).toEqualTypeOf<
+        Signal<undefined> | Signal<InfiniteData<string, unknown>>
+      >()
+    })
+  })
+
   describe('Discriminated union return type', () => {
     it('data should be possibly undefined by default', () => {
       const query = injectInfiniteQuery(() => ({

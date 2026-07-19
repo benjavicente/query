@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import './inject-schematic-package-info.js'
 
 /**
  * Prepack script that prepares the package for publishing by:
@@ -18,7 +19,12 @@ console.log('Running prepack script')
  * Files to copy to the dist directory
  * @type {string[]}
  */
-const FILES_TO_COPY = ['README.md']
+const FILES_TO_COPY = [
+  'README.md',
+  'schematics/collection.json',
+  'schematics/package.json',
+  'schematics/ng-add/schema.json',
+]
 
 /**
  * Fields to remove from the package.json copy
@@ -98,7 +104,9 @@ fs.writeFileSync(
 console.log('Copying other files')
 for (const file of FILES_TO_COPY) {
   if (fs.existsSync(file)) {
-    fs.copyFileSync(file, path.join('dist', file))
+    const destination = path.join('dist', file)
+    fs.mkdirSync(path.dirname(destination), { recursive: true })
+    fs.copyFileSync(file, destination)
     console.log(`${file}`)
   } else {
     console.log(`${file} not found, skipping`)

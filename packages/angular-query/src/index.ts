@@ -37,11 +37,15 @@ export { injectIsRestoring, provideIsRestoring } from './inject-is-restoring'
 export type { InjectMutationOptions } from './inject-mutation'
 export { injectMutation } from './inject-mutation'
 
-export type { InjectMutationStateOptions } from './inject-mutation-state'
+export type {
+  InjectMutationStateOptions,
+  MutationStateOptions,
+} from './inject-mutation-state'
 export { injectMutationState } from './inject-mutation-state'
 
 export type {
   InjectQueriesOptions,
+  InjectQueriesInjectorOptions,
   QueriesOptions,
   QueriesResults,
 } from './inject-queries'

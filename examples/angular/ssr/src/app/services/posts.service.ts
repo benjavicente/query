@@ -33,7 +33,7 @@ const posts: Array<Post> = [
   {
     id: 3,
     title: 'Query on both sides',
-    body: 'TanStack Query resolves during server rendering here, then the browser starts with a fresh client cache.',
+    body: 'TanStack Query resolves during server rendering, then transfers the hydrated cache to the browser.',
   },
   {
     id: 4,

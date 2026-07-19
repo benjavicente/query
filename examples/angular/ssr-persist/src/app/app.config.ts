@@ -8,14 +8,14 @@ import { provideTanStackQuery } from '@benjavicente/angular-query'
 import { withDevtools } from '@benjavicente/angular-query-devtools'
 import { withPersistQueryClient } from '@benjavicente/angular-query-persist-client'
 import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister'
-import { PERSIST_STORAGE_KEY, QUERY_CLIENT } from './query-client'
+import { PERSIST_STORAGE_KEY, createQueryClient } from './query-client'
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideHttpClient(withFetch()),
     provideClientHydration(withEventReplay()),
     provideTanStackQuery(
-      QUERY_CLIENT,
+      createQueryClient,
       withDevtools(),
       withPersistQueryClient(() => ({
         persistOptions: {

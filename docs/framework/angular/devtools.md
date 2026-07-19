@@ -22,15 +22,12 @@ The devtools help you debug and inspect your queries and mutations. You can enab
 By default, Angular Query Devtools only load in development.
 
 ```ts
-import {
-  QueryClient,
-  provideTanStackQuery,
-} from '@tanstack/angular-query'
+import { QueryClient, provideTanStackQuery } from '@tanstack/angular-query'
 
 import { withDevtools } from '@tanstack/angular-query-devtools'
 
 export const appConfig: ApplicationConfig = {
-  providers: [provideTanStackQuery(new QueryClient(), withDevtools())],
+  providers: [provideTanStackQuery(() => new QueryClient(), withDevtools())],
 }
 ```
 
@@ -49,12 +46,12 @@ When omitted or set to `'auto'`, devtools only load in development mode.
 ```ts
 import { withDevtools } from '@tanstack/angular-query-devtools'
 
-providers: [provideTanStackQuery(new QueryClient(), withDevtools())]
+providers: [provideTanStackQuery(() => new QueryClient(), withDevtools())]
 
 // which is equivalent to
 providers: [
   provideTanStackQuery(
-    new QueryClient(),
+    () => new QueryClient(),
     withDevtools(() => ({ loadDevtools: 'auto' })),
   ),
 ]
@@ -71,7 +68,7 @@ import { withDevtools } from '@tanstack/angular-query-devtools/production'
 
 providers: [
   provideTanStackQuery(
-    new QueryClient(),
+    () => new QueryClient(),
     withDevtools(() => ({ loadDevtools: environment.loadDevtools })),
   ),
 ]
@@ -82,7 +79,7 @@ When setting the option to false, the devtools will not be loaded.
 ```ts
 providers: [
   provideTanStackQuery(
-    new QueryClient(),
+    () => new QueryClient(),
     withDevtools(() => ({ loadDevtools: false })),
   ),
 ]
@@ -114,26 +111,23 @@ export class DevtoolsOptionsManager {
 }
 ```
 
-To use an injectable such as a service in the callback, pass it through `deps`:
+The callback runs in an Angular injection context, so it can call `inject()` and
+read signals directly:
 
 ```ts
 // ...
 // 👇 Note we import from the production sub-path to enable devtools lazy loading in production builds
+import { inject } from '@angular/core'
 import { withDevtools } from '@tanstack/angular-query-devtools/production'
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideHttpClient(),
     provideTanStackQuery(
-      new QueryClient(),
-      withDevtools(
-        (devToolsOptionsManager: DevtoolsOptionsManager) => ({
-          loadDevtools: devToolsOptionsManager.loadDevtools(),
-        }),
-        {
-          deps: [DevtoolsOptionsManager],
-        },
-      ),
+      () => new QueryClient(),
+      withDevtools(() => ({
+        loadDevtools: inject(DevtoolsOptionsManager).loadDevtools(),
+      })),
     ),
   ],
 }

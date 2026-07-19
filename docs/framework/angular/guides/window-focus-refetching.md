@@ -11,13 +11,14 @@ replace: { '@tanstack/react-query': '@tanstack/angular-query' }
 export const appConfig: ApplicationConfig = {
   providers: [
     provideTanStackQuery(
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            refetchOnWindowFocus: false, // default: true
+      () =>
+        new QueryClient({
+          defaultOptions: {
+            queries: {
+              refetchOnWindowFocus: false, // default: true
+            },
           },
-        },
-      }),
+        }),
     ),
   ],
 }

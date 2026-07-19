@@ -6,40 +6,33 @@ title: Resource Interface
 Angular Query exposes every query result as an Angular Resource-compatible view through the
 `resource` property:
 
-```angular-ts
+```ts
+import { Component, input } from '@angular/core'
 import { injectQuery } from '@tanstack/angular-query'
 
 @Component({
-  template: `
-    @let user = userQuery.resource;
-
-    @if (user.isLoading()) {
-      <p>Loading...</p>
-    } @else if (user.hasValue()) {
-      <p>{{ user.value().name }}</p>
-    }
-  `,
+  selector: 'todo-detail',
+  template: '',
 })
-export class UserProfile {
-  userId = input.required<string>()
+export class TodoDetail {
+  id = input.required<number>()
 
-  userQuery = injectQuery(() => ({
-    queryKey: ['user', this.userId()],
-    queryFn: () => fetchUser(this.userId()),
+  todo = injectQuery(() => ({
+    queryKey: ['todo', this.id()],
+    queryFn: () => fetchTodo(this.id()),
   }))
+
+  todoResource = this.todo.resource
 }
 ```
 
-Use `query.resource` when an Angular API expects a [Resource](https://angular.dev/api/core/Resource).
-
-## Reloading a Resource
-
-The resource interface provided by Angular Query also has a `reload` method that matches the Angular
-[WritableResource `reload` method](https://angular.dev/api/core/WritableResource#reload). When
-called, it starts a refetch and returns `true` only when the query is stale and not already loading.
-If the query is fresh, idle, or already loading, it returns `false` and does not refetch.
+`query.resource` is useful when you want to pass a query to APIs that understand Angular's Resource
+shape, or when a component already uses Resource terminology such as `status`, `value`, `error`, and
+`reload`.
 
 ## Using Resource with Signal Forms
+
+> Signal Forms integration requires Angular 21 or newer.
 
 Angular Signal Forms'
 [`validateAsync`](https://angular.dev/guide/forms/signals/async-operations#custom-async-validation-with-validateasync)
@@ -50,7 +43,7 @@ The example below validates a username. The query is disabled while the field ha
 factory returns `.resource`.
 
 ```ts
-import { inject, signal } from '@angular/core'
+import { Component, inject, signal } from '@angular/core'
 import { form, validateAsync } from '@angular/forms/signals'
 import { injectQuery } from '@tanstack/angular-query'
 
@@ -58,7 +51,11 @@ type UsernameValidation = {
   available: boolean
 }
 
-class RegistrationForm {
+@Component({
+  selector: 'registration-form',
+  template: '',
+})
+export class RegistrationForm {
   private readonly users = inject(UserService)
   readonly model = signal({
     username: '',
@@ -76,7 +73,7 @@ class RegistrationForm {
             this.users.checkUsername(username()!),
         })).resource,
       onSuccess: (result) =>
-        result.available
+        result?.available
           ? null
           : {
               kind: 'usernameTaken',
@@ -91,4 +88,4 @@ class RegistrationForm {
 }
 ```
 
-Calling `reloadValidation()` on the field calls the Resource `reload()` method.
+Calling `reloadValidation()` on the field refetches the query only when its cached data is stale.

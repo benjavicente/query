@@ -6,12 +6,12 @@ import {
 } from '@angular/platform-browser'
 import { provideTanStackQuery } from '@benjavicente/angular-query'
 import { withDevtools } from '@benjavicente/angular-query-devtools'
-import { QUERY_CLIENT } from './query-client'
+import { createQueryClient } from './query-client'
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideHttpClient(withFetch()),
     provideClientHydration(withEventReplay()),
-    provideTanStackQuery(QUERY_CLIENT, withDevtools()),
+    provideTanStackQuery(createQueryClient, withDevtools()),
   ],
 }

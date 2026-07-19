@@ -26,7 +26,7 @@ https://tanstack.com/query/latest/docs/framework/angular/guides/infinite-queries
 function injectInfiniteQuery<TQueryFnData, TError, TData, TQueryKey, TPageParam>(injectInfiniteQueryFn, options?): DefinedCreateInfiniteQueryResult<TData, TError>;
 ```
 
-Defined in: [inject-infinite-query.ts:36](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-infinite-query.ts#L36)
+Defined in: [packages/angular-query/src/inject-infinite-query.ts:34](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-infinite-query.ts#L34)
 
 ### Type Parameters
 
@@ -70,7 +70,7 @@ Defined in: [inject-infinite-query.ts:36](https://github.com/TanStack/query/blob
 function injectInfiniteQuery<TQueryFnData, TError, TData, TQueryKey, TPageParam>(injectInfiniteQueryFn, options?): CreateInfiniteQueryResult<TData, TError>;
 ```
 
-Defined in: [inject-infinite-query.ts:53](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-infinite-query.ts#L53)
+Defined in: [packages/angular-query/src/inject-infinite-query.ts:51](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-infinite-query.ts#L51)
 
 ### Type Parameters
 
@@ -114,7 +114,7 @@ Defined in: [inject-infinite-query.ts:53](https://github.com/TanStack/query/blob
 function injectInfiniteQuery<TQueryFnData, TError, TData, TQueryKey, TPageParam>(injectInfiniteQueryFn, options?): CreateInfiniteQueryResult<TData, TError>;
 ```
 
-Defined in: [inject-infinite-query.ts:70](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-infinite-query.ts#L70)
+Defined in: [packages/angular-query/src/inject-infinite-query.ts:68](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-infinite-query.ts#L68)
 
 ### Type Parameters
 

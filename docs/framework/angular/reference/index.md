@@ -7,18 +7,22 @@ title: "@tanstack/angular-query"
 
 ## Interfaces
 
+- [BaseInfiniteQueryNarrowing](interfaces/BaseInfiniteQueryNarrowing.md)
 - [BaseMutationNarrowing](interfaces/BaseMutationNarrowing.md)
 - [BaseQueryNarrowing](interfaces/BaseQueryNarrowing.md)
 - [CreateInfiniteQueryOptions](interfaces/CreateInfiniteQueryOptions.md)
 - [CreateMutationOptions](interfaces/CreateMutationOptions.md)
+- [DefinedInfiniteQueryNarrowing](interfaces/DefinedInfiniteQueryNarrowing.md)
 - [InjectInfiniteQueryOptions](interfaces/InjectInfiniteQueryOptions.md)
 - [InjectIsFetchingOptions](interfaces/InjectIsFetchingOptions.md)
 - [InjectIsMutatingOptions](interfaces/InjectIsMutatingOptions.md)
 - [InjectMutationOptions](interfaces/InjectMutationOptions.md)
 - [InjectMutationStateOptions](interfaces/InjectMutationStateOptions.md)
+- [InjectQueriesInjectorOptions](interfaces/InjectQueriesInjectorOptions.md)
 - [InjectQueriesOptions](interfaces/InjectQueriesOptions.md)
 - [InjectQueryOptions](interfaces/InjectQueryOptions.md)
 - [QueryFeature](interfaces/QueryFeature.md)
+- [QueryResource](interfaces/QueryResource.md)
 
 ## Type Aliases
 
@@ -36,6 +40,7 @@ title: "@tanstack/angular-query"
 - [DefinedInitialDataInfiniteOptions](type-aliases/DefinedInitialDataInfiniteOptions.md)
 - [DefinedInitialDataOptions](type-aliases/DefinedInitialDataOptions.md)
 - [DevtoolsFeature](type-aliases/DevtoolsFeature.md)
+- [MutationStateOptions](type-aliases/MutationStateOptions.md)
 - [PersistQueryClientFeature](type-aliases/PersistQueryClientFeature.md)
 - [QueriesOptions](type-aliases/QueriesOptions.md)
 - [QueriesResults](type-aliases/QueriesResults.md)

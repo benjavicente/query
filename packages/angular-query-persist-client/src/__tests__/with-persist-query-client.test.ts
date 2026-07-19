@@ -118,7 +118,7 @@ describe('withPersistQueryClient', () => {
       providers: [
         provideZonelessChangeDetection(),
         provideTanStackQuery(
-          queryClient,
+          () => queryClient,
           withPersistQueryClient({ persistOptions: { persister } }),
         ),
       ],
@@ -230,7 +230,7 @@ describe('withPersistQueryClient', () => {
       providers: [
         provideZonelessChangeDetection(),
         provideTanStackQuery(
-          queryClient,
+          () => queryClient,
           withPersistQueryClient({ persistOptions: { persister } }),
         ),
       ],
@@ -316,7 +316,7 @@ describe('withPersistQueryClient', () => {
       providers: [
         provideZonelessChangeDetection(),
         provideTanStackQuery(
-          queryClient,
+          () => queryClient,
           withPersistQueryClient({ persistOptions: { persister } }),
         ),
       ],
@@ -407,7 +407,7 @@ describe('withPersistQueryClient', () => {
       providers: [
         provideZonelessChangeDetection(),
         provideTanStackQuery(
-          queryClient,
+          () => queryClient,
           withPersistQueryClient({ persistOptions: { persister } }),
         ),
       ],
@@ -471,7 +471,7 @@ describe('withPersistQueryClient', () => {
       providers: [
         provideZonelessChangeDetection(),
         provideTanStackQuery(
-          queryClient,
+          () => queryClient,
           withPersistQueryClient({
             persistOptions: { persister },
             onSuccess,
@@ -530,7 +530,7 @@ describe('withPersistQueryClient', () => {
       providers: [
         provideZonelessChangeDetection(),
         provideTanStackQuery(
-          queryClient,
+          () => queryClient,
           withPersistQueryClient({
             persistOptions: { persister },
             onSuccess,
@@ -590,7 +590,7 @@ describe('withPersistQueryClient', () => {
       providers: [
         provideZonelessChangeDetection(),
         provideTanStackQuery(
-          queryClient,
+          () => queryClient,
           withPersistQueryClient({
             persistOptions: { persister },
             onSuccess,
@@ -647,7 +647,7 @@ describe('withPersistQueryClient', () => {
       providers: [
         provideZonelessChangeDetection(),
         provideTanStackQuery(
-          queryClient,
+          () => queryClient,
           withPersistQueryClient({
             persistOptions: { persister },
             onError,
@@ -716,7 +716,7 @@ describe('withPersistQueryClient', () => {
         provideZonelessChangeDetection(),
         { provide: HOLDER, useValue: holder },
         provideTanStackQuery(
-          queryClient,
+          () => queryClient,
           withPersistQueryClient(
             (h) => ({
               persistOptions: { persister: h.persister },
@@ -750,7 +750,10 @@ describe('withPersistQueryClient', () => {
       providers: [
         provideZonelessChangeDetection(),
         { provide: PLATFORM_ID, useValue: 'server' },
-        provideTanStackQuery(new QueryClient(), withPersistQueryClient(factory)),
+        provideTanStackQuery(
+          () => new QueryClient(),
+          withPersistQueryClient(factory),
+        ),
       ],
     })
 
@@ -784,7 +787,7 @@ describe('withPersistQueryClient', () => {
     const injector = createEnvironmentInjector(
       [
         provideTanStackQuery(
-          queryClient,
+          () => queryClient,
           withPersistQueryClient({ persistOptions: { persister } }),
         ),
       ],
@@ -796,5 +799,33 @@ describe('withPersistQueryClient', () => {
 
     expect(subscribeSpy).toHaveBeenCalledTimes(1)
     expect(cleanup).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not subscribe when the injector is destroyed during restore', async () => {
+    const subscribeSpy = vi.spyOn(
+      persistClientCore,
+      'persistQueryClientSubscribe',
+    )
+
+    TestBed.configureTestingModule({
+      providers: [provideZonelessChangeDetection()],
+    })
+
+    const injector = createEnvironmentInjector(
+      [
+        provideTanStackQuery(
+          () => new QueryClient(),
+          withPersistQueryClient({
+            persistOptions: { persister: createMockPersister() },
+          }),
+        ),
+      ],
+      TestBed.inject(EnvironmentInjector),
+    )
+
+    injector.destroy()
+    await vi.advanceTimersByTimeAsync(10)
+
+    expect(subscribeSpy).not.toHaveBeenCalled()
   })
 })

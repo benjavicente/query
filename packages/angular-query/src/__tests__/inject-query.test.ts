@@ -18,7 +18,13 @@ import {
   provideHttpClientTesting,
 } from '@angular/common/http/testing'
 import {
-  afterEach, beforeEach, describe, expect, expectTypeOf, it, vi,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  expectTypeOf,
+  it,
+  vi,
 } from 'vitest'
 import { render } from '@testing-library/angular'
 import { queryKey, sleep } from '@tanstack/query-test-utils'
@@ -42,7 +48,7 @@ describe('injectQuery', () => {
     TestBed.configureTestingModule({
       providers: [
         provideZonelessChangeDetection(),
-        provideTanStackQuery(queryClient),
+        provideTanStackQuery(() => queryClient),
       ],
     })
   })
@@ -369,7 +375,10 @@ describe('injectQuery', () => {
     expect(queryFn).toHaveBeenCalledTimes(2)
 
     expect(resource.status()).toBe('reloading')
-    expect(resource.snapshot()).toEqual({ status: 'reloading', value: 'result' })
+    expect(resource.snapshot()).toEqual({
+      status: 'reloading',
+      value: 'result',
+    })
     expect(resource.isLoading()).toBe(true)
     expect(resource.value()).toBe('result')
     expect(resource.reload()).toBe(false)
@@ -960,7 +969,7 @@ describe('injectQuery', () => {
     TestBed.configureTestingModule({
       providers: [
         provideZonelessChangeDetection(),
-        provideTanStackQuery(queryClient),
+        provideTanStackQuery(() => queryClient),
         provideIsRestoring(isRestoring.asReadonly()),
       ],
     })
@@ -1073,7 +1082,7 @@ describe('injectQuery', () => {
       TestBed.configureTestingModule({
         providers: [
           provideZonelessChangeDetection(),
-          provideTanStackQuery(queryClient),
+          provideTanStackQuery(() => queryClient),
           provideHttpClient(),
           provideHttpClientTesting(),
         ],
@@ -1128,7 +1137,7 @@ describe('injectQuery', () => {
       TestBed.configureTestingModule({
         providers: [
           provideZonelessChangeDetection(),
-          provideTanStackQuery(queryClient),
+          provideTanStackQuery(() => queryClient),
         ],
       })
 
@@ -1179,7 +1188,7 @@ describe('injectQuery', () => {
       TestBed.configureTestingModule({
         providers: [
           provideZonelessChangeDetection(),
-          provideTanStackQuery(queryClient),
+          provideTanStackQuery(() => queryClient),
         ],
       })
 
@@ -1234,7 +1243,7 @@ describe('injectQuery', () => {
       TestBed.configureTestingModule({
         providers: [
           provideZonelessChangeDetection(),
-          provideTanStackQuery(queryClient),
+          provideTanStackQuery(() => queryClient),
         ],
       })
 

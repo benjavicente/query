@@ -1,6 +1,5 @@
 {
   "name": "@benjavicente/angular-query-persist-client",
-  "private": true,
   "version": "5.101.0",
   "description": "Angular bindings to work with persisters in TanStack/angular-query",
   "author": "Omer Gronich",
@@ -70,8 +69,8 @@
     "zone.js": "^0.16.0"
   },
   "peerDependencies": {
-    "@angular/common": ">=19.0.0",
-    "@angular/core": ">=19.0.0",
+    "@angular/common": ">=20.0.0",
+    "@angular/core": ">=20.0.0",
     "@benjavicente/angular-query": "workspace:^"
   }
 }

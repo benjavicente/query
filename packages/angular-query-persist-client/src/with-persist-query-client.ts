@@ -64,7 +64,7 @@ function resolvePersistOptions(
  * export const appConfig: ApplicationConfig = {
  *   providers: [
  *     provideTanStackQuery(
- *       new QueryClient(),
+ *       () => new QueryClient(),
  *       withPersistQueryClient({
  *         persistOptions: {
  *           persister: localStoragePersister,
@@ -129,6 +129,13 @@ export function withPersistQueryClient(
         }
         const destroyRef = inject(DestroyRef)
         const queryClient = inject(QueryClient)
+        let injectorDestroyed = false
+
+        // Angular versions newer than our minimum expose DestroyRef.destroyed.
+        // Keep a local flag so this remains compatible with Angular 20.0.
+        destroyRef.onDestroy(() => {
+          injectorDestroyed = true
+        })
 
         const { onSuccess, onError, persistOptions } = resolvePersistOptions(
           factoryOrOptions,
@@ -144,7 +151,7 @@ export function withPersistQueryClient(
             return onError?.()
           })
           .finally(() => {
-            if (destroyRef.destroyed) return
+            if (injectorDestroyed) return
             isRestoring.set(false)
             const cleanup = persistQueryClientSubscribe(options)
             destroyRef.onDestroy(cleanup)

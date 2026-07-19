@@ -9,7 +9,7 @@ title: CreateBaseQueryOptions
 type CreateBaseQueryOptions<TQueryFnData, TError, TData, TQueryData, TQueryKey> = QueryObserverOptions<TQueryFnData, TError, TData, TQueryData, TQueryKey>;
 ```
 
-Defined in: [types.ts:21](https://github.com/TanStack/query/blob/main/packages/angular-query/src/types.ts#L21)
+Defined in: [packages/angular-query/src/types.ts:22](https://github.com/TanStack/query/blob/main/packages/angular-query/src/types.ts#L22)
 
 ## Type Parameters
 

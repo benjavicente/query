@@ -3,9 +3,18 @@ id: installation
 title: Installation
 ---
 
-### NPM
+_Angular Query is compatible with Angular v20 and higher._
 
-_Angular Query is compatible with Angular v19 and higher_
+### Angular CLI
+
+```bash
+ng add @tanstack/angular-query
+```
+
+This installs the package and devtools, then configures an SSR-safe `QueryClient` factory with
+`withDevtools()`.
+
+### Package managers
 
 ```bash
 npm i @tanstack/angular-query
@@ -35,4 +44,4 @@ If you want Angular Query devtools, install the standalone devtools package as w
 npm i @tanstack/angular-query-devtools
 ```
 
-> Wanna give it a spin before you download? Try out the [simple](./examples/simple) or [basic](./examples/basic) examples!
+> Want to try it first? See the [simple](./examples/simple) or [basic](./examples/basic) example.

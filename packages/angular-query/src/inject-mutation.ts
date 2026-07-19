@@ -1,7 +1,6 @@
 import {
   Injector,
   NgZone,
-  PendingTasks,
   assertInInjectionContext,
   computed,
   effect,
@@ -17,6 +16,7 @@ import {
   shouldThrowError,
 } from '@tanstack/query-core'
 import { signalProxy } from './signal-proxy'
+import { injectQueryLifecycle } from './inject-query-lifecycle'
 import type { DefaultError, MutationObserverResult } from '@tanstack/query-core'
 import type {
   CreateMutateFunction,
@@ -58,8 +58,8 @@ export function injectMutation<
   !options?.injector && assertInInjectionContext(injectMutation)
   const injector = options?.injector ?? inject(Injector)
   const ngZone = injector.get(NgZone)
-  const pendingTasks = injector.get(PendingTasks)
   const queryClient = injector.get(QueryClient)
+  const lifecycle = injectQueryLifecycle(injector)
 
   /**
    * computed() is used so signals can be inserted into the options
@@ -71,22 +71,6 @@ export function injectMutation<
   const observerSignal = computed(
     () => new MutationObserver(queryClient, untracked(optionsSignal)),
   )
-
-  let destroyed = false
-  let taskCleanupRef: (() => void) | null = null
-
-  const startPendingTask = () => {
-    if (!taskCleanupRef && !destroyed) {
-      taskCleanupRef = pendingTasks.add()
-    }
-  }
-
-  const stopPendingTask = () => {
-    if (taskCleanupRef) {
-      taskCleanupRef()
-      taskCleanupRef = null
-    }
-  }
 
   const mutateFnSignal = computed<
     CreateMutateFunction<TData, TError, TVariables, TOnMutateResult>
@@ -138,13 +122,9 @@ export function injectMutation<
           observer.subscribe(
             notifyManager.batchCalls((state) => {
               ngZone.run(() => {
-                if (destroyed) return
+                if (lifecycle.destroyed) return
 
-                if (state.isPending) {
-                  startPendingTask()
-                } else {
-                  stopPendingTask()
-                }
+                lifecycle.setPending(state.isPending)
 
                 if (
                   state.isError &&
@@ -160,8 +140,7 @@ export function injectMutation<
           ),
         )
         onCleanup(() => {
-          destroyed = true
-          stopPendingTask()
+          lifecycle.setPending(false)
           unsubscribe()
         })
       })

@@ -3,18 +3,15 @@ id: ssr
 title: SSR
 ---
 
-For [Angular SSR](https://angular.dev/guide/ssr), you can run queries on the server, embed the serialized cache in the HTML response, and hydrate the same data in the browser so the client does not refetch immediately.
-
-[`provideTanStackQuery`](../reference/functions/provideTanStackQuery.md) serializes the `QueryClient` cache during SSR and restores it when the browser app boots. This uses Angular's `TransferState` internally.
+For [Angular SSR](https://angular.dev/guide/ssr), [`provideTanStackQuery`](../reference/functions/provideTanStackQuery.md) serializes the `QueryClient` cache into Angular's `TransferState` and restores it when the browser application starts.
 
 An end-to-end sample lives at `examples/angular/ssr`. The `examples/angular/ssr-persist` example builds on the same setup with browser persistence.
 
-## Query client token
+## Query client factory
 
-For SSR, define an `InjectionToken` with a factory and provide that token to `provideTanStackQuery`. This keeps the docs and examples aligned with Angular's DI model and avoids helper-function-based query-client setup.
+`provideTanStackQuery` registers the factory with Angular's `useFactory`. It runs once per root injector and in an injection context, so it can call `inject()`. Because Angular SSR creates a root injector for each request, each request gets an independent `QueryClient` and cache.
 
 ```ts
-import { InjectionToken } from '@angular/core'
 import { QueryClient } from '@tanstack/angular-query'
 
 export const SHARED_QUERY_DEFAULTS = {
@@ -22,21 +19,20 @@ export const SHARED_QUERY_DEFAULTS = {
   gcTime: 1000 * 60 * 60 * 24,
 } as const
 
-export const QUERY_CLIENT = new InjectionToken<QueryClient>('QUERY_CLIENT', {
-  factory: () =>
-    new QueryClient({
-      defaultOptions: {
-        queries: {
-          ...SHARED_QUERY_DEFAULTS,
-        },
+export function createQueryClient() {
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        ...SHARED_QUERY_DEFAULTS,
       },
-    }),
-})
+    },
+  })
+}
 ```
 
 ## Browser config
 
-Use the token with `provideTanStackQuery` in your application config. If you want devtools, import them from the standalone devtools package.
+Use the factory with `provideTanStackQuery` in your application config. If you want devtools, import them from the standalone devtools package.
 
 ```ts
 import type { ApplicationConfig } from '@angular/core'
@@ -47,20 +43,20 @@ import {
 } from '@angular/platform-browser'
 import { provideTanStackQuery } from '@tanstack/angular-query'
 import { withDevtools } from '@tanstack/angular-query-devtools'
-import { QUERY_CLIENT } from './query-client'
+import { createQueryClient } from './query-client'
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideHttpClient(),
     provideClientHydration(withEventReplay()),
-    provideTanStackQuery(QUERY_CLIENT, withDevtools()),
+    provideTanStackQuery(createQueryClient, withDevtools()),
   ],
 }
 ```
 
 ## Server config
 
-Each SSR request should bootstrap a fresh application, and Angular will resolve the token factory in that request-scoped injector. Merge your browser config with `provideServerRendering` in the server config.
+Merge the application config with `provideServerRendering` in the server config.
 
 ```ts
 import { mergeApplicationConfig } from '@angular/core'
@@ -80,7 +76,7 @@ Built-in hydration uses a default transfer key. For a second `QueryClient` in a 
 ```ts
 providers: [
   provideTanStackQuery(
-    SECONDARY_QUERY_CLIENT,
+    createSecondaryQueryClient,
     withHydrationKey('my-secondary-query-cache'),
   ),
 ]
@@ -91,7 +87,7 @@ providers: [
 If you need to opt out of TanStack Query's built-in `TransferState` integration for a specific injector, add `withNoQueryHydration()`.
 
 ```ts
-providers: [provideTanStackQuery(QUERY_CLIENT, withNoQueryHydration())]
+providers: [provideTanStackQuery(createQueryClient, withNoQueryHydration())]
 ```
 
 ## See also

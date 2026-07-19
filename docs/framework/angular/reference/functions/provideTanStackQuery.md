@@ -6,14 +6,14 @@ title: provideTanStackQuery
 # Function: provideTanStackQuery()
 
 ```ts
-function provideTanStackQuery(queryClient, ...features): EnvironmentProviders;
+function provideTanStackQuery(queryClientFactoryOrToken, ...features): EnvironmentProviders;
 ```
 
-Defined in: [providers.ts:151](https://github.com/TanStack/query/blob/main/packages/angular-query/src/providers.ts#L151)
+Defined in: [packages/angular-query/src/providers.ts:128](https://github.com/TanStack/query/blob/main/packages/angular-query/src/providers.ts#L128)
 
-Sets up providers necessary to enable TanStack Query functionality for Angular applications.
-
-Allows to configure a `QueryClient` and optional features such as developer tools.
+Provides a `QueryClient` and optional TanStack Query features.
+The factory runs once per injector in Angular's injection context, so it can
+call `inject()` and each SSR request can receive an independent cache.
 
 **Example - standalone**
 
@@ -24,25 +24,8 @@ import {
 } from '@tanstack/angular-query'
 
 bootstrapApplication(AppComponent, {
-  providers: [provideTanStackQuery(new QueryClient())],
+  providers: [provideTanStackQuery(() => new QueryClient())],
 })
-```
-
-**Example - NgModule-based**
-
-```ts
-import {
-  provideTanStackQuery,
-  QueryClient,
-} from '@tanstack/angular-query'
-
-@NgModule({
-  declarations: [AppComponent],
-  imports: [BrowserModule],
-  providers: [provideTanStackQuery(new QueryClient())],
-  bootstrap: [AppComponent],
-})
-export class AppModule {}
 ```
 
 You can also enable optional developer tools by adding `withDevtools`. By
@@ -53,32 +36,29 @@ import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query'
 import { withDevtools } from '@tanstack/angular-query-devtools'
 
 bootstrapApplication(AppComponent, {
-  providers: [provideTanStackQuery(new QueryClient(), withDevtools())],
+  providers: [
+    provideTanStackQuery(() => new QueryClient(), withDevtools()),
+  ],
 })
 ```
 
-**Example: using an InjectionToken**
+Use an `InjectionToken` when another provider owns client creation:
 
 ```ts
 export const MY_QUERY_CLIENT = new InjectionToken('', {
   factory: () => new QueryClient(),
 })
 
-// In a lazy loaded route or lazy loaded component's providers array:
 providers: [provideTanStackQuery(MY_QUERY_CLIENT)]
 ```
-Using an InjectionToken for the QueryClient is an advanced optimization which allows TanStack Query to be absent from the main application bundle.
-This can be beneficial if you want to include TanStack Query on lazy loaded routes only while still sharing a `QueryClient`.
-
-Note that this is a small optimization and for most applications it's preferable to provide the `QueryClient` in the main application config.
 
 ## Parameters
 
-### queryClient
+### queryClientFactoryOrToken
 
-A `QueryClient` instance, or an `InjectionToken` which provides a `QueryClient`.
+A `QueryClient` factory or an `InjectionToken` that resolves one.
 
-`QueryClient` | `InjectionToken`\<`QueryClient`\>
+`InjectionToken`\<`QueryClient`\> | () => `QueryClient`
 
 ### features
 

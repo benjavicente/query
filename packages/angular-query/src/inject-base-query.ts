@@ -1,7 +1,6 @@
 import {
-  DestroyRef,
+  Injector,
   NgZone,
-  PendingTasks,
   computed,
   effect,
   inject,
@@ -16,6 +15,7 @@ import {
 import { signalProxy } from './signal-proxy'
 import { injectIsRestoring } from './inject-is-restoring'
 import { createQueryResource } from './query-resource'
+import { injectQueryLifecycle } from './inject-query-lifecycle'
 import type { QueryResourceAdapter } from './query-resource'
 import type {
   DefaultedQueryObserverOptions,
@@ -32,7 +32,7 @@ import type { MapToSignals, MethodKeys } from './signal-proxy'
  * @param Observer
  * @param excludeFunctions
  */
-export function createBaseQuery<
+export function injectBaseQuery<
   TQueryFnData,
   TError,
   TData,
@@ -49,27 +49,11 @@ export function createBaseQuery<
   Observer: typeof QueryObserver,
   excludeFunctions: ReadonlyArray<string>,
 ) {
+  const injector = inject(Injector)
   const ngZone = inject(NgZone)
-  const pendingTasks = inject(PendingTasks)
   const queryClient = inject(QueryClient)
   const isRestoring = injectIsRestoring()
-  const destroyRef = inject(DestroyRef)
-
-  let destroyed = false
-  let taskCleanupRef: (() => void) | null = null
-
-  const startPendingTask = () => {
-    if (!taskCleanupRef && !destroyed) {
-      taskCleanupRef = pendingTasks.add()
-    }
-  }
-
-  const stopPendingTask = () => {
-    if (taskCleanupRef) {
-      taskCleanupRef()
-      taskCleanupRef = null
-    }
-  }
+  const lifecycle = injectQueryLifecycle(injector)
 
   const shouldBlockPendingTasks = (
     observer: QueryObserver<TQueryFnData, TError, TData, TQueryData, TQueryKey>,
@@ -141,19 +125,13 @@ export function createBaseQuery<
   const subscribeToObserver = () => {
     const observer = untracked(observerSignal)
     const initialState = observer.getCurrentResult()
-    if (shouldBlockPendingTasks(observer, initialState)) {
-      startPendingTask()
-    }
+    lifecycle.setPending(shouldBlockPendingTasks(observer, initialState))
 
     return observer.subscribe((state) => {
-      if (shouldBlockPendingTasks(observer, state)) {
-        startPendingTask()
-      } else {
-        stopPendingTask()
-      }
+      lifecycle.setPending(shouldBlockPendingTasks(observer, state))
 
       queueMicrotask(() => {
-        if (destroyed) return
+        if (lifecycle.destroyed) return
         notifyManager.batch(() => {
           ngZone.run(() => {
             if (
@@ -198,13 +176,8 @@ export function createBaseQuery<
     )
     onCleanup(() => {
       unsubscribe()
-      stopPendingTask()
+      lifecycle.setPending(false)
     })
-  })
-
-  destroyRef.onDestroy(() => {
-    destroyed = true
-    stopPendingTask()
   })
 
   const resource = createQueryResource(resultSignal)

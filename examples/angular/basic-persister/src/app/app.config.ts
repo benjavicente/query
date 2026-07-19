@@ -1,8 +1,5 @@
 import { provideHttpClient, withFetch } from '@angular/common/http'
-import {
-  QueryClient,
-  provideTanStackQuery,
-} from '@benjavicente/angular-query'
+import { QueryClient, provideTanStackQuery } from '@benjavicente/angular-query'
 import { withPersistQueryClient } from '@benjavicente/angular-query-persist-client'
 import { withDevtools } from '@benjavicente/angular-query-devtools'
 import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister'
@@ -16,14 +13,15 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideHttpClient(withFetch()),
     provideTanStackQuery(
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            staleTime: 1000 * 60, // 1 minute
-            gcTime: 1000 * 60 * 60 * 24, // 24 hours
+      () =>
+        new QueryClient({
+          defaultOptions: {
+            queries: {
+              staleTime: 1000 * 60, // 1 minute
+              gcTime: 1000 * 60 * 60 * 24, // 24 hours
+            },
           },
-        },
-      }),
+        }),
       withDevtools(),
       withPersistQueryClient({
         persistOptions: {

@@ -7,17 +7,19 @@ title: Quick Start
 
 If you're looking for a fully functioning example, please have a look at our [basic codesandbox example](./examples/basic)
 
-### Provide the client to your App
+### Configure the QueryClient
+
+Pass a factory to `provideTanStackQuery`. Angular runs it once per injector and in an injection context, so it can use `inject()`.
 
 ```ts
 import { provideHttpClient } from '@angular/common/http'
-import {
-  provideTanStackQuery,
-  QueryClient,
-} from '@tanstack/angular-query'
+import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query'
 
 bootstrapApplication(AppComponent, {
-  providers: [provideHttpClient(), provideTanStackQuery(new QueryClient())],
+  providers: [
+    provideHttpClient(),
+    provideTanStackQuery(() => new QueryClient()),
+  ],
 })
 ```
 
@@ -25,15 +27,15 @@ or in a NgModule-based app
 
 ```ts
 import { provideHttpClient } from '@angular/common/http'
-import {
-  provideTanStackQuery,
-  QueryClient,
-} from '@tanstack/angular-query'
+import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query'
 
 @NgModule({
   declarations: [AppComponent],
   imports: [BrowserModule],
-  providers: [provideTanStackQuery(new QueryClient()), provideHttpClient()],
+  providers: [
+    provideTanStackQuery(() => new QueryClient()),
+    provideHttpClient(),
+  ],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

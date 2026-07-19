@@ -43,6 +43,21 @@ type CreateStatusBasedQueryResult<
   TError = DefaultError,
 > = Extract<QueryObserverResult<TData, TError>, { status: TStatus }>
 
+type CreateStatusBasedInfiniteQueryResult<
+  TStatus extends InfiniteQueryObserverResult['status'],
+  TData = unknown,
+  TError = DefaultError,
+> = Extract<InfiniteQueryObserverResult<TData, TError>, { status: TStatus }>
+
+type CreateStatusBasedDefinedInfiniteQueryResult<
+  TStatus extends DefinedInfiniteQueryObserverResult['status'],
+  TData = unknown,
+  TError = DefaultError,
+> = Extract<
+  DefinedInfiniteQueryObserverResult<TData, TError>,
+  { status: TStatus }
+>
+
 export interface BaseQueryNarrowing<TData = unknown, TError = DefaultError> {
   isSuccess: (
     this: CreateBaseQueryResult<TData, TError>,
@@ -65,6 +80,56 @@ export interface BaseQueryNarrowing<TData = unknown, TError = DefaultError> {
     TError,
     CreateStatusBasedQueryResult<'pending', TData, TError>
   >
+}
+
+export interface BaseInfiniteQueryNarrowing<
+  TData = unknown,
+  TError = DefaultError,
+> {
+  isSuccess: (
+    this: CreateInfiniteQueryResult<TData, TError>,
+  ) => this is CreateInfiniteQueryResult<
+    TData,
+    TError,
+    CreateStatusBasedInfiniteQueryResult<'success', TData, TError>
+  >
+  isError: (
+    this: CreateInfiniteQueryResult<TData, TError>,
+  ) => this is CreateInfiniteQueryResult<
+    TData,
+    TError,
+    CreateStatusBasedInfiniteQueryResult<'error', TData, TError>
+  >
+  isPending: (
+    this: CreateInfiniteQueryResult<TData, TError>,
+  ) => this is CreateInfiniteQueryResult<
+    TData,
+    TError,
+    CreateStatusBasedInfiniteQueryResult<'pending', TData, TError>
+  >
+}
+
+export interface DefinedInfiniteQueryNarrowing<
+  TData = unknown,
+  TError = DefaultError,
+> {
+  isSuccess: (
+    this: DefinedCreateInfiniteQueryResult<TData, TError>,
+  ) => this is DefinedCreateInfiniteQueryResult<
+    TData,
+    TError,
+    CreateStatusBasedDefinedInfiniteQueryResult<'success', TData, TError>
+  >
+  isError: (
+    this: DefinedCreateInfiniteQueryResult<TData, TError>,
+  ) => this is DefinedCreateInfiniteQueryResult<
+    TData,
+    TError,
+    CreateStatusBasedDefinedInfiniteQueryResult<'error', TData, TError>
+  >
+  isPending: (
+    this: DefinedCreateInfiniteQueryResult<TData, TError>,
+  ) => this is never
 }
 
 export interface CreateInfiniteQueryOptions<
@@ -114,12 +179,10 @@ export type DefinedCreateQueryResult<
 export type CreateInfiniteQueryResult<
   TData = unknown,
   TError = DefaultError,
-> = BaseQueryNarrowing<TData, TError> &
+  TState = InfiniteQueryObserverResult<TData, TError>,
+> = BaseInfiniteQueryNarrowing<TData, TError> &
   QueryResourceAdapter<TData> &
-  MapToSignals<
-    InfiniteQueryObserverResult<TData, TError>,
-    MethodKeys<InfiniteQueryObserverResult<TData, TError>>
-  >
+  MapToSignals<TState, MethodKeys<TState>>
 
 export type DefinedCreateInfiniteQueryResult<
   TData = unknown,
@@ -128,7 +191,8 @@ export type DefinedCreateInfiniteQueryResult<
     TData,
     TError
   >,
-> = QueryResourceAdapter<TData> &
+> = DefinedInfiniteQueryNarrowing<TData, TError> &
+  QueryResourceAdapter<TData> &
   MapToSignals<
     TDefinedInfiniteQueryObserver,
     MethodKeys<TDefinedInfiniteQueryObserver>

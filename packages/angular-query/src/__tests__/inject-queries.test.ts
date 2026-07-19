@@ -56,7 +56,7 @@ describe('injectQueries', () => {
           },
         ],
       }),
-      injector,
+      { injector },
     )
 
     expect(queries()[0].status()).toBe('pending')
@@ -104,7 +104,7 @@ describe('injectQueries', () => {
     const rendered = await render(Page, {
       providers: [
         provideZonelessChangeDetection(),
-        provideTanStackQuery(queryClient),
+        provideTanStackQuery(() => queryClient),
       ],
     })
 

@@ -5,13 +5,13 @@ import { QueryClient } from '@tanstack/query-core'
 import { provideTanStackQuery } from '../providers'
 
 describe('provideTanStackQuery', () => {
-  it('should provide a QueryClient instance directly', () => {
+  it('should provide a QueryClient instance using a factory', () => {
     const queryClient = new QueryClient()
 
     TestBed.configureTestingModule({
       providers: [
         provideZonelessChangeDetection(),
-        provideTanStackQuery(queryClient),
+        provideTanStackQuery(() => queryClient),
       ],
     })
 

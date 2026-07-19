@@ -20,7 +20,7 @@ import type {
   MutationState,
 } from '@tanstack/query-core'
 
-type MutationStateOptions<TResult = MutationState> = {
+export type MutationStateOptions<TResult = MutationState> = {
   filters?: MutationFilters
   select?: (mutation: Mutation) => TResult
 }

@@ -6,10 +6,10 @@ title: injectQueries
 # Function: injectQueries()
 
 ```ts
-function injectQueries<T, TCombinedResult>(optionsFn, injector?): Signal<TCombinedResult>;
+function injectQueries<T, TCombinedResult>(optionsFn, injectionOptions?): Signal<TCombinedResult>;
 ```
 
-Defined in: [inject-queries.ts:278](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-queries.ts#L278)
+Defined in: [packages/angular-query/src/inject-queries.ts:287](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-queries.ts#L287)
 
 ## Type Parameters
 
@@ -29,11 +29,11 @@ Defined in: [inject-queries.ts:278](https://github.com/TanStack/query/blob/main/
 
 A function that returns queries' options.
 
-### injector?
+### injectionOptions?
 
-`Injector`
+[`InjectQueriesInjectorOptions`](../interfaces/InjectQueriesInjectorOptions.md)
 
-The Angular injector to use.
+Options for the Angular injection context.
 
 ## Returns
 

@@ -1,9 +1,6 @@
 import { provideHttpClient, withFetch } from '@angular/common/http'
 import { provideRouter, withComponentInputBinding } from '@angular/router'
-import {
-  QueryClient,
-  provideTanStackQuery,
-} from '@benjavicente/angular-query'
+import { QueryClient, provideTanStackQuery } from '@benjavicente/angular-query'
 
 import { withDevtools } from '@benjavicente/angular-query-devtools'
 import { routes } from './app.routes'
@@ -13,6 +10,6 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideHttpClient(withFetch()),
     provideRouter(routes, withComponentInputBinding()),
-    provideTanStackQuery(new QueryClient(), withDevtools()),
+    provideTanStackQuery(() => new QueryClient(), withDevtools()),
   ],
 }

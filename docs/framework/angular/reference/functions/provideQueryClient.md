@@ -6,24 +6,26 @@ title: provideQueryClient
 # Function: provideQueryClient()
 
 ```ts
-function provideQueryClient(queryClient): EnvironmentProviders;
+function provideQueryClient(queryClientFactoryOrToken): EnvironmentProviders;
 ```
 
-Defined in: [providers.ts:74](https://github.com/TanStack/query/blob/main/packages/angular-query/src/providers.ts#L74)
+Defined in: [packages/angular-query/src/providers.ts:70](https://github.com/TanStack/query/blob/main/packages/angular-query/src/providers.ts#L70)
 
-Usually [provideTanStackQuery](provideTanStackQuery.md) is used once to set up TanStack Query and the
-[https://tanstack.com/query/latest/docs/reference/QueryClient\|QueryClient](https://tanstack.com/query/latest/docs/reference/QueryClient|QueryClient)
-for the entire application. Internally it calls `provideQueryClient`.
-You can use `provideQueryClient` to provide a different `QueryClient` instance for a part
-of the application or for unit testing purposes.
+Provides a [https://tanstack.com/query/latest/docs/reference/QueryClient\|QueryClient](https://tanstack.com/query/latest/docs/reference/QueryClient|QueryClient)
+without additional TanStack Query features. Prefer [provideTanStackQuery](provideTanStackQuery.md)
+for application setup; use this function to override the client in a child
+injector or in tests.
+
+The factory is registered with Angular's `useFactory`, runs in an injection
+context, and creates one client per injector.
 
 ## Parameters
 
-### queryClient
+### queryClientFactoryOrToken
 
-A `QueryClient` instance, or an `InjectionToken` which provides a `QueryClient`.
+A `QueryClient` factory or an `InjectionToken` that resolves one.
 
-`QueryClient` | `InjectionToken`\<`QueryClient`\>
+`InjectionToken`\<`QueryClient`\> | () => `QueryClient`
 
 ## Returns
 

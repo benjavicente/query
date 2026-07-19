@@ -1,8 +1,3 @@
-export type {
-  DevtoolsOptions,
-  WithDevtools,
-  WithDevtoolsFn,
-  WithDevtoolsOptions,
-} from './types'
+export type { DevtoolsOptions, WithDevtools, WithDevtoolsFn } from './types'
 
 export { withDevtools } from './with-devtools'

@@ -9,7 +9,7 @@ title: CreateQueryResult
 type CreateQueryResult<TData, TError> = CreateBaseQueryResult<TData, TError>;
 ```
 
-Defined in: [types.ts:96](https://github.com/TanStack/query/blob/main/packages/angular-query/src/types.ts#L96)
+Defined in: [packages/angular-query/src/types.ts:166](https://github.com/TanStack/query/blob/main/packages/angular-query/src/types.ts#L166)
 
 ## Type Parameters
 

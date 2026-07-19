@@ -9,7 +9,7 @@ title: withNoQueryHydration
 function withNoQueryHydration(): QueryFeature<"Hydration">;
 ```
 
-Defined in: [providers.ts:235](https://github.com/TanStack/query/blob/main/packages/angular-query/src/providers.ts#L235)
+Defined in: [packages/angular-query/src/providers.ts:213](https://github.com/TanStack/query/blob/main/packages/angular-query/src/providers.ts#L213)
 
 Disables `TransferState` hydration and dehydration for the current environment injector.
 

@@ -1,13 +1,14 @@
 import { computed, untracked } from '@angular/core'
 import type { QueryObserverResult } from '@tanstack/query-core'
-import type {
-  Resource,
-  ResourceSnapshot,
-  ResourceStatus,
-} from './resource-types'
-import type { Signal } from '@angular/core'
+import type { ResourceSnapshot } from './resource-types'
+import type { Resource, ResourceStatus, Signal } from '@angular/core'
 
 export interface QueryResource<TData> extends Resource<TData | undefined> {
+  /**
+   * The current query state as a single snapshot.
+   */
+  readonly snapshot: Signal<ResourceSnapshot<TData | undefined>>
+
   /**
    * Requests a new query fetch only when the current query data is stale.
    *

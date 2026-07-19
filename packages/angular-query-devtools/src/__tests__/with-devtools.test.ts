@@ -7,6 +7,7 @@ import {
   InjectionToken,
   PLATFORM_ID,
   createEnvironmentInjector,
+  inject,
   isDevMode,
   provideZonelessChangeDetection,
   signal,
@@ -122,7 +123,7 @@ describe('withDevtools feature', () => {
       const providers = [
         provideZonelessChangeDetection(),
         provideTanStackQuery(
-          new QueryClient(),
+          () => new QueryClient(),
           loadDevtools !== undefined
             ? withDevtools(
                 () =>
@@ -159,7 +160,7 @@ describe('withDevtools feature', () => {
       providers: [
         provideZonelessChangeDetection(),
         provideTanStackQuery(
-          new QueryClient(),
+          () => new QueryClient(),
           withDevtools(() => ({
             loadDevtools: true,
           })),
@@ -181,7 +182,7 @@ describe('withDevtools feature', () => {
       providers: [
         provideZonelessChangeDetection(),
         provideTanStackQuery(
-          new QueryClient(),
+          () => new QueryClient(),
           withDevtools(() => ({
             loadDevtools: true,
           })),
@@ -220,7 +221,7 @@ describe('withDevtools feature', () => {
         },
         provideZonelessChangeDetection(),
         provideTanStackQuery(
-          new QueryClient(),
+          () => new QueryClient(),
           withDevtools(() => ({
             loadDevtools: true,
           })),
@@ -241,7 +242,7 @@ describe('withDevtools feature', () => {
       providers: [
         provideZonelessChangeDetection(),
         provideTanStackQuery(
-          new QueryClient(),
+          () => new QueryClient(),
           withDevtools(() => ({
             loadDevtools: true,
             errorTypes: errorTypes(),
@@ -281,7 +282,7 @@ describe('withDevtools feature', () => {
       providers: [
         provideZonelessChangeDetection(),
         provideTanStackQuery(
-          new QueryClient(),
+          () => new QueryClient(),
           withDevtools(() => ({
             loadDevtools: true,
             client: client(),
@@ -313,7 +314,7 @@ describe('withDevtools feature', () => {
       providers: [
         provideZonelessChangeDetection(),
         provideTanStackQuery(
-          new QueryClient(),
+          () => new QueryClient(),
           withDevtools(() => ({
             loadDevtools: true,
             position: position(),
@@ -344,7 +345,7 @@ describe('withDevtools feature', () => {
       providers: [
         provideZonelessChangeDetection(),
         provideTanStackQuery(
-          new QueryClient(),
+          () => new QueryClient(),
           withDevtools(() => ({
             loadDevtools: true,
             buttonPosition: buttonPosition(),
@@ -377,7 +378,7 @@ describe('withDevtools feature', () => {
       providers: [
         provideZonelessChangeDetection(),
         provideTanStackQuery(
-          new QueryClient(),
+          () => new QueryClient(),
           withDevtools(() => ({
             loadDevtools: true,
             initialIsOpen: initialIsOpen(),
@@ -408,7 +409,7 @@ describe('withDevtools feature', () => {
       providers: [
         provideZonelessChangeDetection(),
         provideTanStackQuery(
-          new QueryClient(),
+          () => new QueryClient(),
           withDevtools(() => ({
             loadDevtools: loadDevtools(),
           })),
@@ -434,7 +435,7 @@ describe('withDevtools feature', () => {
       providers: [
         provideZonelessChangeDetection(),
         provideTanStackQuery(
-          new QueryClient(),
+          () => new QueryClient(),
           withDevtools(() => ({
             loadDevtools: true,
           })),
@@ -464,7 +465,7 @@ describe('withDevtools feature', () => {
       providers: [
         provideZonelessChangeDetection(),
         provideTanStackQuery(
-          new QueryClient(),
+          () => new QueryClient(),
           withDevtools(() => ({
             loadDevtools: loadDevtools(),
           })),
@@ -501,30 +502,30 @@ describe('withDevtools feature', () => {
     expect(mockDevtoolsInstance.unmount).toHaveBeenCalledTimes(1)
   })
 
-  describe('deps parameter', () => {
-    it('should inject dependencies and pass them to withDevtoolsFn in correct order', async () => {
-      const mockService1 = { value: 'service1' }
-      const mockService2 = { value: 'service2' }
-      const mockService1Token = new InjectionToken('MockService1')
-      const mockService2Token = new InjectionToken('MockService2')
-      const withDevtoolsFn = vi.fn().mockReturnValue({ loadDevtools: true })
+  describe('injection context', () => {
+    it('should inject dependencies directly in the callback', async () => {
+      const firstService = { value: 'first' }
+      const secondService = { value: 'second' }
+      const firstServiceToken = new InjectionToken('FirstService')
+      const secondServiceToken = new InjectionToken('SecondService')
+      const withDevtoolsFn = vi.fn(() => {
+        const first = inject(firstServiceToken)
+        const second = inject(secondServiceToken)
+
+        return {
+          loadDevtools: true,
+          initialIsOpen: first === firstService && second === secondService,
+        }
+      })
 
       TestBed.configureTestingModule({
         providers: [
           provideZonelessChangeDetection(),
-          {
-            provide: mockService1Token,
-            useValue: mockService1,
-          },
-          {
-            provide: mockService2Token,
-            useValue: mockService2,
-          },
+          { provide: firstServiceToken, useValue: firstService },
+          { provide: secondServiceToken, useValue: secondService },
           provideTanStackQuery(
-            new QueryClient(),
-            withDevtools(withDevtoolsFn, {
-              deps: [mockService1Token, mockService2Token],
-            }),
+            () => new QueryClient(),
+            withDevtools(withDevtoolsFn),
           ),
         ],
       })
@@ -532,49 +533,30 @@ describe('withDevtools feature', () => {
       TestBed.inject(ENVIRONMENT_INITIALIZER)
       await flushQueryUpdates()
 
-      expect(withDevtoolsFn).toHaveBeenCalledWith(mockService1, mockService2)
+      expect(withDevtoolsFn).toHaveBeenCalled()
+      expect(mockTanstackQueryDevtools).toHaveBeenCalledWith(
+        expect.objectContaining({ initialIsOpen: true }),
+      )
     })
 
-    it('should work with empty deps array', async () => {
-      const withDevtoolsFn = vi.fn().mockReturnValue({ loadDevtools: true })
-
-      TestBed.configureTestingModule({
-        providers: [
-          provideZonelessChangeDetection(),
-          provideTanStackQuery(
-            new QueryClient(),
-            withDevtools(withDevtoolsFn, {
-              deps: [],
-            }),
-          ),
-        ],
-      })
-
-      TestBed.inject(ENVIRONMENT_INITIALIZER)
-      await flushQueryUpdates()
-
-      expect(withDevtoolsFn).toHaveBeenCalledWith()
-    })
-
-    it('should reactively update when injected services change', async () => {
+    it('should reactively update when an injected service changes', async () => {
       class ReactiveService {
         enabled = signal(false)
         position = signal<DevtoolsPosition>('bottom')
       }
-
-      const withDevtoolsFn = (service: ReactiveService) => ({
-        loadDevtools: service.enabled(),
-        position: service.position(),
-      })
 
       TestBed.configureTestingModule({
         providers: [
           provideZonelessChangeDetection(),
           ReactiveService,
           provideTanStackQuery(
-            new QueryClient(),
-            withDevtools(withDevtoolsFn, {
-              deps: [ReactiveService],
+            () => new QueryClient(),
+            withDevtools(() => {
+              const service = inject(ReactiveService)
+              return {
+                loadDevtools: service.enabled(),
+                position: service.position(),
+              }
             }),
           ),
         ],

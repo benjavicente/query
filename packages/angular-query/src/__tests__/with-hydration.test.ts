@@ -61,7 +61,7 @@ describe('TransferState hydration (client)', () => {
             dehydrated,
           )
         }),
-        provideTanStackQuery(appClient),
+        provideTanStackQuery(() => appClient),
       ],
     })
 
@@ -99,7 +99,7 @@ describe('TransferState hydration (client)', () => {
         provideEnvironmentInitializer(() => {
           inject(TransferState).set(customKey, dehydrated)
         }),
-        provideTanStackQuery(appClient, withHydrationKey(customKeyName)),
+        provideTanStackQuery(() => appClient, withHydrationKey(customKeyName)),
       ],
     })
 
@@ -147,7 +147,7 @@ describe('TransferState hydration (client)', () => {
             dehydrated,
           )
         }),
-        provideTanStackQuery(appClient),
+        provideTanStackQuery(() => appClient),
       ],
     })
 
@@ -181,7 +181,7 @@ describe('TransferState hydration (client)', () => {
             dehydrated,
           )
         }),
-        provideTanStackQuery(appClient, withNoQueryHydration()),
+        provideTanStackQuery(() => appClient, withNoQueryHydration()),
       ],
     })
 
@@ -212,7 +212,7 @@ describe('TransferState dehydration (server)', () => {
     })
 
     return createEnvironmentInjector(
-      [provideTanStackQuery(queryClient, ...features)],
+      [provideTanStackQuery(() => queryClient, ...features)],
       TestBed.inject(EnvironmentInjector),
     )
   }
@@ -297,11 +297,11 @@ describe('TransferState dehydration (server)', () => {
     })
 
     createEnvironmentInjector(
-      [provideTanStackQuery(clientA, withHydrationKey('client-a'))],
+      [provideTanStackQuery(() => clientA, withHydrationKey('client-a'))],
       TestBed.inject(EnvironmentInjector),
     )
     createEnvironmentInjector(
-      [provideTanStackQuery(clientB, withHydrationKey('client-b'))],
+      [provideTanStackQuery(() => clientB, withHydrationKey('client-b'))],
       TestBed.inject(EnvironmentInjector),
     )
 
