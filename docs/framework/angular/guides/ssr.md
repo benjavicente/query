@@ -5,25 +5,27 @@ title: SSR
 
 For [Angular SSR](https://angular.dev/guide/ssr), [`provideTanStackQuery`](../reference/functions/provideTanStackQuery.md) serializes the `QueryClient` cache into Angular's `TransferState` and restores it when the browser application starts.
 
-An end-to-end sample lives at `examples/angular/ssr`. The `examples/angular/ssr-persist` example builds on the same setup with browser persistence.
+See the [Angular SSR example](https://github.com/TanStack/query/tree/main/examples/angular/ssr). The
+[SSR persistence example](https://github.com/TanStack/query/tree/main/examples/angular/ssr-persist)
+builds on the same setup with browser persistence.
 
 ## Query client factory
 
-`provideTanStackQuery` registers the factory with Angular's `useFactory`. It runs once per root injector and in an injection context, so it can call `inject()`. Because Angular SSR creates a root injector for each request, each request gets an independent `QueryClient` and cache.
+`provideTanStackQuery` registers the factory with Angular's `useFactory`. It runs once per root injector and in an injection context, so it can call `inject()`. Browser- and server-specific query defaults can stay inside this factory.
 
 ```ts
+import { isPlatformBrowser } from '@angular/common'
+import { inject, PLATFORM_ID } from '@angular/core'
 import { QueryClient } from '@tanstack/angular-query'
 
-export const SHARED_QUERY_DEFAULTS = {
-  staleTime: 1000 * 30,
-  gcTime: 1000 * 60 * 60 * 24,
-} as const
-
 export function createQueryClient() {
+  const isBrowser = isPlatformBrowser(inject(PLATFORM_ID))
+
   return new QueryClient({
     defaultOptions: {
       queries: {
-        ...SHARED_QUERY_DEFAULTS,
+        // Keep hydrated data fresh briefly to avoid an immediate browser refetch.
+        staleTime: isBrowser ? 60_000 : 0,
       },
     },
   })
@@ -32,7 +34,11 @@ export function createQueryClient() {
 
 ## Browser config
 
-Use the factory with `provideTanStackQuery` in your application config. If you want devtools, import them from the standalone devtools package.
+Use the factory with `provideTanStackQuery` in your application config. Angular's HTTP transfer
+cache is enabled by default with
+[`provideClientHydration`](https://angular.dev/api/platform-browser/provideClientHydration). Add
+[`withNoHttpTransferCache`](https://angular.dev/api/platform-browser/withNoHttpTransferCache) so
+query results are not serialized once by each cache.
 
 ```ts
 import type { ApplicationConfig } from '@angular/core'
@@ -40,6 +46,7 @@ import { provideHttpClient } from '@angular/common/http'
 import {
   provideClientHydration,
   withEventReplay,
+  withNoHttpTransferCache,
 } from '@angular/platform-browser'
 import { provideTanStackQuery } from '@tanstack/angular-query'
 import { withDevtools } from '@tanstack/angular-query-devtools'
@@ -48,7 +55,7 @@ import { createQueryClient } from './query-client'
 export const appConfig: ApplicationConfig = {
   providers: [
     provideHttpClient(),
-    provideClientHydration(withEventReplay()),
+    provideClientHydration(withEventReplay(), withNoHttpTransferCache()),
     provideTanStackQuery(createQueryClient, withDevtools()),
   ],
 }

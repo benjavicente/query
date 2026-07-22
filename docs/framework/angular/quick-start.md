@@ -23,24 +23,6 @@ bootstrapApplication(AppComponent, {
 })
 ```
 
-or in a NgModule-based app
-
-```ts
-import { provideHttpClient } from '@angular/common/http'
-import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query'
-
-@NgModule({
-  declarations: [AppComponent],
-  imports: [BrowserModule],
-  providers: [
-    provideTanStackQuery(() => new QueryClient()),
-    provideHttpClient(),
-  ],
-  bootstrap: [AppComponent],
-})
-export class AppModule {}
-```
-
 ### Component with query and mutation
 
 ```angular-ts

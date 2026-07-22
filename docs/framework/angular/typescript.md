@@ -12,6 +12,7 @@ replace:
     'React Query': 'TanStack Query',
     '`success`': '`isSuccess()`',
     'function:': 'function.',
+    "TanStack Query follows \\[DefinitelyTyped's support window\\]\\(https://github\\.com/DefinitelyTyped/DefinitelyTyped#support-window\\) and supports TypeScript versions released within the last 2 years\\. At the moment, that means TypeScript \\*\\*5\\.4\\*\\* and newer\\.": 'Angular Query supports the TypeScript versions required by your Angular version. See [Angular version compatibility](https://angular.dev/reference/versions).',
   }
 ---
 

@@ -172,20 +172,20 @@
               "to": "framework/angular/quick-start"
             },
             {
-              "label": "Angular HttpClient and other data fetching clients",
-              "to": "framework/angular/angular-httpclient-and-other-data-fetching-clients"
-            },
-            {
               "label": "Devtools",
               "to": "framework/angular/devtools"
             },
             {
-              "label": "TypeScript",
-              "to": "framework/angular/typescript"
+              "label": "Angular HttpClient",
+              "to": "framework/angular/angular-httpclient-and-other-data-fetching-clients"
             },
             {
-              "label": "Zoneless",
-              "to": "framework/angular/zoneless"
+              "label": "Resource API",
+              "to": "framework/angular/resource-api"
+            },
+            {
+              "label": "TypeScript",
+              "to": "framework/angular/typescript"
             }
           ]
         },
@@ -771,8 +771,8 @@
               "to": "framework/angular/guides/default-query-function"
             },
             {
-              "label": "Resource Interface",
-              "to": "framework/angular/guides/resource-interface"
+              "label": "SSR",
+              "to": "framework/angular/guides/ssr"
             },
             {
               "label": "Testing",
@@ -781,6 +781,10 @@
             {
               "label": "Does this replace state managers?",
               "to": "framework/angular/guides/does-this-replace-client-state"
+            },
+            {
+              "label": "Migrating to Angular Query",
+              "to": "framework/angular/guides/migrating-to-angular-query"
             }
           ]
         },
