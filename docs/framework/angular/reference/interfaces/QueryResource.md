@@ -3,19 +3,19 @@ id: QueryResource
 title: QueryResource
 ---
 
-# Interface: QueryResource\<TData\>
+# Interface: QueryResource\<TValue\>
 
 Defined in: [packages/angular-query/src/query-resource.ts:6](https://github.com/TanStack/query/blob/main/packages/angular-query/src/query-resource.ts#L6)
 
 ## Extends
 
-- `Resource`\<`TData` \| `undefined`\>
+- `Resource`\<`TValue`\>
 
 ## Type Parameters
 
-### TData
+### TValue
 
-`TData`
+`TValue`
 
 ## Properties
 
@@ -79,7 +79,7 @@ like Signal Forms' validateAsync resource interface.
 ### snapshot
 
 ```ts
-readonly snapshot: Signal<ResourceSnapshot<TData | undefined>>;
+readonly snapshot: Signal<ResourceSnapshot<TValue>>;
 ```
 
 Defined in: [packages/angular-query/src/query-resource.ts:10](https://github.com/TanStack/query/blob/main/packages/angular-query/src/query-resource.ts#L10)
@@ -110,7 +110,7 @@ Resource.status
 ### value
 
 ```ts
-readonly value: Signal<TData | undefined>;
+readonly value: Signal<TValue>;
 ```
 
 Defined in: node\_modules/.pnpm/@angular+core@20.3.18\_@angular+compiler@20.3.18\_rxjs@7.8.2\_zone.js@0.16.1/node\_modules/@angular/core/api.d.d.ts:130
@@ -130,7 +130,7 @@ Resource.value
 #### Call Signature
 
 ```ts
-hasValue(this): this is Resource<Exclude<TData, undefined>>;
+hasValue(this): this is Resource<Exclude<TValue, undefined>>;
 ```
 
 Defined in: node\_modules/.pnpm/@angular+core@20.3.18\_@angular+compiler@20.3.18\_rxjs@7.8.2\_zone.js@0.16.1/node\_modules/@angular/core/api.d.d.ts:149
@@ -143,11 +143,11 @@ This function is reactive.
 
 ###### this
 
-`QueryResource`\<`TData`\> | `TData` *extends* `undefined` ? `QueryResource`\<`TData`\> : `never`
+`QueryResource`\<`TValue`\> | `TValue` *extends* `undefined` ? `QueryResource`\<`TValue`\> : `never`
 
 ##### Returns
 
-`this is Resource<Exclude<TData, undefined>>`
+`this is Resource<Exclude<TValue, undefined>>`
 
 ##### Inherited from
 

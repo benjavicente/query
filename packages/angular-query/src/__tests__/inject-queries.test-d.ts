@@ -1,5 +1,5 @@
 import { describe, expectTypeOf, it } from 'vitest'
-import { injectQueries, skipToken } from '..'
+import { injectQueries, skipToken, toResource } from '..'
 import { queryOptions } from '../query-options'
 import type { CreateQueryOptions, CreateQueryResult, OmitKeyof } from '..'
 import type { Resource, Signal } from '@angular/core'
@@ -15,9 +15,12 @@ describe('InjectQueries config object overload', () => {
       ],
     }))
 
-    expectTypeOf(queryResults()[0].resource).toMatchTypeOf<
+    expectTypeOf(toResource(queryResults()[0])).toMatchTypeOf<
       Resource<string | undefined>
     >()
+
+    // @ts-expect-error Resources are created explicitly with toResource.
+    queryResults()[0].resource
   })
 
   it('TData should always be defined when initialData is provided as an object', () => {

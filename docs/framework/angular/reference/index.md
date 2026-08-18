@@ -67,5 +67,6 @@ title: "@tanstack/angular-query"
 - [provideTanStackQuery](functions/provideTanStackQuery.md)
 - [queryFeature](functions/queryFeature.md)
 - [queryOptions](functions/queryOptions.md)
+- [toResource](functions/toResource.md)
 - [withHydrationKey](functions/withHydrationKey.md)
 - [withNoQueryHydration](functions/withNoQueryHydration.md)

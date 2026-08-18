@@ -35,6 +35,7 @@ import {
   injectQuery,
   provideIsRestoring,
   provideTanStackQuery,
+  toResource,
 } from '..'
 import type { CreateQueryOptions, OmitKeyof, QueryFunction } from '..'
 
@@ -354,9 +355,8 @@ describe('injectQuery', () => {
     )
 
     TestBed.tick()
-    const resource = query.resource
-
-    expect(query.resource).toBe(resource)
+    expect('resource' in query).toBe(false)
+    const resource = toResource(query)
     expect(resource.status()).toBe('loading')
     expect(resource.snapshot()).toEqual({ status: 'loading', value: undefined })
     expect(resource.isLoading()).toBe(true)
@@ -390,6 +390,58 @@ describe('injectQuery', () => {
     expect(resource.value()).toBe('result')
   })
 
+  it.each([undefined, null, 'query failed'])(
+    'should normalize a %s query rejection for the resource error state',
+    async (rejection) => {
+      const query = TestBed.runInInjectionContext(() =>
+        injectQuery<unknown, unknown>(() => ({
+          queryKey: ['resource-query-error', rejection],
+          queryFn: () => Promise.reject(rejection),
+          retry: false,
+        })),
+      )
+
+      TestBed.tick()
+      await vi.advanceTimersByTimeAsync(1)
+
+      const resource = toResource(query)
+      const resourceError = resource.error()
+      expect(resource.status()).toBe('error')
+      expect(resourceError).toBeInstanceOf(Error)
+      expect(resourceError?.cause).toBe(rejection)
+      expect(resource.snapshot()).toEqual({
+        status: 'error',
+        error: resourceError,
+      })
+
+      let thrown: unknown
+      try {
+        resource.value()
+      } catch (error) {
+        thrown = error
+      }
+      expect(thrown).toBe(resourceError)
+    },
+  )
+
+  it('should preserve Error-like query rejections', async () => {
+    const rejection = { name: 'QueryError', message: 'query failed' }
+    const query = TestBed.runInInjectionContext(() =>
+      injectQuery<unknown, typeof rejection>(() => ({
+        queryKey: ['resource-query-error-like'],
+        queryFn: () => Promise.reject(rejection),
+        retry: false,
+      })),
+    )
+
+    TestBed.tick()
+    await vi.advanceTimersByTimeAsync(1)
+
+    const resource = toResource(query)
+    expect(resource.status()).toBe('error')
+    expect(resource.error()).toBe(rejection)
+  })
+
   it('should not reload fresh query resources', async () => {
     const queryFn = vi.fn(() => sleep(10).then(() => 'fresh-result'))
     const query = TestBed.runInInjectionContext(() =>
@@ -403,8 +455,9 @@ describe('injectQuery', () => {
     TestBed.tick()
     await vi.advanceTimersByTimeAsync(11)
 
-    expect(query.resource.status()).toBe('resolved')
-    expect(query.resource.reload()).toBe(false)
+    const resource = toResource(query)
+    expect(resource.status()).toBe('resolved')
+    expect(resource.reload()).toBe(false)
     expect(queryFn).toHaveBeenCalledTimes(1)
   })
 
@@ -418,7 +471,7 @@ describe('injectQuery', () => {
     )
 
     TestBed.tick()
-    const resource = query.resource
+    const resource = toResource(query)
 
     expect(resource.status()).toBe('idle')
     expect(resource.snapshot()).toEqual({ status: 'idle', value: undefined })

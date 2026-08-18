@@ -14,9 +14,7 @@ import {
 } from '@tanstack/query-core'
 import { signalProxy } from './signal-proxy'
 import { injectIsRestoring } from './inject-is-restoring'
-import { createQueryResource } from './query-resource'
 import { injectQueryLifecycle } from './inject-query-lifecycle'
-import type { QueryResourceAdapter } from './query-resource'
 import type {
   DefaultedQueryObserverOptions,
   QueryKey,
@@ -24,7 +22,7 @@ import type {
   QueryObserverResult,
 } from '@tanstack/query-core'
 import type { CreateBaseQueryOptions } from './types'
-import type { MapToSignals, MethodKeys } from './signal-proxy'
+import type { MethodKeys } from './signal-proxy'
 
 /**
  * Base implementation for `injectQuery` and `injectInfiniteQuery`.
@@ -180,17 +178,8 @@ export function injectBaseQuery<
     })
   })
 
-  const resource = createQueryResource(resultSignal)
-  const proxy = signalProxy(
+  return signalProxy(
     resultSignal.asReadonly(),
     excludeFunctions as Array<MethodKeys<QueryObserverResult<TData, TError>>>,
   )
-
-  return Object.assign(proxy, {
-    resource,
-  }) as MapToSignals<
-    QueryObserverResult<TData, TError>,
-    MethodKeys<QueryObserverResult<TData, TError>>
-  > &
-    QueryResourceAdapter<TData>
 }

@@ -1,5 +1,5 @@
 import { describe, expectTypeOf, it } from 'vitest'
-import { injectInfiniteQuery } from '..'
+import { injectInfiniteQuery, toResource } from '..'
 import type { Signal } from '@angular/core'
 import type { InfiniteData } from '@tanstack/query-core'
 
@@ -18,6 +18,13 @@ describe('injectInfiniteQuery', () => {
       if (query.isError()) {
         expectTypeOf(query.error).toEqualTypeOf<Signal<Error>>()
       }
+
+      expectTypeOf(toResource(query).value).toEqualTypeOf<
+        Signal<InfiniteData<string, unknown>>
+      >()
+
+      // @ts-expect-error Resources are created explicitly with toResource.
+      query.resource
     })
 
     it('should keep data possibly undefined when initialData is undefined', () => {
@@ -62,6 +69,9 @@ describe('injectInfiniteQuery', () => {
 
       if (query.isSuccess()) {
         expectTypeOf(query.data).toEqualTypeOf<
+          Signal<InfiniteData<string, unknown>>
+        >()
+        expectTypeOf(toResource(query).value).toEqualTypeOf<
           Signal<InfiniteData<string, unknown>>
         >()
       }

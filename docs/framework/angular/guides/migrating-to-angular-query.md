@@ -172,7 +172,7 @@ examples.
 
 The stable package also includes the following compatible improvements:
 
-- Query results expose a Resource-compatible `resource` property. See the
+- Query results can be converted into an Angular Resource with `toResource`. See the
   [Resource API](../resource-api.md).
 - `injectQueries` is supported from the main package with reactive options and field-level signals.
 - Result field signals are created lazily, so options can safely read required input signals without

@@ -3,14 +3,14 @@ id: resource-api
 title: Resource API
 ---
 
-Angular Query exposes every query result as an Angular
-[`Resource`](https://angular.dev/api/core/Resource)-compatible view through its `resource`
-property. The query remains responsible for fetching and caching the server state while Angular
-APIs can consume the familiar Resource shape.
+Angular Query can convert any query result into an Angular
+[`Resource`](https://angular.dev/api/core/Resource)-compatible view with `toResource`. The query
+remains responsible for fetching and caching the server state while Angular APIs can consume the
+familiar Resource shape.
 
 ```ts
 import { Component, input } from '@angular/core'
-import { injectQuery } from '@tanstack/angular-query'
+import { injectQuery, toResource } from '@tanstack/angular-query'
 
 @Component({
   selector: 'todo-detail',
@@ -28,7 +28,7 @@ export class TodoDetail {
     queryFn: () => fetchTodo(this.id()),
   }))
 
-  readonly todo = this.todoQuery.resource
+  readonly todo = toResource(this.todoQuery)
 }
 ```
 
@@ -44,8 +44,8 @@ The Resource view exposes these fields:
 | `snapshot`  | The current Resource state as one signal                              |
 | `reload`    | Refetches when the query is stale and returns whether a fetch started |
 
-Use the query's field signals and methods for normal application code. Use `query.resource` when an
-Angular API expects a Resource or when Resource terminology makes an integration clearer. Call
+Use the query's field signals and methods for normal application code. Use `toResource(query)` when
+an Angular API expects a Resource or when Resource terminology makes an integration clearer. Call
 `query.refetch()` instead of `resource.reload()` when you need an unconditional refetch.
 
 ## Using Resource with Signal Forms
@@ -54,16 +54,16 @@ Angular API expects a Resource or when Resource terminology makes an integration
 
 Angular Signal Forms'
 [`validateAsync`](https://angular.dev/guide/forms/signals/async-operations#custom-async-validation-with-validateasync)
-accepts a Resource factory. Returning `injectQuery(...).resource` lets async validation use Angular
-Query caching, request deduplication, cancellation, retries, and stale-time behavior.
+accepts a Resource factory. Passing `injectQuery(...)` to `toResource` lets async validation use
+Angular Query caching, request deduplication, cancellation, retries, and stale-time behavior.
 
 The example below validates a username. The query is disabled while the field has no value, and the
-factory returns `.resource`.
+factory returns `toResource(query)`.
 
 ```ts
 import { Component, inject, signal } from '@angular/core'
 import { form, validateAsync } from '@angular/forms/signals'
-import { injectQuery } from '@tanstack/angular-query'
+import { injectQuery, toResource } from '@tanstack/angular-query'
 
 type UsernameValidation = {
   available: boolean
@@ -82,12 +82,14 @@ export class RegistrationForm {
       debounce: 300,
       params: ({ value }) => value().trim() || undefined,
       factory: (username) =>
-        injectQuery(() => ({
-          queryKey: ['username-availability', username()],
-          enabled: !!username(),
-          queryFn: (): Promise<UsernameValidation> =>
-            this.users.checkUsername(username()!),
-        })).resource,
+        toResource(
+          injectQuery(() => ({
+            queryKey: ['username-availability', username()],
+            enabled: !!username(),
+            queryFn: (): Promise<UsernameValidation> =>
+              this.users.checkUsername(username()!),
+          })),
+        ),
       onSuccess: (result) =>
         result?.available
           ? null
@@ -127,7 +129,7 @@ Feature/Capability Key:
 | --------------------------------------- | ---------------------------------------------- | ----------------------------------------------------- |
 | Reactive parameters and signal state    | ✅                                             | ✅                                                    |
 | Request cancellation                    | ✅                                             | ✅                                                    |
-| Angular Resource interface              | ✅                                             | ✅ Through `query.resource`                           |
+| Angular Resource interface              | ✅                                             | ✅ Through `toResource(query)`                        |
 | Shared cache by data identity           | 🛑                                             | ✅ Query keys identify cached data                    |
 | Request deduplication across components | 🛑                                             | ✅ For queries with the same key                      |
 | Stale and garbage-collection timing     | 🔶                                             | ✅ `staleTime` and `gcTime`                           |

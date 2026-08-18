@@ -16,7 +16,6 @@ import {
 } from '@angular/core'
 import { signalProxy } from './signal-proxy'
 import { injectIsRestoring } from './inject-is-restoring'
-import { createQueryResource } from './query-resource'
 import { injectQueryLifecycle } from './inject-query-lifecycle'
 import type {
   DefaultError,
@@ -411,14 +410,7 @@ export function injectQueries<
         const resultAtIndexSignal = computed(
           () => (resultSignal() as Array<QueryObserverResult>)[index]!,
         )
-        const resource = createQueryResource(resultAtIndexSignal)
-
-        return Object.assign(
-          signalProxy(resultAtIndexSignal, methodsToExclude),
-          {
-            resource,
-          },
-        )
+        return signalProxy(resultAtIndexSignal, methodsToExclude)
       }
 
       // Keep this positional to match QueriesObserver semantics.

@@ -96,7 +96,7 @@ class TodosComponent {}
 [//]: # 'Example4'
 [//]: # 'Materials'
 
-Angular Query also exposes each query result through a Resource-compatible `resource` property. See
+Angular Query can convert each query result into a Resource-compatible view with `toResource`. See
 the [Resource API](../resource-api.md) when an Angular API expects a
 [Resource](https://angular.dev/api/core/Resource).
 

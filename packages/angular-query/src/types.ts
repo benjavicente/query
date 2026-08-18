@@ -16,7 +16,6 @@ import type {
   QueryObserverResult,
 } from '@tanstack/query-core'
 import type { Signal } from '@angular/core'
-import type { QueryResourceAdapter } from './query-resource'
 import type { MapToSignals, MethodKeys } from './signal-proxy'
 
 export type CreateBaseQueryOptions<
@@ -152,9 +151,11 @@ export interface CreateInfiniteQueryOptions<
 export type CreateBaseQueryResult<
   TData = unknown,
   TError = DefaultError,
-  TState = QueryObserverResult<TData, TError>,
+  TState extends QueryObserverResult<TData, TError> = QueryObserverResult<
+    TData,
+    TError
+  >,
 > = BaseQueryNarrowing<TData, TError> &
-  QueryResourceAdapter<TData> &
   MapToSignals<
     OmitKeyof<TState, keyof BaseQueryNarrowing, 'safely'>,
     MethodKeys<OmitKeyof<TState, keyof BaseQueryNarrowing, 'safely'>>
@@ -168,9 +169,9 @@ export type CreateQueryResult<
 export type DefinedCreateQueryResult<
   TData = unknown,
   TError = DefaultError,
-  TState = DefinedQueryObserverResult<TData, TError>,
+  TState extends DefinedQueryObserverResult<TData, TError> =
+    DefinedQueryObserverResult<TData, TError>,
 > = BaseQueryNarrowing<TData, TError> &
-  QueryResourceAdapter<TData> &
   MapToSignals<
     OmitKeyof<TState, keyof BaseQueryNarrowing, 'safely'>,
     MethodKeys<OmitKeyof<TState, keyof BaseQueryNarrowing, 'safely'>>
@@ -179,20 +180,19 @@ export type DefinedCreateQueryResult<
 export type CreateInfiniteQueryResult<
   TData = unknown,
   TError = DefaultError,
-  TState = InfiniteQueryObserverResult<TData, TError>,
+  TState extends InfiniteQueryObserverResult<TData, TError> =
+    InfiniteQueryObserverResult<TData, TError>,
 > = BaseInfiniteQueryNarrowing<TData, TError> &
-  QueryResourceAdapter<TData> &
   MapToSignals<TState, MethodKeys<TState>>
 
 export type DefinedCreateInfiniteQueryResult<
   TData = unknown,
   TError = DefaultError,
-  TDefinedInfiniteQueryObserver = DefinedInfiniteQueryObserverResult<
+  TDefinedInfiniteQueryObserver extends DefinedInfiniteQueryObserverResult<
     TData,
     TError
-  >,
+  > = DefinedInfiniteQueryObserverResult<TData, TError>,
 > = DefinedInfiniteQueryNarrowing<TData, TError> &
-  QueryResourceAdapter<TData> &
   MapToSignals<
     TDefinedInfiniteQueryObserver,
     MethodKeys<TDefinedInfiniteQueryObserver>

@@ -1,18 +1,20 @@
 import { describe, expectTypeOf, it } from 'vitest'
 import { sleep } from '@tanstack/query-test-utils'
-import { injectQuery, queryOptions } from '..'
+import { injectQuery, queryOptions, toResource } from '..'
 import type { Resource, Signal } from '@angular/core'
 
 describe('initialData', () => {
   describe('Config object overload', () => {
     it('TData should always be defined when initialData is provided as an object', () => {
-      const { data } = injectQuery(() => ({
+      const query = injectQuery(() => ({
         queryKey: ['key'],
         queryFn: () => ({ wow: true }),
         initialData: { wow: true },
       }))
+      const resource = toResource(query)
 
-      expectTypeOf(data).toEqualTypeOf<Signal<{ wow: boolean }>>()
+      expectTypeOf(query.data).toEqualTypeOf<Signal<{ wow: boolean }>>()
+      expectTypeOf(resource.value).toEqualTypeOf<Signal<{ wow: boolean }>>()
     })
 
     it('TData should be defined when passed through queryOptions', () => {
@@ -142,10 +144,12 @@ describe('Discriminated union return type', () => {
       queryFn: () => sleep(0).then(() => 'Some data'),
     }))
 
-    expectTypeOf(query.resource).toMatchTypeOf<
-      Resource<string | undefined>
-    >()
-    expectTypeOf(query.resource.reload).toBeCallableWith()
+    const resource = toResource(query)
+    expectTypeOf(resource).toMatchTypeOf<Resource<string | undefined>>()
+    expectTypeOf(resource.reload).toBeCallableWith()
+
+    // @ts-expect-error Resources are created explicitly with toResource.
+    query.resource
   })
 
   it('data should be possibly undefined by default', () => {
@@ -165,6 +169,7 @@ describe('Discriminated union return type', () => {
 
     if (query.isSuccess()) {
       expectTypeOf(query.data).toEqualTypeOf<Signal<string>>()
+      expectTypeOf(toResource(query).value).toEqualTypeOf<Signal<string>>()
     }
   })
 
