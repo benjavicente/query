@@ -17,6 +17,7 @@
   "include": [
     "src",
     "schematics",
+    "schematics-build",
     "scripts",
     "test-setup.ts",
     "*.config.*",
