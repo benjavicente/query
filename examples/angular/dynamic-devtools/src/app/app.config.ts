@@ -11,7 +11,7 @@ export const appConfig: ApplicationConfig = {
     provideTanStackQuery(
       () => new QueryClient(),
       withDevtools(() => ({
-        loadDevtools: inject(DevtoolsOptionsManager).loadDevtools(),
+        loadDevtools: inject(DevtoolsOptionsManager).loadDevtools,
       })),
     ),
   ],

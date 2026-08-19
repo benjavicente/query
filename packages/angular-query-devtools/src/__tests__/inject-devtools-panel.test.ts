@@ -1,4 +1,4 @@
-import { ElementRef, signal } from '@angular/core'
+import { ApplicationRef, ElementRef, signal } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { QueryClient } from '@tanstack/query-core'
@@ -69,7 +69,7 @@ describe('injectDevtoolsPanel', () => {
       }))
     })
 
-    TestBed.tick()
+    await TestBed.inject(ApplicationRef).whenStable()
 
     await waitForDevtoolsToBeCreated()
 
@@ -83,7 +83,7 @@ describe('injectDevtoolsPanel', () => {
       }))
     })
 
-    TestBed.tick()
+    await TestBed.inject(ApplicationRef).whenStable()
 
     await waitForDevtoolsToBeCreated()
 
@@ -101,7 +101,7 @@ describe('injectDevtoolsPanel', () => {
       }))
     })
 
-    TestBed.tick()
+    await TestBed.inject(ApplicationRef).whenStable()
 
     await waitForDevtoolsToBeCreated()
 
@@ -109,7 +109,7 @@ describe('injectDevtoolsPanel', () => {
 
     hostElement.set(null as unknown as ElementRef)
 
-    TestBed.tick()
+    await TestBed.inject(ApplicationRef).whenStable()
 
     expect(mockDevtoolsPanelInstance.unmount).toHaveBeenCalledTimes(1)
   })
@@ -124,7 +124,7 @@ describe('injectDevtoolsPanel', () => {
       }))
     })
 
-    TestBed.tick()
+    await TestBed.inject(ApplicationRef).whenStable()
 
     await waitForDevtoolsToBeCreated()
 
@@ -132,7 +132,7 @@ describe('injectDevtoolsPanel', () => {
 
     client.set(new QueryClient())
 
-    TestBed.tick()
+    await TestBed.inject(ApplicationRef).whenStable()
 
     expect(mockDevtoolsPanelInstance.setClient).toHaveBeenCalledTimes(1)
   })
@@ -147,7 +147,7 @@ describe('injectDevtoolsPanel', () => {
       }))
     })
 
-    TestBed.tick()
+    await TestBed.inject(ApplicationRef).whenStable()
 
     await waitForDevtoolsToBeCreated()
 
@@ -155,7 +155,7 @@ describe('injectDevtoolsPanel', () => {
 
     errorTypes.set([])
 
-    TestBed.tick()
+    await TestBed.inject(ApplicationRef).whenStable()
 
     expect(mockDevtoolsPanelInstance.setErrorTypes).toHaveBeenCalledTimes(1)
   })
@@ -173,7 +173,7 @@ describe('injectDevtoolsPanel', () => {
       }))
     })
 
-    TestBed.tick()
+    await TestBed.inject(ApplicationRef).whenStable()
 
     await waitForDevtoolsToBeCreated()
 
@@ -181,7 +181,7 @@ describe('injectDevtoolsPanel', () => {
 
     onClose.set(functionB)
 
-    TestBed.tick()
+    await TestBed.inject(ApplicationRef).whenStable()
 
     expect(mockDevtoolsPanelInstance.setOnClose).toHaveBeenCalledTimes(1)
   })

@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { QueryClient } from '@tanstack/query-core'
 import { TestBed } from '@angular/core/testing'
 import {
+  ApplicationRef,
   ENVIRONMENT_INITIALIZER,
   EnvironmentInjector,
   InjectionToken,
@@ -14,7 +15,6 @@ import {
 } from '@angular/core'
 import { provideTanStackQuery } from '@benjavicente/angular-query'
 import { withDevtools } from '../index'
-import { flushQueryUpdates } from './test-utils'
 import type {
   DevtoolsButtonPosition,
   DevtoolsErrorType,
@@ -23,22 +23,25 @@ import type {
 } from '@tanstack/query-devtools'
 import type { DevtoolsOptions } from '../types'
 
-const mockDevtoolsInstance = {
-  mount: vi.fn(),
-  unmount: vi.fn(),
-  setClient: vi.fn(),
-  setPosition: vi.fn(),
-  setErrorTypes: vi.fn(),
-  setButtonPosition: vi.fn(),
-  setInitialIsOpen: vi.fn(),
-  setTheme: vi.fn(),
-}
+const { mockDevtoolsInstance, mockTanstackQueryDevtools } = vi.hoisted(() => {
+  const instance = {
+    mount: vi.fn(),
+    unmount: vi.fn(),
+    setClient: vi.fn(),
+    setPosition: vi.fn(),
+    setErrorTypes: vi.fn(),
+    setButtonPosition: vi.fn(),
+    setInitialIsOpen: vi.fn(),
+    setTheme: vi.fn(),
+  }
 
-function MockTanstackQueryDevtools() {
-  return mockDevtoolsInstance
-}
-
-const mockTanstackQueryDevtools = vi.fn(MockTanstackQueryDevtools)
+  return {
+    mockDevtoolsInstance: instance,
+    mockTanstackQueryDevtools: vi.fn(function MockTanstackQueryDevtools() {
+      return instance
+    }),
+  }
+})
 
 vi.mock('@tanstack/query-devtools', () => ({
   TanstackQueryDevtools: mockTanstackQueryDevtools,
@@ -57,12 +60,10 @@ const mockIsDevMode = vi.mocked(isDevMode)
 describe('withDevtools feature', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.useFakeTimers()
   })
 
   afterEach(() => {
     vi.restoreAllMocks()
-    vi.useRealTimers()
     TestBed.resetTestingModule()
   })
 
@@ -142,15 +143,10 @@ describe('withDevtools feature', () => {
       })
 
       TestBed.inject(ENVIRONMENT_INITIALIZER)
-      await flushQueryUpdates()
-      TestBed.tick()
-      await vi.dynamicImportSettled()
-      TestBed.tick()
-      await vi.dynamicImportSettled()
+      expect(mockTanstackQueryDevtools).toHaveBeenCalledTimes(1)
 
-      expect(mockTanstackQueryDevtools).toHaveBeenCalledTimes(
-        expectedCalled ? 1 : 0,
-      )
+      await TestBed.inject(ApplicationRef).whenStable()
+
       expect(mockDevtoolsInstance.mount).toHaveBeenCalledTimes(
         expectedCalled ? 1 : 0,
       )
@@ -170,13 +166,15 @@ describe('withDevtools feature', () => {
       ],
     })
 
+    const app = TestBed.inject(ApplicationRef)
     TestBed.inject(ENVIRONMENT_INITIALIZER)
+    const stable = app.whenStable()
     // Destroys injector
     TestBed.resetTestingModule()
-    await flushQueryUpdates()
-    await vi.dynamicImportSettled()
+    await stable
 
-    expect(mockTanstackQueryDevtools).not.toHaveBeenCalled()
+    expect(mockTanstackQueryDevtools).toHaveBeenCalledTimes(1)
+    expect(mockDevtoolsInstance.mount).not.toHaveBeenCalled()
   })
 
   it('should not create devtools again when already provided', async () => {
@@ -193,7 +191,7 @@ describe('withDevtools feature', () => {
     })
 
     TestBed.inject(ENVIRONMENT_INITIALIZER)
-    await flushQueryUpdates()
+    await TestBed.inject(ApplicationRef).whenStable()
 
     expect(mockTanstackQueryDevtools).toHaveBeenCalledTimes(1)
 
@@ -209,7 +207,7 @@ describe('withDevtools feature', () => {
     )
 
     TestBed.inject(ENVIRONMENT_INITIALIZER)
-    await flushQueryUpdates()
+    await TestBed.inject(ApplicationRef).whenStable()
 
     expect(mockTanstackQueryDevtools).toHaveBeenCalledTimes(1)
   })
@@ -232,7 +230,7 @@ describe('withDevtools feature', () => {
     })
 
     TestBed.inject(ENVIRONMENT_INITIALIZER)
-    await vi.runAllTimersAsync()
+    await TestBed.inject(ApplicationRef).whenStable()
 
     expect(mockTanstackQueryDevtools).not.toHaveBeenCalled()
   })
@@ -247,16 +245,14 @@ describe('withDevtools feature', () => {
           () => new QueryClient(),
           withDevtools(() => ({
             loadDevtools: true,
-            errorTypes: errorTypes(),
+            errorTypes,
           })),
         ),
       ],
     })
 
     TestBed.inject(ENVIRONMENT_INITIALIZER)
-    await flushQueryUpdates()
-
-    TestBed.tick()
+    await TestBed.inject(ApplicationRef).whenStable()
 
     expect(mockDevtoolsInstance.setErrorTypes).toHaveBeenCalledTimes(0)
 
@@ -268,8 +264,7 @@ describe('withDevtools feature', () => {
     ]
 
     errorTypes.set(newErrorTypes)
-
-    TestBed.tick()
+    await TestBed.inject(ApplicationRef).whenStable()
 
     expect(mockDevtoolsInstance.setErrorTypes).toHaveBeenCalledTimes(1)
     expect(mockDevtoolsInstance.setErrorTypes).toHaveBeenCalledWith(
@@ -287,23 +282,20 @@ describe('withDevtools feature', () => {
           () => new QueryClient(),
           withDevtools(() => ({
             loadDevtools: true,
-            client: client(),
+            client,
           })),
         ),
       ],
     })
 
     TestBed.inject(ENVIRONMENT_INITIALIZER)
-    await flushQueryUpdates()
-
-    TestBed.tick()
+    await TestBed.inject(ApplicationRef).whenStable()
 
     expect(mockDevtoolsInstance.setClient).toHaveBeenCalledTimes(0)
 
     const newClient = new QueryClient()
     client.set(newClient)
-
-    TestBed.tick()
+    await TestBed.inject(ApplicationRef).whenStable()
 
     expect(mockDevtoolsInstance.setClient).toHaveBeenCalledTimes(1)
     expect(mockDevtoolsInstance.setClient).toHaveBeenCalledWith(newClient)
@@ -319,22 +311,19 @@ describe('withDevtools feature', () => {
           () => new QueryClient(),
           withDevtools(() => ({
             loadDevtools: true,
-            position: position(),
+            position,
           })),
         ),
       ],
     })
 
     TestBed.inject(ENVIRONMENT_INITIALIZER)
-    await flushQueryUpdates()
-
-    TestBed.tick()
+    await TestBed.inject(ApplicationRef).whenStable()
 
     expect(mockDevtoolsInstance.setPosition).toHaveBeenCalledTimes(0)
 
     position.set('left')
-
-    TestBed.tick()
+    await TestBed.inject(ApplicationRef).whenStable()
 
     expect(mockDevtoolsInstance.setPosition).toHaveBeenCalledTimes(1)
     expect(mockDevtoolsInstance.setPosition).toHaveBeenCalledWith('left')
@@ -350,22 +339,19 @@ describe('withDevtools feature', () => {
           () => new QueryClient(),
           withDevtools(() => ({
             loadDevtools: true,
-            buttonPosition: buttonPosition(),
+            buttonPosition,
           })),
         ),
       ],
     })
 
     TestBed.inject(ENVIRONMENT_INITIALIZER)
-    await flushQueryUpdates()
-
-    TestBed.tick()
+    await TestBed.inject(ApplicationRef).whenStable()
 
     expect(mockDevtoolsInstance.setButtonPosition).toHaveBeenCalledTimes(0)
 
     buttonPosition.set('bottom-right')
-
-    TestBed.tick()
+    await TestBed.inject(ApplicationRef).whenStable()
 
     expect(mockDevtoolsInstance.setButtonPosition).toHaveBeenCalledTimes(1)
     expect(mockDevtoolsInstance.setButtonPosition).toHaveBeenCalledWith(
@@ -383,22 +369,19 @@ describe('withDevtools feature', () => {
           () => new QueryClient(),
           withDevtools(() => ({
             loadDevtools: true,
-            initialIsOpen: initialIsOpen(),
+            initialIsOpen,
           })),
         ),
       ],
     })
 
     TestBed.inject(ENVIRONMENT_INITIALIZER)
-    await flushQueryUpdates()
-
-    TestBed.tick()
+    await TestBed.inject(ApplicationRef).whenStable()
 
     expect(mockDevtoolsInstance.setInitialIsOpen).toHaveBeenCalledTimes(0)
 
     initialIsOpen.set(true)
-
-    TestBed.tick()
+    await TestBed.inject(ApplicationRef).whenStable()
 
     expect(mockDevtoolsInstance.setInitialIsOpen).toHaveBeenCalledTimes(1)
     expect(mockDevtoolsInstance.setInitialIsOpen).toHaveBeenCalledWith(true)
@@ -414,25 +397,54 @@ describe('withDevtools feature', () => {
           () => new QueryClient(),
           withDevtools(() => ({
             loadDevtools: true,
-            theme: theme(),
+            theme,
           })),
         ),
       ],
     })
 
     TestBed.inject(ENVIRONMENT_INITIALIZER)
-    await flushQueryUpdates()
-
-    TestBed.tick()
+    await TestBed.inject(ApplicationRef).whenStable()
 
     expect(mockDevtoolsInstance.setTheme).toHaveBeenCalledTimes(0)
 
     theme.set('dark')
-
-    TestBed.tick()
+    await TestBed.inject(ApplicationRef).whenStable()
 
     expect(mockDevtoolsInstance.setTheme).toHaveBeenCalledTimes(1)
     expect(mockDevtoolsInstance.setTheme).toHaveBeenCalledWith('dark')
+  })
+
+  it('should pass construction-only options to the devtools', async () => {
+    const shadowDOMTarget = document
+      .createElement('div')
+      .attachShadow({ mode: 'open' })
+
+    TestBed.configureTestingModule({
+      providers: [
+        provideZonelessChangeDetection(),
+        provideTanStackQuery(
+          () => new QueryClient(),
+          withDevtools(() => ({
+            loadDevtools: true,
+            styleNonce: 'nonce',
+            shadowDOMTarget,
+            hideDisabledQueries: true,
+          })),
+        ),
+      ],
+    })
+
+    TestBed.inject(ENVIRONMENT_INITIALIZER)
+    await TestBed.inject(ApplicationRef).whenStable()
+
+    expect(mockTanstackQueryDevtools).toHaveBeenCalledWith(
+      expect.objectContaining({
+        styleNonce: 'nonce',
+        shadowDOMTarget,
+        hideDisabledQueries: true,
+      }),
+    )
   })
 
   it('should destroy devtools', async () => {
@@ -444,21 +456,20 @@ describe('withDevtools feature', () => {
         provideTanStackQuery(
           () => new QueryClient(),
           withDevtools(() => ({
-            loadDevtools: loadDevtools(),
+            loadDevtools,
           })),
         ),
       ],
     })
 
     TestBed.inject(ENVIRONMENT_INITIALIZER)
-    await flushQueryUpdates()
+    await TestBed.inject(ApplicationRef).whenStable()
 
     expect(mockDevtoolsInstance.mount).toHaveBeenCalledTimes(1)
     expect(mockDevtoolsInstance.unmount).toHaveBeenCalledTimes(0)
 
     loadDevtools.set(false)
-
-    TestBed.tick()
+    await TestBed.inject(ApplicationRef).whenStable()
 
     expect(mockDevtoolsInstance.unmount).toHaveBeenCalledTimes(1)
   })
@@ -477,9 +488,7 @@ describe('withDevtools feature', () => {
     })
 
     TestBed.inject(ENVIRONMENT_INITIALIZER)
-    await flushQueryUpdates()
-    TestBed.tick()
-    await vi.dynamicImportSettled()
+    await TestBed.inject(ApplicationRef).whenStable()
 
     expect(mockTanstackQueryDevtools).toHaveBeenCalled()
     expect(mockDevtoolsInstance.mount).toHaveBeenCalledTimes(1)
@@ -500,35 +509,32 @@ describe('withDevtools feature', () => {
         provideTanStackQuery(
           () => new QueryClient(),
           withDevtools(() => ({
-            loadDevtools: loadDevtools(),
+            loadDevtools,
           })),
         ),
       ],
     })
 
     TestBed.inject(ENVIRONMENT_INITIALIZER)
-    await flushQueryUpdates()
+    await TestBed.inject(ApplicationRef).whenStable()
 
-    expect(mockTanstackQueryDevtools).not.toHaveBeenCalled()
+    expect(mockTanstackQueryDevtools).toHaveBeenCalledTimes(1)
     expect(mockDevtoolsInstance.mount).not.toHaveBeenCalled()
 
     loadDevtools.set(true)
-    TestBed.tick()
-    await vi.dynamicImportSettled()
+    await TestBed.inject(ApplicationRef).whenStable()
 
-    expect(mockTanstackQueryDevtools).toHaveBeenCalledTimes(1)
     expect(mockDevtoolsInstance.mount).toHaveBeenCalledTimes(1)
     expect(mockDevtoolsInstance.unmount).not.toHaveBeenCalled()
 
     loadDevtools.set(false)
-    TestBed.tick()
+    await TestBed.inject(ApplicationRef).whenStable()
 
     expect(mockDevtoolsInstance.unmount).toHaveBeenCalledTimes(1)
     expect(mockDevtoolsInstance.mount).toHaveBeenCalledTimes(1)
 
     loadDevtools.set(true)
-    TestBed.tick()
-    await vi.dynamicImportSettled()
+    await TestBed.inject(ApplicationRef).whenStable()
 
     // Should remount (mount called twice now)
     expect(mockDevtoolsInstance.mount).toHaveBeenCalledTimes(2)
@@ -564,7 +570,7 @@ describe('withDevtools feature', () => {
       })
 
       TestBed.inject(ENVIRONMENT_INITIALIZER)
-      await flushQueryUpdates()
+      await TestBed.inject(ApplicationRef).whenStable()
 
       expect(withDevtoolsFn).toHaveBeenCalled()
       expect(mockTanstackQueryDevtools).toHaveBeenCalledWith(
@@ -578,35 +584,36 @@ describe('withDevtools feature', () => {
         position = signal<DevtoolsPosition>('bottom')
       }
 
+      const withDevtoolsFn = vi.fn(() => {
+        const service = inject(ReactiveService)
+        return {
+          loadDevtools: service.enabled,
+          position: service.position,
+        }
+      })
+
       TestBed.configureTestingModule({
         providers: [
           provideZonelessChangeDetection(),
           ReactiveService,
           provideTanStackQuery(
             () => new QueryClient(),
-            withDevtools(() => {
-              const service = inject(ReactiveService)
-              return {
-                loadDevtools: service.enabled(),
-                position: service.position(),
-              }
-            }),
+            withDevtools(withDevtoolsFn),
           ),
         ],
       })
 
       TestBed.inject(ENVIRONMENT_INITIALIZER)
-      await flushQueryUpdates()
+      await TestBed.inject(ApplicationRef).whenStable()
 
       const service = TestBed.inject(ReactiveService)
 
-      expect(mockTanstackQueryDevtools).not.toHaveBeenCalled()
+      expect(mockTanstackQueryDevtools).toHaveBeenCalledTimes(1)
+      expect(mockDevtoolsInstance.mount).not.toHaveBeenCalled()
 
       service.enabled.set(true)
-      TestBed.tick()
-      await vi.dynamicImportSettled()
+      await TestBed.inject(ApplicationRef).whenStable()
 
-      expect(mockTanstackQueryDevtools).toHaveBeenCalledTimes(1)
       expect(mockTanstackQueryDevtools).toHaveBeenCalledWith(
         expect.objectContaining({
           position: 'bottom',
@@ -614,9 +621,10 @@ describe('withDevtools feature', () => {
       )
 
       service.position.set('top')
-      TestBed.tick()
+      await TestBed.inject(ApplicationRef).whenStable()
 
       expect(mockDevtoolsInstance.setPosition).toHaveBeenCalledWith('top')
+      expect(withDevtoolsFn).toHaveBeenCalledTimes(1)
     })
   })
 })

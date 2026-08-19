@@ -39,9 +39,9 @@ If you need the real implementation in production, import from the `production` 
 import { withDevtools } from '@tanstack/angular-query-devtools/production'
 ```
 
-To control when devtools are loaded, use the `loadDevtools` option.
+To control when devtools are rendered, use the `loadDevtools` option.
 
-When omitted or set to `'auto'`, devtools only load in development mode.
+When omitted or set to `'auto'`, devtools are only rendered in development mode.
 
 ```ts
 import { withDevtools } from '@tanstack/angular-query-devtools'
@@ -57,7 +57,7 @@ providers: [
 ]
 ```
 
-When setting the option to true, the devtools will be loaded in both development and production mode.
+When setting the option to true, the devtools will be rendered in both development and production mode.
 
 This is useful if you want to load devtools based on [Angular environment configurations](https://angular.dev/tools/cli/environments). E.g. you could set this to true when the application is running on your production build staging environment.
 
@@ -74,7 +74,7 @@ providers: [
 ]
 ```
 
-When setting the option to false, the devtools will not be loaded.
+When setting the option to false, the devtools will not be rendered.
 
 ```ts
 providers: [
@@ -85,9 +85,9 @@ providers: [
 ]
 ```
 
-## Derive options through reactivity
+## Reactive options
 
-Options can be returned from a callback so they can react to signals. For example, a signal derived from a keyboard shortcut can enable devtools on demand:
+Mutable options can be Angular signals. For example, a signal derived from a keyboard shortcut can show devtools on demand:
 
 ```ts
 import { Injectable, isDevMode } from '@angular/core'
@@ -111,12 +111,12 @@ export class DevtoolsOptionsManager {
 }
 ```
 
-The callback runs in an Angular injection context, so it can call `inject()` and
-read signals directly:
+The callback runs once in an Angular injection context, so it can call
+`inject()`. Return signals as option values to update them reactively:
 
 ```ts
 // ...
-// 👇 Note we import from the production sub-path to enable devtools lazy loading in production builds
+// 👇 Import from the production sub-path to make devtools available in production builds
 import { inject } from '@angular/core'
 import { withDevtools } from '@tanstack/angular-query-devtools/production'
 
@@ -126,7 +126,7 @@ export const appConfig: ApplicationConfig = {
     provideTanStackQuery(
       () => new QueryClient(),
       withDevtools(() => ({
-        loadDevtools: inject(DevtoolsOptionsManager).loadDevtools(),
+        loadDevtools: inject(DevtoolsOptionsManager).loadDevtools,
       })),
     ),
   ],
@@ -135,7 +135,12 @@ export const appConfig: ApplicationConfig = {
 
 ### Options returned from the callback
 
-Of these options `loadDevtools`, `client`, `position`, `errorTypes`, `buttonPosition`, `initialIsOpen`, and `theme` support reactivity through signals.
+`loadDevtools`, `client`, `position`, `errorTypes`, `buttonPosition`,
+`initialIsOpen`, and `theme` accept either their documented static value or a
+signal containing that value.
+
+`styleNonce`, `shadowDOMTarget`, and `hideDisabledQueries` are construction-time
+options and do not accept signals.
 
 - `loadDevtools?: 'auto' | boolean`
   - Omit or `'auto'`: load devtools only in development mode.

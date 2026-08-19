@@ -90,7 +90,7 @@ The devtools options callback now runs in an injection context. Remove the `deps
 
 ```ts
 const optionsFromManager = (manager: DevtoolsOptionsManager) => ({
-  loadDevtools: manager.loadDevtools(),
+  loadDevtools: manager.loadDevtools,
 })
 
 withDevtools(optionsFromManager, { deps: [DevtoolsOptionsManager] }) // [!code --]
