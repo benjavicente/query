@@ -1292,6 +1292,7 @@ describe('injectQuery', () => {
     })
 
     it('should handle query invalidation with synchronous data', async () => {
+      vi.useRealTimers()
       TestBed.resetTestingModule()
       TestBed.configureTestingModule({
         providers: [
@@ -1324,25 +1325,62 @@ describe('injectQuery', () => {
       const component = fixture.componentInstance
       const query = component.query
 
-      const stablePromise = app.whenStable()
-      await vi.advanceTimersToNextTimerAsync()
-      await stablePromise
+      await app.whenStable()
 
       expect(query.status()).toBe('success')
       expect(query.data()).toBe('sync-data-1')
       expect(component.callCount).toBe(1)
 
-      // Invalidate the query
-      queryClient.invalidateQueries({ queryKey: testKey })
-
-      // Wait for the invalidation to trigger a refetch
-      await Promise.resolve()
-      await vi.advanceTimersByTimeAsync(10)
-
+      await queryClient.invalidateQueries({ queryKey: testKey })
       await app.whenStable()
       expect(query.status()).toBe('success')
       expect(query.data()).toBe('sync-data-2')
       expect(component.callCount).toBe(2)
+    })
+
+    it('should keep the application unstable while invalidation is pending', async () => {
+      vi.useRealTimers()
+      let resolveRefetch!: (value: string) => void
+      let callCount = 0
+
+      const query = TestBed.runInInjectionContext(() =>
+        injectQuery(() => ({
+          queryKey: ['pending-invalidation'],
+          queryFn: () => {
+            callCount++
+
+            if (callCount === 1) {
+              return 'data-1'
+            }
+
+            return new Promise<string>((resolve) => {
+              resolveRefetch = resolve
+            })
+          },
+        })),
+      )
+
+      const app = TestBed.inject(ApplicationRef)
+      await app.whenStable()
+
+      const invalidation = queryClient.invalidateQueries({
+        queryKey: ['pending-invalidation'],
+      })
+      const stable = app.whenStable()
+      let stableResolved = false
+      void stable.then(() => {
+        stableResolved = true
+      })
+
+      expect(stableResolved).toBe(false)
+
+      resolveRefetch('data-2')
+
+      await invalidation
+      await stable
+
+      expect(query.data()).toBe('data-2')
+      expect(query.fetchStatus()).toBe('idle')
     })
   })
 })

@@ -49,6 +49,10 @@
       "default": "./dist/stub.mjs"
     },
     "./package.json": "./package.json",
+    "./stub": {
+      "types": "./dist/stub.d.ts",
+      "default": "./dist/stub.mjs"
+    },
     "./production": {
       "types": "./dist/production/index.d.ts",
       "default": "./dist/index.mjs"
@@ -62,6 +66,10 @@
     "./devtools-panel/production": {
       "types": "./dist/devtools-panel/production/index.d.ts",
       "default": "./dist/devtools-panel/index.mjs"
+    },
+    "./devtools-panel/stub": {
+      "types": "./dist/devtools-panel/stub.d.ts",
+      "default": "./dist/devtools-panel/stub.mjs"
     }
   },
   "sideEffects": false,

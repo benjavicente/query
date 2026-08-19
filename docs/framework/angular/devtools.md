@@ -85,6 +85,52 @@ providers: [
 ]
 ```
 
+### Webpack file replacements
+
+Some webpack-based Angular builders do not apply package export conditions when
+they bundle application code. Use the explicit `production` and `stub`
+entrypoints with Angular CLI file replacements to keep the devtools dependency
+out of production bundles.
+
+Create an application-level import that can be replaced:
+
+```ts
+// src/app/query-devtools.ts
+export { withDevtools } from '@tanstack/angular-query-devtools/production'
+```
+
+```ts
+// src/app/query-devtools.stub.ts
+export { withDevtools } from '@tanstack/angular-query-devtools/stub'
+```
+
+Import the application-level module from your config:
+
+```ts
+import { withDevtools } from './query-devtools'
+```
+
+Then configure the production build:
+
+```json
+{
+  "configurations": {
+    "production": {
+      "fileReplacements": [
+        {
+          "replace": "src/app/query-devtools.ts",
+          "with": "src/app/query-devtools.stub.ts"
+        }
+      ]
+    }
+  }
+}
+```
+
+The same pattern is available for the programmatic panel:
+`@tanstack/angular-query-devtools/devtools-panel/production` and
+`@tanstack/angular-query-devtools/devtools-panel/stub`.
+
 ## Reactive options
 
 Mutable options can be Angular signals. For example, a signal derived from a keyboard shortcut can show devtools on demand:
