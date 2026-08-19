@@ -20,33 +20,22 @@ import type { PersistQueryClientFeature } from '@benjavicente/angular-query'
 import type {
   PersistQueryClientUserOptions,
   WithPersistQueryClientFn,
-  WithPersistQueryClientOptions,
 } from './with-persist-query-client.types'
 
 export type {
   PersistQueryClientUserOptions,
   WithPersistQueryClientFn,
-  WithPersistQueryClientOptions,
 } from './with-persist-query-client.types'
 
 /**
  * Resolves factory vs static persistence configuration.
- * @param input - Callback, static options object, or mixed union.
- * @param withOptions - When `input` is a callback, optional `deps` for dependency injection.
- * @param injectDep - `inject` function used to resolve `withOptions.deps` tokens.
+ * @param input - Callback or static options object.
  * @returns Resolved persistence user options for the browser initializer.
  */
 function resolvePersistOptions(
   input: PersistQueryClientUserOptions | WithPersistQueryClientFn,
-  withOptions: WithPersistQueryClientOptions | undefined,
-  injectDep: <T>(token: any) => T,
 ): PersistQueryClientUserOptions {
-  if (typeof input === 'function') {
-    const deps = withOptions?.deps ?? []
-    const depValues = deps.map((token) => injectDep(token))
-    return input(...depValues)
-  }
-  return input
+  return typeof input === 'function' ? input() : input
 }
 
 /**
@@ -76,8 +65,9 @@ function resolvePersistOptions(
  * };
  * ```
  *
- * **Example (factory, browser only, optional deps)** - the callback only runs in the browser, so
- * it can safely reference browser APIs such as `localStorage`.
+ * **Example (factory, browser only)** - the callback only runs in the browser, in an
+ * Angular injection context, so it can call `inject()` and reference browser APIs
+ * such as `localStorage`.
  *
  * ```ts
  * withPersistQueryClient(() => ({
@@ -88,34 +78,29 @@ function resolvePersistOptions(
  * ```
  *
  * ```ts
- * withPersistQueryClient(
- *   (storage: StorageService) => ({
- *     persistOptions: { persister: storage.createPersister() },
- *   }),
- *   { deps: [StorageService] },
- * )
+ * withPersistQueryClient(() => ({
+ *   persistOptions: {
+ *     persister: inject(StorageService).createPersister(),
+ *   },
+ * }))
  * ```
  * @param factoryOrOptions - Either a callback (runs only in the browser) or a static options object.
- * @param withOptions - When using a callback, optional `deps` passed as arguments (like `useFactory`).
  * @returns A set of providers for use with `provideTanStackQuery`.
  * @public
  */
 export function withPersistQueryClient(
   factoryOrOptions: WithPersistQueryClientFn,
-  withOptions?: WithPersistQueryClientOptions,
 ): PersistQueryClientFeature
 export function withPersistQueryClient(
   options: PersistQueryClientUserOptions,
 ): PersistQueryClientFeature
 /**
  * @param factoryOrOptions - Either a callback (runs only in the browser) or a static options object.
- * @param withOptions - When using a callback, optional `deps` passed as arguments (like `useFactory`).
  * @returns A set of providers for use with `provideTanStackQuery`.
  * @public
  */
 export function withPersistQueryClient(
   factoryOrOptions: PersistQueryClientUserOptions | WithPersistQueryClientFn,
-  withOptions?: WithPersistQueryClientOptions,
 ): PersistQueryClientFeature {
   const isRestoring = signal(true)
   return queryFeature(
@@ -137,11 +122,8 @@ export function withPersistQueryClient(
           injectorDestroyed = true
         })
 
-        const { onSuccess, onError, persistOptions } = resolvePersistOptions(
-          factoryOrOptions,
-          withOptions,
-          inject,
-        )
+        const { onSuccess, onError, persistOptions } =
+          resolvePersistOptions(factoryOrOptions)
         const options = { queryClient, ...persistOptions }
         void persistQueryClientRestore(options)
           .then(() => {

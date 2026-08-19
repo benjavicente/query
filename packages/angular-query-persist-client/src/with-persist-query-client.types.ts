@@ -6,10 +6,8 @@ export type PersistQueryClientUserOptions = {
   onError?: () => Promise<unknown> | unknown
 }
 
-export interface WithPersistQueryClientOptions {
-  deps?: Array<any>
-}
-
-export type WithPersistQueryClientFn = (
-  ...deps: Array<any>
-) => PersistQueryClientUserOptions
+/**
+ * Returns persistence options. The function runs once in an Angular injection
+ * context in the browser, so it can call `inject()` and touch browser APIs.
+ */
+export type WithPersistQueryClientFn = () => PersistQueryClientUserOptions

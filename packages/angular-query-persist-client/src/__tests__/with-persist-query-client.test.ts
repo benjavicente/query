@@ -14,6 +14,7 @@ import {
   PLATFORM_ID,
   createEnvironmentInjector,
   effect,
+  inject,
   provideZonelessChangeDetection,
 } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
@@ -678,7 +679,7 @@ describe('withPersistQueryClient', () => {
     onErrorMock.mockRestore()
   })
 
-  it('factory form with deps receives injected token and restores cache', async () => {
+  it('factory form can inject a token and restores cache', async () => {
     const key = queryKey()
     const holder = { persister: createMockPersister() }
     const HOLDER = new InjectionToken<{ persister: Persister }>(
@@ -717,12 +718,9 @@ describe('withPersistQueryClient', () => {
         { provide: HOLDER, useValue: holder },
         provideTanStackQuery(
           () => queryClient,
-          withPersistQueryClient(
-            (h) => ({
-              persistOptions: { persister: h.persister },
-            }),
-            { deps: [HOLDER] },
-          ),
+          withPersistQueryClient(() => ({
+            persistOptions: { persister: inject(HOLDER).persister },
+          })),
         ),
       ],
     })
