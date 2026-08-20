@@ -1,5 +1,4 @@
 import {
-  Injector,
   NgZone,
   assertInInjectionContext,
   computed,
@@ -15,8 +14,9 @@ import {
   notifyManager,
   shouldThrowError,
 } from '@tanstack/query-core'
-import { signalProxy } from './signal-proxy'
-import { injectQueryLifecycle } from './inject-query-lifecycle'
+import { signalProxy } from './utils/signal-proxy'
+import { injectPendingTasksLifecycle } from './utils/inject-pending-tasks-lifecycle'
+import { injectLazyValue } from './utils/inject-lazy-value'
 import type { DefaultError, MutationObserverResult } from '@tanstack/query-core'
 import type {
   CreateMutateFunction,
@@ -24,21 +24,11 @@ import type {
   CreateMutationResult,
 } from './types'
 
-export interface InjectMutationOptions {
-  /**
-   * The `Injector` in which to create the mutation.
-   *
-   * If this is not provided, the current injection context will be used instead (via `inject`).
-   */
-  injector?: Injector
-}
-
 /**
  * Injects a mutation: an imperative function that can be invoked which typically performs server side effects.
  *
  * Unlike queries, mutations are not run automatically.
  * @param injectMutationFn - A function that returns mutation options.
- * @param options - Additional configuration
  * @returns The mutation.
  */
 export function injectMutation<
@@ -53,13 +43,11 @@ export function injectMutation<
     TVariables,
     TOnMutateResult
   >,
-  options?: InjectMutationOptions,
 ): CreateMutationResult<TData, TError, TVariables, TOnMutateResult> {
-  !options?.injector && assertInInjectionContext(injectMutation)
-  const injector = options?.injector ?? inject(Injector)
-  const ngZone = injector.get(NgZone)
-  const queryClient = injector.get(QueryClient)
-  const lifecycle = injectQueryLifecycle(injector)
+  assertInInjectionContext(injectMutation)
+  const ngZone = inject(NgZone)
+  const queryClient = inject(QueryClient)
+  const lifecycle = injectPendingTasksLifecycle()
 
   /**
    * computed() is used so signals can be inserted into the options
@@ -68,14 +56,41 @@ export function injectMutation<
    */
   const optionsSignal = computed(injectMutationFn)
 
-  const observerSignal = computed(
-    () => new MutationObserver(queryClient, untracked(optionsSignal)),
+  const lazyObserver = injectLazyValue(
+    () => new MutationObserver(queryClient, optionsSignal()),
+    (observer) => {
+      const unsubscribe = ngZone.runOutsideAngular(() =>
+        observer.subscribe(
+          notifyManager.batchCalls((state) => {
+            ngZone.run(() => {
+              if (lifecycle.destroyed) return
+
+              lifecycle.setPending(state.isPending)
+
+              if (
+                state.isError &&
+                shouldThrowError(observer.options.throwOnError, [state.error])
+              ) {
+                ngZone.onError.emit(state.error)
+                throw state.error
+              }
+
+              resultFromSubscriberSignal.set(state)
+            })
+          }),
+        ),
+      )
+      return () => {
+        lifecycle.setPending(false)
+        unsubscribe()
+      }
+    },
   )
 
-  const mutateFnSignal = computed<
+  const lazyMutateFn = injectLazyValue<
     CreateMutateFunction<TData, TError, TVariables, TOnMutateResult>
   >(() => {
-    const observer = observerSignal()
+    const observer = lazyObserver()
     return (variables, mutateOptions) => {
       observer.mutate(variables, mutateOptions).catch(noop)
     }
@@ -84,8 +99,8 @@ export function injectMutation<
   /**
    * Computed signal that gets result from mutation cache based on passed options
    */
-  const resultFromInitialOptionsSignal = computed(() => {
-    const observer = observerSignal()
+  const firstResultFromInitialOptionsSignal = computed(() => {
+    const observer = lazyObserver()
     return observer.getCurrentResult()
   })
 
@@ -99,66 +114,22 @@ export function injectMutation<
     TOnMutateResult
   > | null>(null)
 
-  effect(
-    () => {
-      const observer = observerSignal()
-      const observerOptions = optionsSignal()
+  effect(() => {
+    const observer = lazyObserver()
+    const observerOptions = optionsSignal()
 
-      untracked(() => {
-        observer.setOptions(observerOptions)
-      })
-    },
-    {
-      injector,
-    },
-  )
-
-  effect(
-    (onCleanup) => {
-      const observer = observerSignal()
-
-      untracked(() => {
-        const unsubscribe = ngZone.runOutsideAngular(() =>
-          observer.subscribe(
-            notifyManager.batchCalls((state) => {
-              ngZone.run(() => {
-                if (lifecycle.destroyed) return
-
-                lifecycle.setPending(state.isPending)
-
-                if (
-                  state.isError &&
-                  shouldThrowError(observer.options.throwOnError, [state.error])
-                ) {
-                  ngZone.onError.emit(state.error)
-                  throw state.error
-                }
-
-                resultFromSubscriberSignal.set(state)
-              })
-            }),
-          ),
-        )
-        onCleanup(() => {
-          lifecycle.setPending(false)
-          unsubscribe()
-        })
-      })
-    },
-    {
-      injector,
-    },
-  )
+    untracked(() => {
+      observer.setOptions(observerOptions)
+    })
+  })
 
   const resultSignal = computed(() => {
-    const resultFromSubscriber = resultFromSubscriberSignal()
-    const resultFromInitialOptions = resultFromInitialOptionsSignal()
-
-    const result = resultFromSubscriber ?? resultFromInitialOptions
+    const result =
+      resultFromSubscriberSignal() ?? firstResultFromInitialOptionsSignal()
 
     return {
       ...result,
-      mutate: mutateFnSignal(),
+      mutate: lazyMutateFn(),
       mutateAsync: result.mutate,
     }
   })

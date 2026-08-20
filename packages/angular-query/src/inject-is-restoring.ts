@@ -1,6 +1,5 @@
 import {
   InjectionToken,
-  Injector,
   assertInInjectionContext,
   inject,
   signal,
@@ -15,24 +14,13 @@ const IS_RESTORING = new InjectionToken('', {
   factory: () => signal(false).asReadonly(),
 })
 
-interface InjectIsRestoringOptions {
-  /**
-   * The `Injector` to use to get the isRestoring signal.
-   *
-   * If this is not provided, the current injection context will be used instead (via `inject`).
-   */
-  injector?: Injector
-}
-
 /**
  * Injects a signal that tracks whether a restore is currently in progress. {@link injectQuery} and friends also check this internally to avoid race conditions between the restore and initializing queries.
- * @param options - Options for injectIsRestoring.
  * @returns readonly signal with boolean that indicates whether a restore is in progress.
  */
-export function injectIsRestoring(options?: InjectIsRestoringOptions) {
-  !options?.injector && assertInInjectionContext(injectIsRestoring)
-  const injector = options?.injector ?? inject(Injector)
-  return injector.get(IS_RESTORING)
+export function injectIsRestoring() {
+  assertInInjectionContext(injectIsRestoring)
+  return inject(IS_RESTORING)
 }
 
 /**

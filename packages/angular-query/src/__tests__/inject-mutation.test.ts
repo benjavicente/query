@@ -2,7 +2,6 @@ import {
   ApplicationRef,
   ChangeDetectionStrategy,
   Component,
-  Injector,
   NgZone,
   input,
   inputBinding,
@@ -508,20 +507,6 @@ describe('injectMutation', () => {
           mutationFn: () => Promise.resolve(),
         }))
       }).toThrowError(/NG0203(.*?)injectMutation/)
-    })
-
-    it('can be used outside injection context when passing an injector', () => {
-      expect(() => {
-        injectMutation(
-          () => ({
-            mutationKey: ['injectionContextError'],
-            mutationFn: () => Promise.resolve(),
-          }),
-          {
-            injector: TestBed.inject(Injector),
-          },
-        )
-      }).not.toThrow()
     })
 
     it('should complete mutation before whenStable() resolves', async () => {

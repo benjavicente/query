@@ -1,6 +1,6 @@
-import { DestroyRef, PendingTasks } from '@angular/core'
+import { DestroyRef, PendingTasks, runInInjectionContext } from '@angular/core'
 import { describe, expect, it, vi } from 'vitest'
-import { injectQueryLifecycle } from '../inject-query-lifecycle'
+import { injectPendingTasksLifecycle } from '../utils/inject-pending-tasks-lifecycle'
 import type { Injector } from '@angular/core'
 
 function setupLifecycle() {
@@ -28,7 +28,9 @@ function setupLifecycle() {
   } as Injector
 
   return {
-    lifecycle: injectQueryLifecycle(injector),
+    lifecycle: runInInjectionContext(injector, () =>
+      injectPendingTasksLifecycle(),
+    ),
     pendingTasks,
     taskCleanups,
     destroy: () => destroy?.(),

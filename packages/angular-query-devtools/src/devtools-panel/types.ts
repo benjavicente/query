@@ -1,15 +1,6 @@
 import type { DevtoolsErrorType } from '@tanstack/query-devtools'
-import type { ElementRef, Injector } from '@angular/core'
+import type { ElementRef } from '@angular/core'
 import type { QueryClient } from '@tanstack/query-core'
-
-export interface InjectDevtoolsPanelOptions {
-  /**
-   * The `Injector` in which to create the devtools panel.
-   *
-   * If this is not provided, the current injection context will be used instead (via `inject`).
-   */
-  injector?: Injector
-}
 
 /**
  * A devtools panel, which can be manually destroyed.
@@ -53,5 +44,4 @@ export interface DevtoolsPanelOptions {
 
 export type InjectDevtoolsPanel = (
   injectDevtoolsPanelFn: () => DevtoolsPanelOptions,
-  options?: InjectDevtoolsPanelOptions,
 ) => DevtoolsPanelRef

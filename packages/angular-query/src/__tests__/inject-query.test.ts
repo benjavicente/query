@@ -2,7 +2,6 @@ import {
   ApplicationRef,
   ChangeDetectionStrategy,
   Component,
-  Injector,
   NgZone,
   computed,
   effect,
@@ -1071,32 +1070,6 @@ describe('injectQuery', () => {
       }).toThrowError(/NG0203(.*?)injectQuery/)
     })
 
-    it('can be used outside injection context when passing an injector', () => {
-      const injector = TestBed.inject(Injector)
-
-      @Component({
-        selector: 'app-test',
-        template: '',
-        changeDetection: ChangeDetectionStrategy.OnPush,
-      })
-      class TestComponent {
-        query = injectQuery(
-          () => ({
-            queryKey: ['manualInjector'],
-            queryFn: () => sleep(0).then(() => 'Some data'),
-          }),
-          {
-            injector: injector,
-          },
-        )
-      }
-
-      const fixture = TestBed.createComponent(TestComponent)
-      fixture.detectChanges()
-      const query = fixture.componentInstance.query
-
-      expect(query.status()).toBe('pending')
-    })
 
     it('should complete queries before whenStable() resolves', async () => {
       const app = TestBed.inject(ApplicationRef)

@@ -1,7 +1,6 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  Injector,
   input,
   inputBinding,
   provideZonelessChangeDetection,
@@ -200,14 +199,6 @@ describe('injectMutationState', () => {
         }).toThrowError(/NG0203(.*?)injectMutationState/)
       })
 
-      it('can be used outside injection context when passing an injector', () => {
-        const injector = TestBed.inject(Injector)
-        expect(
-          injectMutationState(undefined, {
-            injector,
-          }),
-        ).not.toThrow()
-      })
     })
   })
 })

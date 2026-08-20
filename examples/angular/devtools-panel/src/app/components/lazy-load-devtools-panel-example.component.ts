@@ -5,6 +5,7 @@ import {
   computed,
   effect,
   inject,
+  runInInjectionContext,
   signal,
   viewChild,
 } from '@angular/core'
@@ -51,9 +52,9 @@ export default class LazyLoadDevtoolsPanelExampleComponent {
       this.devtools.set(
         import('@benjavicente/angular-query-devtools/devtools-panel').then(
           ({ injectDevtoolsPanel }) =>
-            injectDevtoolsPanel(this.devToolsOptions, {
-              injector: this.injector,
-            }),
+            runInInjectionContext(this.injector, () =>
+              injectDevtoolsPanel(this.devToolsOptions),
+            ),
         ),
       )
     }

@@ -1,10 +1,5 @@
 import { InfiniteQueryObserver } from '@tanstack/query-core'
-import {
-  Injector,
-  assertInInjectionContext,
-  inject,
-  runInInjectionContext,
-} from '@angular/core'
+import { assertInInjectionContext } from '@angular/core'
 import { injectBaseQuery } from './inject-base-query'
 import type {
   DefaultError,
@@ -22,15 +17,6 @@ import type {
   UndefinedInitialDataInfiniteOptions,
 } from './infinite-query-options'
 
-export interface InjectInfiniteQueryOptions {
-  /**
-   * The `Injector` in which to create the infinite query.
-   *
-   * If this is not provided, the current injection context will be used instead (via `inject`).
-   */
-  injector?: Injector
-}
-
 export function injectInfiniteQuery<
   TQueryFnData,
   TError = DefaultError,
@@ -45,7 +31,6 @@ export function injectInfiniteQuery<
     TQueryKey,
     TPageParam
   >,
-  options?: InjectInfiniteQueryOptions,
 ): DefinedCreateInfiniteQueryResult<TData, TError>
 
 export function injectInfiniteQuery<
@@ -62,7 +47,6 @@ export function injectInfiniteQuery<
     TQueryKey,
     TPageParam
   >,
-  options?: InjectInfiniteQueryOptions,
 ): CreateInfiniteQueryResult<TData, TError>
 
 export function injectInfiniteQuery<
@@ -79,7 +63,6 @@ export function injectInfiniteQuery<
     TQueryKey,
     TPageParam
   >,
-  options?: InjectInfiniteQueryOptions,
 ): CreateInfiniteQueryResult<TData, TError>
 
 /**
@@ -87,7 +70,6 @@ export function injectInfiniteQuery<
  * Infinite queries can additively "load more" data onto an existing set of data or support infinite scroll.
  *
  * @param injectInfiniteQueryFn - A function that returns infinite query options.
- * @param options - Additional configuration.
  * @returns The infinite query result.
  * @see https://tanstack.com/query/latest/docs/framework/angular/guides/infinite-queries
  */
@@ -113,18 +95,14 @@ export function injectInfiniteQuery<
         TQueryKey,
         TPageParam
       >,
-  options?: InjectInfiniteQueryOptions,
 ):
   | DefinedCreateInfiniteQueryResult<TData, TError>
   | CreateInfiniteQueryResult<TData, TError> {
-  !options?.injector && assertInInjectionContext(injectInfiniteQuery)
-  const injector = options?.injector ?? inject(Injector)
-  return runInInjectionContext(injector, () =>
-    injectBaseQuery(
-      injectInfiniteQueryFn,
-      InfiniteQueryObserver as typeof QueryObserver,
-      methodsToExclude,
-    ),
+  assertInInjectionContext(injectInfiniteQuery)
+  return injectBaseQuery(
+    injectInfiniteQueryFn,
+    InfiniteQueryObserver as typeof QueryObserver,
+    methodsToExclude,
   ) as unknown as
     | DefinedCreateInfiniteQueryResult<TData, TError>
     | CreateInfiniteQueryResult<TData, TError>

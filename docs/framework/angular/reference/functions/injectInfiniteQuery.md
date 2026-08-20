@@ -14,7 +14,6 @@ A function that returns infinite query options.
 
 ## Param
 
-Additional configuration.
 
 ## See
 
@@ -23,7 +22,7 @@ https://tanstack.com/query/latest/docs/framework/angular/guides/infinite-queries
 ## Call Signature
 
 ```ts
-function injectInfiniteQuery<TQueryFnData, TError, TData, TQueryKey, TPageParam>(injectInfiniteQueryFn, options?): DefinedCreateInfiniteQueryResult<TData, TError>;
+function injectInfiniteQuery<TQueryFnData, TError, TData, TQueryKey, TPageParam>(injectInfiniteQueryFn): DefinedCreateInfiniteQueryResult<TData, TError>;
 ```
 
 Defined in: [packages/angular-query/src/inject-infinite-query.ts:34](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-infinite-query.ts#L34)
@@ -56,10 +55,6 @@ Defined in: [packages/angular-query/src/inject-infinite-query.ts:34](https://git
 
 () => [`DefinedInitialDataInfiniteOptions`](../type-aliases/DefinedInitialDataInfiniteOptions.md)\<`TQueryFnData`, `TError`, `TData`, `TQueryKey`, `TPageParam`\>
 
-#### options?
-
-[`InjectInfiniteQueryOptions`](../interfaces/InjectInfiniteQueryOptions.md)
-
 ### Returns
 
 [`DefinedCreateInfiniteQueryResult`](../type-aliases/DefinedCreateInfiniteQueryResult.md)\<`TData`, `TError`\>
@@ -67,7 +62,7 @@ Defined in: [packages/angular-query/src/inject-infinite-query.ts:34](https://git
 ## Call Signature
 
 ```ts
-function injectInfiniteQuery<TQueryFnData, TError, TData, TQueryKey, TPageParam>(injectInfiniteQueryFn, options?): CreateInfiniteQueryResult<TData, TError>;
+function injectInfiniteQuery<TQueryFnData, TError, TData, TQueryKey, TPageParam>(injectInfiniteQueryFn): CreateInfiniteQueryResult<TData, TError>;
 ```
 
 Defined in: [packages/angular-query/src/inject-infinite-query.ts:51](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-infinite-query.ts#L51)
@@ -100,10 +95,6 @@ Defined in: [packages/angular-query/src/inject-infinite-query.ts:51](https://git
 
 () => [`UndefinedInitialDataInfiniteOptions`](../type-aliases/UndefinedInitialDataInfiniteOptions.md)\<`TQueryFnData`, `TError`, `TData`, `TQueryKey`, `TPageParam`\>
 
-#### options?
-
-[`InjectInfiniteQueryOptions`](../interfaces/InjectInfiniteQueryOptions.md)
-
 ### Returns
 
 [`CreateInfiniteQueryResult`](../type-aliases/CreateInfiniteQueryResult.md)\<`TData`, `TError`\>
@@ -111,7 +102,7 @@ Defined in: [packages/angular-query/src/inject-infinite-query.ts:51](https://git
 ## Call Signature
 
 ```ts
-function injectInfiniteQuery<TQueryFnData, TError, TData, TQueryKey, TPageParam>(injectInfiniteQueryFn, options?): CreateInfiniteQueryResult<TData, TError>;
+function injectInfiniteQuery<TQueryFnData, TError, TData, TQueryKey, TPageParam>(injectInfiniteQueryFn): CreateInfiniteQueryResult<TData, TError>;
 ```
 
 Defined in: [packages/angular-query/src/inject-infinite-query.ts:68](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-infinite-query.ts#L68)
@@ -143,10 +134,6 @@ Defined in: [packages/angular-query/src/inject-infinite-query.ts:68](https://git
 #### injectInfiniteQueryFn
 
 () => [`CreateInfiniteQueryOptions`](../interfaces/CreateInfiniteQueryOptions.md)\<`TQueryFnData`, `TError`, `TData`, `TQueryKey`, `TPageParam`\>
-
-#### options?
-
-[`InjectInfiniteQueryOptions`](../interfaces/InjectInfiniteQueryOptions.md)
 
 ### Returns
 

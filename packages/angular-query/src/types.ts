@@ -16,7 +16,7 @@ import type {
   QueryObserverResult,
 } from '@tanstack/query-core'
 import type { Signal } from '@angular/core'
-import type { MapToSignals, MethodKeys } from './signal-proxy'
+import type { MapToSignals, MethodKeys } from './utils/signal-proxy'
 
 export type CreateBaseQueryOptions<
   TQueryFnData = unknown,

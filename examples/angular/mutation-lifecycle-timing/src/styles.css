@@ -1,0 +1,11 @@
+body {
+  font-family: sans-serif;
+  margin: 2rem;
+}
+code,
+output {
+  font-family: ui-monospace, monospace;
+}
+li {
+  margin: 0.35rem 0;
+}

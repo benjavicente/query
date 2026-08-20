@@ -46,7 +46,6 @@ A function that returns query options.
 
 ## Param
 
-Additional configuration.
 
 ## See
 
@@ -55,7 +54,7 @@ https://tanstack.com/query/latest/docs/framework/angular/guides/queries
 ## Call Signature
 
 ```ts
-function injectQuery<TQueryFnData, TError, TData, TQueryKey>(injectQueryFn, options?): DefinedCreateQueryResult<TData, TError>;
+function injectQuery<TQueryFnData, TError, TData, TQueryKey>(injectQueryFn): DefinedCreateQueryResult<TData, TError>;
 ```
 
 Defined in: [packages/angular-query/src/inject-query.ts:29](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-query.ts#L29)
@@ -84,10 +83,6 @@ Defined in: [packages/angular-query/src/inject-query.ts:29](https://github.com/T
 
 () => [`DefinedInitialDataOptions`](../type-aliases/DefinedInitialDataOptions.md)\<`TQueryFnData`, `TError`, `TData`, `TQueryKey`\>
 
-#### options?
-
-[`InjectQueryOptions`](../interfaces/InjectQueryOptions.md)
-
 ### Returns
 
 [`DefinedCreateQueryResult`](../type-aliases/DefinedCreateQueryResult.md)\<`TData`, `TError`\>
@@ -95,7 +90,7 @@ Defined in: [packages/angular-query/src/inject-query.ts:29](https://github.com/T
 ## Call Signature
 
 ```ts
-function injectQuery<TQueryFnData, TError, TData, TQueryKey>(injectQueryFn, options?): CreateQueryResult<TData, TError>;
+function injectQuery<TQueryFnData, TError, TData, TQueryKey>(injectQueryFn): CreateQueryResult<TData, TError>;
 ```
 
 Defined in: [packages/angular-query/src/inject-query.ts:44](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-query.ts#L44)
@@ -124,10 +119,6 @@ Defined in: [packages/angular-query/src/inject-query.ts:44](https://github.com/T
 
 () => [`UndefinedInitialDataOptions`](../type-aliases/UndefinedInitialDataOptions.md)\<`TQueryFnData`, `TError`, `TData`, `TQueryKey`\>
 
-#### options?
-
-[`InjectQueryOptions`](../interfaces/InjectQueryOptions.md)
-
 ### Returns
 
 [`CreateQueryResult`](../type-aliases/CreateQueryResult.md)\<`TData`, `TError`\>
@@ -135,7 +126,7 @@ Defined in: [packages/angular-query/src/inject-query.ts:44](https://github.com/T
 ## Call Signature
 
 ```ts
-function injectQuery<TQueryFnData, TError, TData, TQueryKey>(injectQueryFn, options?): CreateQueryResult<TData, TError>;
+function injectQuery<TQueryFnData, TError, TData, TQueryKey>(injectQueryFn): CreateQueryResult<TData, TError>;
 ```
 
 Defined in: [packages/angular-query/src/inject-query.ts:59](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-query.ts#L59)
@@ -163,10 +154,6 @@ Defined in: [packages/angular-query/src/inject-query.ts:59](https://github.com/T
 #### injectQueryFn
 
 () => [`CreateQueryOptions`](../type-aliases/CreateQueryOptions.md)\<`TQueryFnData`, `TError`, `TData`, `TQueryKey`\>
-
-#### options?
-
-[`InjectQueryOptions`](../interfaces/InjectQueryOptions.md)
 
 ### Returns
 

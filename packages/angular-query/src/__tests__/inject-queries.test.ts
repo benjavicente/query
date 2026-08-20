@@ -4,7 +4,6 @@ import {
   ApplicationRef,
   ChangeDetectionStrategy,
   Component,
-  Injector,
   computed,
   effect,
   input,
@@ -43,23 +42,6 @@ describe('injectQueries', () => {
         ],
       }))
     }).toThrowError(/NG0203(.*?)injectQueries/)
-  })
-
-  it('can be used outside injection context when passing an injector', () => {
-    const injector = TestBed.inject(Injector)
-    const queries = injectQueries(
-      () => ({
-        queries: [
-          {
-            queryKey: ['manualInjector'],
-            queryFn: () => Promise.resolve(1),
-          },
-        ],
-      }),
-      { injector },
-    )
-
-    expect(queries()[0].status()).toBe('pending')
   })
 
   it('should return the correct states', async () => {

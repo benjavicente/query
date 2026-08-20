@@ -1,15 +1,14 @@
-import { DestroyRef, PendingTasks } from '@angular/core'
-import type { Injector } from '@angular/core'
+import { DestroyRef, PendingTasks, inject } from '@angular/core'
 
 export interface QueryLifecycle {
   readonly destroyed: boolean
   setPending: (pending: boolean) => void
 }
 
-export function injectQueryLifecycle(injector: Injector): QueryLifecycle {
-  const destroyRef = injector.get(DestroyRef)
-  const pendingTasks = injector.get(PendingTasks)
-  let destroyed = false
+export function injectPendingTasksLifecycle(): QueryLifecycle {
+  const destroyRef = inject(DestroyRef)
+  const pendingTasks = inject(PendingTasks)
+  let destroyed = false // In Angular >= 20.1, read destroyRef.destroyed directly
   let taskCleanup: (() => void) | undefined
 
   const lifecycle: QueryLifecycle = {

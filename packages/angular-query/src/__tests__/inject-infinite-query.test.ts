@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { ChangeDetectionStrategy, Component, Injector } from '@angular/core'
+import { ChangeDetectionStrategy, Component } from '@angular/core'
 import { sleep } from '@tanstack/query-test-utils'
 import { QueryClient, injectInfiniteQuery } from '..'
 import { expectSignals, setupTanStackQueryTestBed } from './test-utils'
@@ -79,26 +79,5 @@ describe('injectInfiniteQuery', () => {
       }).toThrowError(/NG0203(.*?)injectInfiniteQuery/)
     })
 
-    it('can be used outside injection context when passing an injector', () => {
-      const injector = TestBed.inject(Injector)
-
-      // Call injectInfiniteQuery directly outside any component
-      const query = injectInfiniteQuery(
-        () => ({
-          queryKey: ['manualInjector'],
-          queryFn: ({ pageParam }) =>
-            sleep(0).then(() => 'data on page ' + pageParam),
-          initialPageParam: 0,
-          getNextPageParam: () => 12,
-        }),
-        {
-          injector: injector,
-        },
-      )
-
-      TestBed.tick()
-
-      expect(query.status()).toBe('pending')
-    })
   })
 })

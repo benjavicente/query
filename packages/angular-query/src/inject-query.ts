@@ -1,10 +1,5 @@
 import { QueryObserver } from '@tanstack/query-core'
-import {
-  Injector,
-  assertInInjectionContext,
-  inject,
-  runInInjectionContext,
-} from '@angular/core'
+import { assertInInjectionContext } from '@angular/core'
 import { injectBaseQuery } from './inject-base-query'
 import type { DefaultError, QueryKey } from '@tanstack/query-core'
 import type {
@@ -16,15 +11,6 @@ import type {
   DefinedInitialDataOptions,
   UndefinedInitialDataOptions,
 } from './query-options'
-
-export interface InjectQueryOptions {
-  /**
-   * The `Injector` in which to create the query.
-   *
-   * If this is not provided, the current injection context will be used instead (via `inject`).
-   */
-  injector?: Injector
-}
 
 export function injectQuery<
   TQueryFnData = unknown,
@@ -38,7 +24,6 @@ export function injectQuery<
     TData,
     TQueryKey
   >,
-  options?: InjectQueryOptions,
 ): DefinedCreateQueryResult<TData, TError>
 
 export function injectQuery<
@@ -53,7 +38,6 @@ export function injectQuery<
     TData,
     TQueryKey
   >,
-  options?: InjectQueryOptions,
 ): CreateQueryResult<TData, TError>
 
 export function injectQuery<
@@ -68,7 +52,6 @@ export function injectQuery<
     TData,
     TQueryKey
   >,
-  options?: InjectQueryOptions,
 ): CreateQueryResult<TData, TError>
 
 /**
@@ -107,17 +90,15 @@ export function injectQuery<
  * }
  * ```
  * @param injectQueryFn - A function that returns query options.
- * @param options - Additional configuration.
  * @returns The query result.
  * @see https://tanstack.com/query/latest/docs/framework/angular/guides/queries
  */
-export function injectQuery(
-  injectQueryFn: () => CreateQueryOptions,
-  options?: InjectQueryOptions,
-) {
-  !options?.injector && assertInInjectionContext(injectQuery)
-  return runInInjectionContext(options?.injector ?? inject(Injector), () =>
-    injectBaseQuery(injectQueryFn, QueryObserver, methodsToExclude),
+export function injectQuery(injectQueryFn: () => CreateQueryOptions) {
+  assertInInjectionContext(injectQuery)
+  return injectBaseQuery(
+    injectQueryFn,
+    QueryObserver,
+    methodsToExclude,
   ) as unknown as CreateQueryResult
 }
 

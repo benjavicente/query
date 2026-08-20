@@ -1,5 +1,4 @@
 import {
-  Injector,
   NgZone,
   computed,
   effect,
@@ -12,9 +11,9 @@ import {
   notifyManager,
   shouldThrowError,
 } from '@tanstack/query-core'
-import { signalProxy } from './signal-proxy'
+import { signalProxy } from './utils/signal-proxy'
 import { injectIsRestoring } from './inject-is-restoring'
-import { injectQueryLifecycle } from './inject-query-lifecycle'
+import { injectPendingTasksLifecycle } from './utils/inject-pending-tasks-lifecycle'
 import type {
   DefaultedQueryObserverOptions,
   QueryKey,
@@ -22,7 +21,8 @@ import type {
   QueryObserverResult,
 } from '@tanstack/query-core'
 import type { CreateBaseQueryOptions } from './types'
-import type { MethodKeys } from './signal-proxy'
+import type { MethodKeys } from './utils/signal-proxy'
+import { CleanupFn, injectLazyValue } from './utils/inject-lazy-value'
 
 /**
  * Base implementation for `injectQuery` and `injectInfiniteQuery`.
@@ -47,11 +47,10 @@ export function injectBaseQuery<
   Observer: typeof QueryObserver,
   excludeFunctions: ReadonlyArray<string>,
 ) {
-  const injector = inject(Injector)
   const ngZone = inject(NgZone)
   const queryClient = inject(QueryClient)
   const isRestoring = injectIsRestoring()
-  const lifecycle = injectQueryLifecycle(injector)
+  const lifecycle = injectPendingTasksLifecycle()
 
   const shouldBlockPendingTasks = (
     observer: QueryObserver<TQueryFnData, TError, TData, TQueryData, TQueryKey>,
@@ -77,13 +76,40 @@ export function injectBaseQuery<
     return defaultedOptions
   })
 
-  // Computed without deps to lazy initialize the observer
-  const observerSignal = computed(() => {
-    return new Observer(queryClient, untracked(defaultedOptionsSignal))
-  })
+  const lazyObserver = injectLazyValue(
+    () => new Observer(queryClient, defaultedOptionsSignal()),
+    () => {
+      let unsubscribe: CleanupFn | undefined
+
+      const syncSubscription = (shouldSubscribe: boolean) => {
+        if (shouldSubscribe && !unsubscribe) {
+          // Subscribe as soon as possible
+          unsubscribe = ngZone.runOutsideAngular(() => subscribeToObserver())
+        } else if (!shouldSubscribe && unsubscribe) {
+          unsubscribe()
+          unsubscribe = undefined
+          lifecycle.setPending(false)
+        }
+      }
+
+      // Synchronous initialization
+      syncSubscription(!untracked(isRestoring))
+
+      // Change subscription depending on restoring state
+      // In most cases isRestoring will be the same so the
+      // subscription setup eagerlly will not change
+      effect(() => {
+        const shouldSubscribe = !isRestoring()
+
+        untracked(() => {
+          syncSubscription(shouldSubscribe)
+        })
+      })
+    },
+  )
 
   effect(() => {
-    observerSignal().setOptions(defaultedOptionsSignal())
+    lazyObserver().setOptions(defaultedOptionsSignal())
   })
 
   const trackObserverResult = (
@@ -96,7 +122,7 @@ export function injectBaseQuery<
       TQueryKey
     >['notifyOnChangeProps'],
   ) => {
-    const observer = untracked(observerSignal)
+    const observer = lazyObserver()
     const trackedResult = observer.trackResult(result)
 
     if (!notifyOnChangeProps) {
@@ -121,7 +147,7 @@ export function injectBaseQuery<
   }
 
   const subscribeToObserver = () => {
-    const observer = untracked(observerSignal)
+    const observer = lazyObserver()
     const initialState = observer.getCurrentResult()
     lifecycle.setPending(shouldBlockPendingTasks(observer, initialState))
 
@@ -157,25 +183,12 @@ export function injectBaseQuery<
   const resultSignal = linkedSignal({
     source: defaultedOptionsSignal,
     computation: () => {
-      const observer = untracked(observerSignal)
+      const observer = lazyObserver()
       const defaultedOptions = defaultedOptionsSignal()
 
       const result = observer.getOptimisticResult(defaultedOptions)
       return trackObserverResult(result, defaultedOptions.notifyOnChangeProps)
     },
-  })
-
-  effect((onCleanup) => {
-    if (isRestoring()) {
-      return
-    }
-    const unsubscribe = untracked(() =>
-      ngZone.runOutsideAngular(() => subscribeToObserver()),
-    )
-    onCleanup(() => {
-      unsubscribe()
-      lifecycle.setPending(false)
-    })
   })
 
   return signalProxy(

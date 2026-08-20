@@ -1,6 +1,5 @@
 import {
   DestroyRef,
-  Injector,
   NgZone,
   assertInInjectionContext,
   computed,
@@ -42,30 +41,18 @@ function getResult<TResult = MutationState>(
     )
 }
 
-export interface InjectMutationStateOptions {
-  /**
-   * The `Injector` in which to create the mutation state signal.
-   *
-   * If this is not provided, the current injection context will be used instead (via `inject`).
-   */
-  injector?: Injector
-}
-
 /**
  * Injects a signal that tracks the state of all mutations.
  * @param injectMutationStateFn - A function that returns mutation state options.
- * @param options - The Angular injector to use.
  * @returns The signal that tracks the state of all mutations.
  */
 export function injectMutationState<TResult = MutationState>(
   injectMutationStateFn: () => MutationStateOptions<TResult> = () => ({}),
-  options?: InjectMutationStateOptions,
 ): Signal<Array<TResult>> {
-  !options?.injector && assertInInjectionContext(injectMutationState)
-  const injector = options?.injector ?? inject(Injector)
-  const destroyRef = injector.get(DestroyRef)
-  const ngZone = injector.get(NgZone)
-  const queryClient = injector.get(QueryClient)
+  assertInInjectionContext(injectMutationState)
+  const destroyRef = inject(DestroyRef)
+  const ngZone = inject(NgZone)
+  const queryClient = inject(QueryClient)
   const mutationCache = queryClient.getMutationCache()
 
   /**

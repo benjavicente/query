@@ -1,10 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TestBed } from '@angular/core/testing'
-import {
-  Component,
-  Injector,
-  provideZonelessChangeDetection,
-} from '@angular/core'
+import { Component, provideZonelessChangeDetection } from '@angular/core'
 import { render } from '@testing-library/angular'
 import { queryKey, sleep } from '@tanstack/query-test-utils'
 import {
@@ -100,14 +96,6 @@ describe('injectIsMutating', () => {
       expect(() => {
         injectIsMutating()
       }).toThrow(/NG0203(.*?)injectIsMutating/)
-    })
-
-    it('should be usable outside injection context when passing an injector', () => {
-      expect(
-        injectIsMutating(undefined, {
-          injector: TestBed.inject(Injector),
-        }),
-      ).not.toThrow()
     })
   })
 })

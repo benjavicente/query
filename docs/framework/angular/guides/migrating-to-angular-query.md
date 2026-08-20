@@ -102,8 +102,8 @@ options.
 
 ### Use the stable `injectQueries` export
 
-`injectQueries` is now exported from the main package. Its optional explicit injector uses the same
-options-object convention as the other injection APIs.
+`injectQueries` is now exported from the main package. The helper must be called from an Angular
+injection context.
 
 ```ts
 import {
@@ -113,7 +113,7 @@ import { injectQueries } from '@tanstack/angular-query' // [!code ++]
 
 const getQueries = () => ({ queries })
 const results = injectQueries(getQueries, injector) // [!code --]
-const results = injectQueries(getQueries, { injector }) // [!code ++]
+const results = runInInjectionContext(injector, () => injectQueries(getQueries)) // [!code ++]
 ```
 
 The `queries` callback is reactive, tuple inference is preserved, and `combine` can derive a single
@@ -255,11 +255,11 @@ readonly todos = injectQuery(() => ({ // [!code ++]
 })) // [!code ++]
 ```
 
-When using an explicit injector, pass it as the second argument:
+When a helper must be called from a callback that is not already in an injection context, use
+Angular's `runInInjectionContext` at the call site:
 
 ```ts
-injectQuery({ injector })(queryOptions) // [!code --]
-injectQuery(() => queryOptions, { injector }) // [!code ++]
+runInInjectionContext(injector, () => injectQuery(() => queryOptions))
 ```
 
 ### Migrate infinite queries and mutations

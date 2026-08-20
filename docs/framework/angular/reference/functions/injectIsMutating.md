@@ -6,7 +6,7 @@ title: injectIsMutating
 # Function: injectIsMutating()
 
 ```ts
-function injectIsMutating(filters?, options?): Signal<number>;
+function injectIsMutating(filters?): Signal<number>;
 ```
 
 Defined in: [packages/angular-query/src/inject-is-mutating.ts:30](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-is-mutating.ts#L30)
@@ -22,12 +22,6 @@ Can be used for app-wide loading indicators
 `MutationFilters`\<`unknown`, `Error`, `unknown`, `unknown`\>
 
 The filters to apply to the query.
-
-### options?
-
-[`InjectIsMutatingOptions`](../interfaces/InjectIsMutatingOptions.md)
-
-Additional configuration
 
 ## Returns
 

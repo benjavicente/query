@@ -6,7 +6,7 @@ title: injectIsFetching
 # Function: injectIsFetching()
 
 ```ts
-function injectIsFetching(filters?, options?): Signal<number>;
+function injectIsFetching(filters?): Signal<number>;
 ```
 
 Defined in: [packages/angular-query/src/inject-is-fetching.ts:31](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-is-fetching.ts#L31)
@@ -23,12 +23,6 @@ Can be used for app-wide loading indicators
 `QueryFilters`\<readonly `unknown`[]\>
 
 The filters to apply to the query.
-
-### options?
-
-[`InjectIsFetchingOptions`](../interfaces/InjectIsFetchingOptions.md)
-
-Additional configuration
 
 ## Returns
 

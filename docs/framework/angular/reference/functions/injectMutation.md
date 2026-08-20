@@ -6,7 +6,7 @@ title: injectMutation
 # Function: injectMutation()
 
 ```ts
-function injectMutation<TData, TError, TVariables, TOnMutateResult>(injectMutationFn, options?): CreateMutationResult<TData, TError, TVariables, TOnMutateResult>;
+function injectMutation<TData, TError, TVariables, TOnMutateResult>(injectMutationFn): CreateMutationResult<TData, TError, TVariables, TOnMutateResult>;
 ```
 
 Defined in: [packages/angular-query/src/inject-mutation.ts:44](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-mutation.ts#L44)
@@ -40,12 +40,6 @@ Unlike queries, mutations are not run automatically.
 () => [`CreateMutationOptions`](../interfaces/CreateMutationOptions.md)\<`TData`, `TError`, `TVariables`, `TOnMutateResult`\>
 
 A function that returns mutation options.
-
-### options?
-
-[`InjectMutationOptions`](../interfaces/InjectMutationOptions.md)
-
-Additional configuration
 
 ## Returns
 
