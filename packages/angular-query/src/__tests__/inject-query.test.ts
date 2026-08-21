@@ -1058,6 +1058,14 @@ describe('injectQuery', () => {
     expect(fetchSpy).toHaveBeenCalledTimes(1)
     expect(query.status()).toBe('success')
     expect(query.data()).toBe('restored-data')
+
+    const cachedQuery = queryClient
+      .getQueryCache()
+      .find({ queryKey: ['restoring'] })!
+    expect(cachedQuery.getObserversCount()).toBe(1)
+
+    fixture.destroy()
+    expect(cachedQuery.getObserversCount()).toBe(0)
   })
 
   describe('injection context', () => {

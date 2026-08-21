@@ -6,13 +6,11 @@ import {
   linkedSignal,
   untracked,
 } from '@angular/core'
-import {
-  QueryClient,
-  shouldThrowError,
-} from '@tanstack/query-core'
+import { QueryClient, shouldThrowError } from '@tanstack/query-core'
 import { signalProxy } from './utils/signal-proxy'
 import { injectIsRestoring } from './inject-is-restoring'
 import { injectPendingTasksLifecycle } from './utils/inject-pending-tasks-lifecycle'
+import { injectLazyValue } from './utils/inject-lazy-value'
 import type {
   DefaultedQueryObserverOptions,
   QueryKey,
@@ -21,7 +19,7 @@ import type {
 } from '@tanstack/query-core'
 import type { CreateBaseQueryOptions } from './types'
 import type { MethodKeys } from './utils/signal-proxy'
-import { CleanupFn, injectLazyValue } from './utils/inject-lazy-value'
+import type { CleanupFn } from './utils/inject-lazy-value'
 
 /**
  * Base implementation for `injectQuery` and `injectInfiniteQuery`.
@@ -96,14 +94,19 @@ export function injectBaseQuery<
 
       // Change subscription depending on restoring state
       // In most cases isRestoring will be the same so the
-      // subscription setup eagerlly will not change
-      effect(() => {
+      // subscription setup eagerly will not change
+      const activeEffect = effect(() => {
         const shouldSubscribe = !isRestoring()
 
         untracked(() => {
           syncSubscription(shouldSubscribe)
         })
       })
+
+      return () => {
+        activeEffect.destroy()
+        syncSubscription(false)
+      }
     },
   )
 
