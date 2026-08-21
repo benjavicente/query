@@ -5,7 +5,7 @@ import {
   inject,
   signal,
 } from '@angular/core'
-import { QueryClient, notifyManager } from '@tanstack/query-core'
+import { QueryClient } from '@tanstack/query-core'
 import type { QueryFilters } from '@tanstack/query-core'
 import type { Signal } from '@angular/core'
 
@@ -30,8 +30,8 @@ export function injectIsFetching(filters?: QueryFilters): Signal<number> {
   const result = signal(isFetching)
 
   const unsubscribe = ngZone.runOutsideAngular(() =>
-    cache.subscribe(
-      notifyManager.batchCalls(() => {
+    cache.subscribe(() => {
+      queueMicrotask(() => {
         const newIsFetching = queryClient.isFetching(filters)
         if (isFetching !== newIsFetching) {
           // * and update with each change
@@ -40,8 +40,8 @@ export function injectIsFetching(filters?: QueryFilters): Signal<number> {
             result.set(isFetching)
           })
         }
-      }),
-    ),
+      })
+    }),
   )
 
   destroyRef.onDestroy(unsubscribe)

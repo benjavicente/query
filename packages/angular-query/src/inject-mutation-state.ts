@@ -8,7 +8,6 @@ import {
 } from '@angular/core'
 import {
   QueryClient,
-  notifyManager,
   replaceEqualDeep,
 } from '@tanstack/query-core'
 import type { Signal } from '@angular/core'
@@ -86,20 +85,18 @@ export function injectMutationState<TResult = MutationState>(
   })
 
   const unsubscribe = ngZone.runOutsideAngular(() =>
-    mutationCache.subscribe(
-      notifyManager.batchCalls(() => {
-        const [lastResult] = effectiveResultSignal()
-        const nextResult = replaceEqualDeep(
-          lastResult,
-          getResult(mutationCache, injectMutationStateFn()),
-        )
-        if (lastResult !== nextResult) {
-          ngZone.run(() => {
-            resultFromSubscriberSignal.set([nextResult, performance.now()])
-          })
-        }
-      }),
-    ),
+    mutationCache.subscribe(() => {
+      const [lastResult] = effectiveResultSignal()
+      const nextResult = replaceEqualDeep(
+        lastResult,
+        getResult(mutationCache, injectMutationStateFn()),
+      )
+      if (lastResult !== nextResult) {
+        ngZone.run(() => {
+          resultFromSubscriberSignal.set([nextResult, performance.now()])
+        })
+      }
+    }),
   )
 
   destroyRef.onDestroy(unsubscribe)

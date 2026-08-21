@@ -11,7 +11,6 @@ import {
   MutationObserver,
   QueryClient,
   noop,
-  notifyManager,
   shouldThrowError,
 } from '@tanstack/query-core'
 import { signalProxy } from './utils/signal-proxy'
@@ -61,7 +60,7 @@ export function injectMutation<
     (observer) => {
       const unsubscribe = ngZone.runOutsideAngular(() =>
         observer.subscribe(
-          notifyManager.batchCalls((state) => {
+          (state) => {
             ngZone.run(() => {
               if (lifecycle.destroyed) return
 
@@ -77,7 +76,7 @@ export function injectMutation<
 
               resultFromSubscriberSignal.set(state)
             })
-          }),
+          },
         ),
       )
       return () => {

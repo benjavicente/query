@@ -8,7 +8,6 @@ import {
 } from '@angular/core'
 import {
   QueryClient,
-  notifyManager,
   shouldThrowError,
 } from '@tanstack/query-core'
 import { signalProxy } from './utils/signal-proxy'
@@ -154,28 +153,35 @@ export function injectBaseQuery<
     return observer.subscribe((state) => {
       lifecycle.setPending(shouldBlockPendingTasks(observer, state))
 
-      queueMicrotask(() => {
-        if (lifecycle.destroyed) return
-        notifyManager.batch(() => {
+      if (lifecycle.destroyed) return
+      const shouldThrow =
+        state.isError &&
+        !state.isFetching &&
+        shouldThrowError(observer.options.throwOnError, [
+          state.error,
+          observer.getCurrentQuery(),
+        ])
+
+      if (shouldThrow) {
+        // Keep error propagation asynchronous without delaying ordinary result
+        // signal updates. This mirrors Vue's watcher-based error handling while
+        // avoiding an adapter-level notification batch.
+        queueMicrotask(() => {
+          if (lifecycle.destroyed) return
           ngZone.run(() => {
-            if (
-              state.isError &&
-              !state.isFetching &&
-              shouldThrowError(observer.options.throwOnError, [
-                state.error,
-                observer.getCurrentQuery(),
-              ])
-            ) {
-              ngZone.onError.emit(state.error)
-              throw state.error
-            }
-            const trackedState = trackObserverResult(
-              state,
-              observer.options.notifyOnChangeProps,
-            )
-            resultSignal.set(trackedState)
+            ngZone.onError.emit(state.error)
+            throw state.error
           })
         })
+        return
+      }
+
+      ngZone.run(() => {
+        const trackedState = trackObserverResult(
+          state,
+          observer.options.notifyOnChangeProps,
+        )
+        resultSignal.set(trackedState)
       })
     })
   }

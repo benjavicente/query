@@ -155,6 +155,35 @@ describe('PendingTasks Integration', () => {
       expect(mutation.isError()).toBe(true)
       expect(mutation.error()).toEqual(new Error('sync-mutation-error'))
     })
+
+    it('should keep whenStable pending after mutate starts', async () => {
+      const app = TestBed.inject(ApplicationRef)
+
+      const mutation = TestBed.runInInjectionContext(() =>
+        injectMutation(() => ({
+          mutationFn: async () => {
+            await sleep(20)
+            return 'done'
+          },
+        })),
+      )
+
+      mutation.mutate()
+
+      let stableResolved = false
+      const stablePromise = app.whenStable().then(() => {
+        stableResolved = true
+      })
+
+      await Promise.resolve()
+      expect(stableResolved).toBe(false)
+
+      await vi.advanceTimersByTimeAsync(21)
+      await vi.advanceTimersByTimeAsync(0)
+      await stablePromise
+      expect(mutation.isSuccess()).toBe(true)
+      expect(mutation.data()).toBe('done')
+    })
   })
 
   describe('Race Conditions', () => {

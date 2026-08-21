@@ -1,7 +1,6 @@
 import {
   QueriesObserver,
   QueryClient,
-  notifyManager,
 } from '@tanstack/query-core'
 import {
   NgZone,
@@ -366,13 +365,9 @@ export function injectQueries<
         observer.subscribe((state) => {
           lifecycle.setPending(hasPendingQueriesState(state))
 
-          queueMicrotask(() => {
-            if (lifecycle.destroyed) return
-            notifyManager.batch(() => {
-              ngZone.run(() => {
-                resultSignal.set(getCombinedResult(state))
-              })
-            })
+          if (lifecycle.destroyed) return
+          ngZone.run(() => {
+            resultSignal.set(getCombinedResult(state))
           })
         }),
       ),

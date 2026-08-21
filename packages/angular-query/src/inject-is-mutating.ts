@@ -5,7 +5,7 @@ import {
   inject,
   signal,
 } from '@angular/core'
-import { QueryClient, notifyManager } from '@tanstack/query-core'
+import { QueryClient } from '@tanstack/query-core'
 import type { MutationFilters } from '@tanstack/query-core'
 import type { Signal } from '@angular/core'
 
@@ -29,18 +29,16 @@ export function injectIsMutating(filters?: MutationFilters): Signal<number> {
   const result = signal(isMutating)
 
   const unsubscribe = ngZone.runOutsideAngular(() =>
-    cache.subscribe(
-      notifyManager.batchCalls(() => {
-        const newIsMutating = queryClient.isMutating(filters)
-        if (isMutating !== newIsMutating) {
-          // * and update with each change
-          isMutating = newIsMutating
-          ngZone.run(() => {
-            result.set(isMutating)
-          })
-        }
-      }),
-    ),
+    cache.subscribe(() => {
+      const newIsMutating = queryClient.isMutating(filters)
+      if (isMutating !== newIsMutating) {
+        // * and update with each change
+        isMutating = newIsMutating
+        ngZone.run(() => {
+          result.set(isMutating)
+        })
+      }
+    }),
   )
 
   destroyRef.onDestroy(unsubscribe)
