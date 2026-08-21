@@ -19,6 +19,7 @@ title: "@tanstack/angular-query"
 
 ## Type Aliases
 
+- [AnyQueryFeature](type-aliases/AnyQueryFeature.md)
 - [CreateBaseMutationResult](type-aliases/CreateBaseMutationResult.md)
 - [CreateBaseQueryOptions](type-aliases/CreateBaseQueryOptions.md)
 - [CreateBaseQueryResult](type-aliases/CreateBaseQueryResult.md)
@@ -37,7 +38,6 @@ title: "@tanstack/angular-query"
 - [PersistQueryClientFeature](type-aliases/PersistQueryClientFeature.md)
 - [QueriesOptions](type-aliases/QueriesOptions.md)
 - [QueriesResults](type-aliases/QueriesResults.md)
-- [QueryFeatures](type-aliases/QueryFeatures.md)
 - [UndefinedInitialDataInfiniteOptions](type-aliases/UndefinedInitialDataInfiniteOptions.md)
 - [UndefinedInitialDataOptions](type-aliases/UndefinedInitialDataOptions.md)
 - [UnusedSkipTokenInfiniteOptions](type-aliases/UnusedSkipTokenInfiniteOptions.md)

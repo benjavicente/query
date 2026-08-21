@@ -50,9 +50,9 @@ export { injectQuery } from './inject-query'
 
 export type {
   DevtoolsFeature,
+  AnyQueryFeature,
   PersistQueryClientFeature,
   QueryFeature,
-  QueryFeatures,
 } from './providers'
 export {
   provideQueryClient,

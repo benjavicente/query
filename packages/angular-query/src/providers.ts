@@ -127,7 +127,7 @@ export function provideQueryClient(
  */
 export function provideTanStackQuery(
   queryClientFactoryOrToken: InjectionToken<QueryClient> | (() => QueryClient),
-  ...features: Array<QueryFeatures>
+  ...features: Array<AnyQueryFeature>
 ): EnvironmentProviders {
   return makeEnvironmentProviders([
     createQueryClientProvider(queryClientFactoryOrToken),
@@ -229,7 +229,7 @@ export function withNoQueryHydration(): QueryFeature<'Hydration'> {
  * documentation on how to use those functions.
  * @see {@link provideTanStackQuery}
  */
-export type QueryFeatures =
+export type AnyQueryFeature =
   | DevtoolsFeature
   | QueryFeature<'Hydration'>
   | PersistQueryClientFeature

@@ -18,7 +18,7 @@ export function injectQuery<
   TData = TQueryFnData,
   TQueryKey extends QueryKey = QueryKey,
 >(
-  injectQueryFn: () => DefinedInitialDataOptions<
+  optionsFn: () => DefinedInitialDataOptions<
     TQueryFnData,
     TError,
     TData,
@@ -32,7 +32,7 @@ export function injectQuery<
   TData = TQueryFnData,
   TQueryKey extends QueryKey = QueryKey,
 >(
-  injectQueryFn: () => UndefinedInitialDataOptions<
+  optionsFn: () => UndefinedInitialDataOptions<
     TQueryFnData,
     TError,
     TData,
@@ -46,7 +46,7 @@ export function injectQuery<
   TData = TQueryFnData,
   TQueryKey extends QueryKey = QueryKey,
 >(
-  injectQueryFn: () => CreateQueryOptions<
+  optionsFn: () => CreateQueryOptions<
     TQueryFnData,
     TError,
     TData,
@@ -89,17 +89,19 @@ export function injectQuery<
  *   }))
  * }
  * ```
- * @param injectQueryFn - A function that returns query options.
+ * @param optionsFn - A function that returns query options.
  * @returns The query result.
  * @see https://tanstack.com/query/latest/docs/framework/angular/guides/queries
  */
-export function injectQuery(injectQueryFn: () => CreateQueryOptions) {
+export function injectQuery(
+  optionsFn: () => CreateQueryOptions,
+): DefinedCreateQueryResult | CreateQueryResult {
   assertInInjectionContext(injectQuery)
   return injectBaseQuery(
-    injectQueryFn,
+    optionsFn,
     QueryObserver,
     methodsToExclude,
-  ) as unknown as CreateQueryResult
+  ) as unknown as DefinedCreateQueryResult | CreateQueryResult
 }
 
 const methodsToExclude = ['refetch'] as const

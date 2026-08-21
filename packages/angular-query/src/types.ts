@@ -18,6 +18,8 @@ import type {
 import type { Signal } from '@angular/core'
 import type { MapToSignals, MethodKeys } from './utils/signal-proxy'
 
+type SignalFunction<T extends () => any> = T & Signal<ReturnType<T>>
+
 export type CreateBaseQueryOptions<
   TQueryFnData = unknown,
   TError = DefaultError,
@@ -42,6 +44,12 @@ type CreateStatusBasedQueryResult<
   TError = DefaultError,
 > = Extract<QueryObserverResult<TData, TError>, { status: TStatus }>
 
+type CreateStatusBasedDefinedQueryResult<
+  TStatus extends DefinedQueryObserverResult['status'],
+  TData = unknown,
+  TError = DefaultError,
+> = Extract<DefinedQueryObserverResult<TData, TError>, { status: TStatus }>
+
 type CreateStatusBasedInfiniteQueryResult<
   TStatus extends InfiniteQueryObserverResult['status'],
   TData = unknown,
@@ -58,26 +66,53 @@ type CreateStatusBasedDefinedInfiniteQueryResult<
 >
 
 export interface BaseQueryNarrowing<TData = unknown, TError = DefaultError> {
-  isSuccess: (
-    this: CreateBaseQueryResult<TData, TError>,
-  ) => this is CreateBaseQueryResult<
-    TData,
-    TError,
-    CreateStatusBasedQueryResult<'success', TData, TError>
+  isSuccess: SignalFunction<
+    (this: CreateBaseQueryResult<TData, TError>) => this is CreateBaseQueryResult<
+      TData,
+      TError,
+      CreateStatusBasedQueryResult<'success', TData, TError>
+    >
   >
-  isError: (
-    this: CreateBaseQueryResult<TData, TError>,
-  ) => this is CreateBaseQueryResult<
-    TData,
-    TError,
-    CreateStatusBasedQueryResult<'error', TData, TError>
+  isError: SignalFunction<
+    (this: CreateBaseQueryResult<TData, TError>) => this is CreateBaseQueryResult<
+      TData,
+      TError,
+      CreateStatusBasedQueryResult<'error', TData, TError>
+    >
   >
-  isPending: (
-    this: CreateBaseQueryResult<TData, TError>,
-  ) => this is CreateBaseQueryResult<
-    TData,
-    TError,
-    CreateStatusBasedQueryResult<'pending', TData, TError>
+  isPending: SignalFunction<
+    (this: CreateBaseQueryResult<TData, TError>) => this is CreateBaseQueryResult<
+      TData,
+      TError,
+      CreateStatusBasedQueryResult<'pending', TData, TError>
+    >
+  >
+}
+
+export interface DefinedQueryNarrowing<
+  TData = unknown,
+  TError = DefaultError,
+> {
+  isSuccess: SignalFunction<
+    (
+      this: DefinedCreateQueryResult<TData, TError>,
+    ) => this is DefinedCreateQueryResult<
+      TData,
+      TError,
+      CreateStatusBasedDefinedQueryResult<'success', TData, TError>
+    >
+  >
+  isError: SignalFunction<
+    (
+      this: DefinedCreateQueryResult<TData, TError>,
+    ) => this is DefinedCreateQueryResult<
+      TData,
+      TError,
+      CreateStatusBasedDefinedQueryResult<'error', TData, TError>
+    >
+  >
+  isPending: SignalFunction<
+    (this: DefinedCreateQueryResult<TData, TError>) => this is never
   >
 }
 
@@ -85,26 +120,32 @@ export interface BaseInfiniteQueryNarrowing<
   TData = unknown,
   TError = DefaultError,
 > {
-  isSuccess: (
-    this: CreateInfiniteQueryResult<TData, TError>,
-  ) => this is CreateInfiniteQueryResult<
-    TData,
-    TError,
-    CreateStatusBasedInfiniteQueryResult<'success', TData, TError>
+  isSuccess: SignalFunction<
+    (
+      this: CreateInfiniteQueryResult<TData, TError>,
+    ) => this is CreateInfiniteQueryResult<
+      TData,
+      TError,
+      CreateStatusBasedInfiniteQueryResult<'success', TData, TError>
+    >
   >
-  isError: (
-    this: CreateInfiniteQueryResult<TData, TError>,
-  ) => this is CreateInfiniteQueryResult<
-    TData,
-    TError,
-    CreateStatusBasedInfiniteQueryResult<'error', TData, TError>
+  isError: SignalFunction<
+    (
+      this: CreateInfiniteQueryResult<TData, TError>,
+    ) => this is CreateInfiniteQueryResult<
+      TData,
+      TError,
+      CreateStatusBasedInfiniteQueryResult<'error', TData, TError>
+    >
   >
-  isPending: (
-    this: CreateInfiniteQueryResult<TData, TError>,
-  ) => this is CreateInfiniteQueryResult<
-    TData,
-    TError,
-    CreateStatusBasedInfiniteQueryResult<'pending', TData, TError>
+  isPending: SignalFunction<
+    (
+      this: CreateInfiniteQueryResult<TData, TError>,
+    ) => this is CreateInfiniteQueryResult<
+      TData,
+      TError,
+      CreateStatusBasedInfiniteQueryResult<'pending', TData, TError>
+    >
   >
 }
 
@@ -112,23 +153,27 @@ export interface DefinedInfiniteQueryNarrowing<
   TData = unknown,
   TError = DefaultError,
 > {
-  isSuccess: (
-    this: DefinedCreateInfiniteQueryResult<TData, TError>,
-  ) => this is DefinedCreateInfiniteQueryResult<
-    TData,
-    TError,
-    CreateStatusBasedDefinedInfiniteQueryResult<'success', TData, TError>
+  isSuccess: SignalFunction<
+    (
+      this: DefinedCreateInfiniteQueryResult<TData, TError>,
+    ) => this is DefinedCreateInfiniteQueryResult<
+      TData,
+      TError,
+      CreateStatusBasedDefinedInfiniteQueryResult<'success', TData, TError>
+    >
   >
-  isError: (
-    this: DefinedCreateInfiniteQueryResult<TData, TError>,
-  ) => this is DefinedCreateInfiniteQueryResult<
-    TData,
-    TError,
-    CreateStatusBasedDefinedInfiniteQueryResult<'error', TData, TError>
+  isError: SignalFunction<
+    (
+      this: DefinedCreateInfiniteQueryResult<TData, TError>,
+    ) => this is DefinedCreateInfiniteQueryResult<
+      TData,
+      TError,
+      CreateStatusBasedDefinedInfiniteQueryResult<'error', TData, TError>
+    >
   >
-  isPending: (
-    this: DefinedCreateInfiniteQueryResult<TData, TError>,
-  ) => this is never
+  isPending: SignalFunction<
+    (this: DefinedCreateInfiniteQueryResult<TData, TError>) => this is never
+  >
 }
 
 export interface CreateInfiniteQueryOptions<
@@ -171,10 +216,10 @@ export type DefinedCreateQueryResult<
   TError = DefaultError,
   TState extends DefinedQueryObserverResult<TData, TError> =
     DefinedQueryObserverResult<TData, TError>,
-> = BaseQueryNarrowing<TData, TError> &
+> = DefinedQueryNarrowing<TData, TError> &
   MapToSignals<
-    OmitKeyof<TState, keyof BaseQueryNarrowing, 'safely'>,
-    MethodKeys<OmitKeyof<TState, keyof BaseQueryNarrowing, 'safely'>>
+    OmitKeyof<TState, keyof DefinedQueryNarrowing, 'safely'>,
+    MethodKeys<OmitKeyof<TState, keyof DefinedQueryNarrowing, 'safely'>>
   >
 
 export type CreateInfiniteQueryResult<
@@ -253,8 +298,6 @@ type CreateStatusBasedMutationResult<
   CreateBaseMutationResult<TData, TError, TVariables, TOnMutateResult>,
   { status: TStatus }
 >
-
-type SignalFunction<T extends () => any> = T & Signal<ReturnType<T>>
 
 export interface BaseMutationNarrowing<
   TData = unknown,

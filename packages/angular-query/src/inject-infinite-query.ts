@@ -24,7 +24,7 @@ export function injectInfiniteQuery<
   TQueryKey extends QueryKey = QueryKey,
   TPageParam = unknown,
 >(
-  injectInfiniteQueryFn: () => DefinedInitialDataInfiniteOptions<
+  optionsFn: () => DefinedInitialDataInfiniteOptions<
     TQueryFnData,
     TError,
     TData,
@@ -40,7 +40,7 @@ export function injectInfiniteQuery<
   TQueryKey extends QueryKey = QueryKey,
   TPageParam = unknown,
 >(
-  injectInfiniteQueryFn: () => UndefinedInitialDataInfiniteOptions<
+  optionsFn: () => UndefinedInitialDataInfiniteOptions<
     TQueryFnData,
     TError,
     TData,
@@ -56,7 +56,7 @@ export function injectInfiniteQuery<
   TQueryKey extends QueryKey = QueryKey,
   TPageParam = unknown,
 >(
-  injectInfiniteQueryFn: () => CreateInfiniteQueryOptions<
+  optionsFn: () => CreateInfiniteQueryOptions<
     TQueryFnData,
     TError,
     TData,
@@ -69,7 +69,7 @@ export function injectInfiniteQuery<
  * Injects an infinite query: a declarative dependency on an asynchronous source of data that is tied to a unique key.
  * Infinite queries can additively "load more" data onto an existing set of data or support infinite scroll.
  *
- * @param injectInfiniteQueryFn - A function that returns infinite query options.
+ * @param optionsFn - A function that returns infinite query options.
  * @returns The infinite query result.
  * @see https://tanstack.com/query/latest/docs/framework/angular/guides/infinite-queries
  */
@@ -80,7 +80,7 @@ export function injectInfiniteQuery<
   TQueryKey extends QueryKey = QueryKey,
   TPageParam = unknown,
 >(
-  injectInfiniteQueryFn: () =>
+  optionsFn: () =>
     | DefinedInitialDataInfiniteOptions<
         TQueryFnData,
         TError,
@@ -100,7 +100,7 @@ export function injectInfiniteQuery<
   | CreateInfiniteQueryResult<TData, TError> {
   assertInInjectionContext(injectInfiniteQuery)
   return injectBaseQuery(
-    injectInfiniteQueryFn,
+    optionsFn,
     InfiniteQueryObserver as typeof QueryObserver,
     methodsToExclude,
   ) as unknown as

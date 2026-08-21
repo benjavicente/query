@@ -27,7 +27,7 @@ import type {
  * Injects a mutation: an imperative function that can be invoked which typically performs server side effects.
  *
  * Unlike queries, mutations are not run automatically.
- * @param injectMutationFn - A function that returns mutation options.
+ * @param optionsFn - A function that returns mutation options.
  * @returns The mutation.
  */
 export function injectMutation<
@@ -36,7 +36,7 @@ export function injectMutation<
   TVariables = void,
   TOnMutateResult = unknown,
 >(
-  injectMutationFn: () => CreateMutationOptions<
+  optionsFn: () => CreateMutationOptions<
     TData,
     TError,
     TVariables,
@@ -53,7 +53,7 @@ export function injectMutation<
    * making it reactive. Wrapping options in a function ensures embedded expressions
    * are preserved and can keep being applied after signal changes
    */
-  const optionsSignal = computed(injectMutationFn)
+  const optionsSignal = computed(optionsFn)
 
   const lazyObserver = injectLazyValue(
     () => new MutationObserver(queryClient, optionsSignal()),

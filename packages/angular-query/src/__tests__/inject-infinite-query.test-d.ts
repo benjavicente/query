@@ -4,6 +4,20 @@ import type { Signal } from '@angular/core'
 import type { InfiniteData } from '@tanstack/query-core'
 
 describe('injectInfiniteQuery', () => {
+  it('should expose status predicates as Angular signals', () => {
+    const query = injectInfiniteQuery(() => ({
+      queryKey: ['infiniteQuery'],
+      queryFn: ({ pageParam }) =>
+        Promise.resolve('data on page ' + pageParam),
+      initialPageParam: 0,
+      getNextPageParam: () => 12,
+    }))
+
+    expectTypeOf(query.isSuccess).toMatchTypeOf<Signal<boolean>>()
+    expectTypeOf(query.isError).toMatchTypeOf<Signal<boolean>>()
+    expectTypeOf(query.isPending).toMatchTypeOf<Signal<boolean>>()
+  })
+
   describe('initialData', () => {
     it('should narrow a defined result after an isError check', () => {
       const query = injectInfiniteQuery(() => ({

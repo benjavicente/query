@@ -119,6 +119,30 @@ describe('initialData', () => {
         expectTypeOf(query.data).toEqualTypeOf<Signal<{ wow: boolean }>>()
       }
     })
+
+    it('should keep data defined after an isError check when initialData is provided', () => {
+      const query = injectQuery(() => ({
+        queryKey: ['key'],
+        queryFn: () => Promise.resolve('Some data'),
+        initialData: 'initial data',
+      }))
+
+      if (query.isError()) {
+        expectTypeOf(query.data).toEqualTypeOf<Signal<string>>()
+      }
+    })
+
+    it('should make an isPending branch impossible when initialData is provided', () => {
+      const query = injectQuery(() => ({
+        queryKey: ['key'],
+        queryFn: () => Promise.resolve('Some data'),
+        initialData: 'initial data',
+      }))
+
+      if (query.isPending()) {
+        expectTypeOf(query).toEqualTypeOf<never>()
+      }
+    })
   })
 
   describe('structuralSharing', () => {
@@ -138,6 +162,17 @@ describe('initialData', () => {
 })
 
 describe('Discriminated union return type', () => {
+  it('should expose status predicates as Angular signals', () => {
+    const query = injectQuery(() => ({
+      queryKey: ['key'],
+      queryFn: () => sleep(0).then(() => 'Some data'),
+    }))
+
+    expectTypeOf(query.isSuccess).toMatchTypeOf<Signal<boolean>>()
+    expectTypeOf(query.isError).toMatchTypeOf<Signal<boolean>>()
+    expectTypeOf(query.isPending).toMatchTypeOf<Signal<boolean>>()
+  })
+
   it('should expose an Angular resource view', () => {
     const query = injectQuery(() => ({
       queryKey: ['key'],

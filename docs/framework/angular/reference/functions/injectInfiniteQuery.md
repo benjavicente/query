@@ -22,7 +22,7 @@ https://tanstack.com/query/latest/docs/framework/angular/guides/infinite-queries
 ## Call Signature
 
 ```ts
-function injectInfiniteQuery<TQueryFnData, TError, TData, TQueryKey, TPageParam>(injectInfiniteQueryFn): DefinedCreateInfiniteQueryResult<TData, TError>;
+function injectInfiniteQuery<TQueryFnData, TError, TData, TQueryKey, TPageParam>(optionsFn): DefinedCreateInfiniteQueryResult<TData, TError>;
 ```
 
 Defined in: [packages/angular-query/src/inject-infinite-query.ts:34](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-infinite-query.ts#L34)
@@ -51,7 +51,7 @@ Defined in: [packages/angular-query/src/inject-infinite-query.ts:34](https://git
 
 ### Parameters
 
-#### injectInfiniteQueryFn
+#### optionsFn
 
 () => [`DefinedInitialDataInfiniteOptions`](../type-aliases/DefinedInitialDataInfiniteOptions.md)\<`TQueryFnData`, `TError`, `TData`, `TQueryKey`, `TPageParam`\>
 
@@ -62,7 +62,7 @@ Defined in: [packages/angular-query/src/inject-infinite-query.ts:34](https://git
 ## Call Signature
 
 ```ts
-function injectInfiniteQuery<TQueryFnData, TError, TData, TQueryKey, TPageParam>(injectInfiniteQueryFn): CreateInfiniteQueryResult<TData, TError>;
+function injectInfiniteQuery<TQueryFnData, TError, TData, TQueryKey, TPageParam>(optionsFn): CreateInfiniteQueryResult<TData, TError>;
 ```
 
 Defined in: [packages/angular-query/src/inject-infinite-query.ts:51](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-infinite-query.ts#L51)
@@ -91,7 +91,7 @@ Defined in: [packages/angular-query/src/inject-infinite-query.ts:51](https://git
 
 ### Parameters
 
-#### injectInfiniteQueryFn
+#### optionsFn
 
 () => [`UndefinedInitialDataInfiniteOptions`](../type-aliases/UndefinedInitialDataInfiniteOptions.md)\<`TQueryFnData`, `TError`, `TData`, `TQueryKey`, `TPageParam`\>
 
@@ -102,7 +102,7 @@ Defined in: [packages/angular-query/src/inject-infinite-query.ts:51](https://git
 ## Call Signature
 
 ```ts
-function injectInfiniteQuery<TQueryFnData, TError, TData, TQueryKey, TPageParam>(injectInfiniteQueryFn): CreateInfiniteQueryResult<TData, TError>;
+function injectInfiniteQuery<TQueryFnData, TError, TData, TQueryKey, TPageParam>(optionsFn): CreateInfiniteQueryResult<TData, TError>;
 ```
 
 Defined in: [packages/angular-query/src/inject-infinite-query.ts:68](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-infinite-query.ts#L68)
@@ -131,7 +131,7 @@ Defined in: [packages/angular-query/src/inject-infinite-query.ts:68](https://git
 
 ### Parameters
 
-#### injectInfiniteQueryFn
+#### optionsFn
 
 () => [`CreateInfiniteQueryOptions`](../interfaces/CreateInfiniteQueryOptions.md)\<`TQueryFnData`, `TError`, `TData`, `TQueryKey`, `TPageParam`\>
 

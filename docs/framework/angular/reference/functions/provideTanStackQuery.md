@@ -62,7 +62,7 @@ A `QueryClient` factory or an `InjectionToken` that resolves one.
 
 ### features
 
-...[`QueryFeatures`](../type-aliases/QueryFeatures.md)[]
+...[`AnyQueryFeature`](../type-aliases/AnyQueryFeature.md)[]
 
 Optional features to configure additional Query functionality.
 

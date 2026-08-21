@@ -58,6 +58,12 @@ describe('injectIsFetching', () => {
     expect(rendered.getByText('fetching: 0')).toBeInTheDocument()
   })
 
+  it('should return a read-only signal', () => {
+    const isFetching = TestBed.runInInjectionContext(() => injectIsFetching())
+
+    expect(isFetching).not.toHaveProperty('set')
+  })
+
   it('should be able to filter by queryKey', async () => {
     const key1 = queryKey()
     const key2 = queryKey()

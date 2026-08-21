@@ -39,5 +39,5 @@ export function injectIsFetching(filters?: QueryFilters): Signal<number> {
 
   destroyRef.onDestroy(unsubscribe)
 
-  return result
+  return result.asReadonly()
 }
