@@ -3,7 +3,7 @@ import {
   NgZone,
   assertInInjectionContext,
   inject,
-  signal,
+  linkedSignal,
 } from '@angular/core'
 import { QueryClient } from '@tanstack/query-core'
 import type { QueryFilters } from '@tanstack/query-core'
@@ -24,22 +24,15 @@ export function injectIsFetching(filters?: QueryFilters): Signal<number> {
   const queryClient = inject(QueryClient)
 
   const cache = queryClient.getQueryCache()
-  // isFetching is the prev value initialized on mount *
-  let isFetching = queryClient.isFetching(filters)
-
-  const result = signal(isFetching)
+  const result = linkedSignal(() => queryClient.isFetching(filters))
 
   const unsubscribe = ngZone.runOutsideAngular(() =>
     cache.subscribe(() => {
       queueMicrotask(() => {
         const newIsFetching = queryClient.isFetching(filters)
-        if (isFetching !== newIsFetching) {
-          // * and update with each change
-          isFetching = newIsFetching
-          ngZone.run(() => {
-            result.set(isFetching)
-          })
-        }
+        ngZone.run(() => {
+          result.set(newIsFetching)
+        })
       })
     }),
   )

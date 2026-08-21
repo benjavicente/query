@@ -1,6 +1,7 @@
 import {
   QueriesObserver,
   QueryClient,
+  shouldThrowError,
 } from '@tanstack/query-core'
 import {
   NgZone,
@@ -14,6 +15,7 @@ import {
 import { signalProxy } from './utils/signal-proxy'
 import { injectIsRestoring } from './inject-is-restoring'
 import { injectPendingTasksLifecycle } from './utils/inject-pending-tasks-lifecycle'
+import { injectLazyValue } from './utils/inject-lazy-value'
 import type {
   DefaultError,
   DefinedQueryObserverResult,
@@ -32,6 +34,7 @@ import type {
   DefinedCreateQueryResult,
 } from './types'
 import type { Signal } from '@angular/core'
+import type { CleanupFn } from './utils/inject-lazy-value'
 
 // This defines the `CreateQueryOptions` that are accepted in `QueriesOptions` & `GetOptions`.
 // `placeholderData` function always gets undefined passed
@@ -263,11 +266,24 @@ export interface InjectQueriesOptions<
 
 const methodsToExclude = ['refetch'] as const
 
-const hasPendingQueriesState = (results: Array<QueryObserverResult>): boolean =>
-  results.some((result) => result.fetchStatus !== 'idle')
-
 /**
+ * Injects multiple queries that run in parallel and react to Angular signals.
+ *
+ * ```ts
+ * class UsersComponent {
+ *   readonly users = input.required<Array<User>>()
+ *
+ *   readonly userQueries = injectQueries(() => ({
+ *     queries: this.users().map((user) => ({
+ *       queryKey: ['user', user.id],
+ *       queryFn: () => fetchUserById(user.id),
+ *     })),
+ *   }))
+ * }
+ * ```
+ *
  * @param optionsFn - A function that returns queries' options.
+ * @returns A signal containing the query results in the same order as the input queries.
  */
 export function injectQueries<
   T extends Array<any>,
@@ -309,26 +325,138 @@ export function injectQueries<
     () => optionsSignal() as QueriesObserverOptions<TCombinedResult>,
   )
 
-  // Computed without deps to lazy initialize the observer
-  const observerSignal = computed(() => {
-    return new QueriesObserver<TCombinedResult>(
-      queryClient,
-      untracked(defaultedQueries),
-      untracked(observerOptionsSignal),
-    )
-  })
+  const shouldBlockPendingTasks = (
+    observer: QueriesObserver<TCombinedResult>,
+    results: Array<QueryObserverResult>,
+  ) => {
+    const queries = observer.getQueries()
 
-  const optimisticResultSignal = computed(() =>
-    observerSignal().getOptimisticResult(
-      defaultedQueries(),
-      observerOptionsSignal().combine,
-    ),
+    return results.some((result, index) => {
+      return (
+        queries[index]?.state.fetchStatus !== 'idle' ||
+        (result.fetchStatus !== 'idle' && result.isEnabled)
+      )
+    })
+  }
+
+  const autoTrackResultProperties = (result: QueryObserverResult) => {
+    for (const key of Object.keys(result) as Array<keyof QueryObserverResult>) {
+      if (key === 'promise') continue
+      const value = result[key]
+      if (typeof value === 'function') continue
+      // Access value once so QueryObserver knows this prop is tracked.
+      void value
+    }
+  }
+
+  const lazyObserver = injectLazyValue(
+    () =>
+      new QueriesObserver<TCombinedResult>(
+        queryClient,
+        defaultedQueries(),
+        observerOptionsSignal(),
+      ),
+    () => {
+      let unsubscribe: CleanupFn | undefined
+
+      const syncSubscription = (shouldSubscribe: boolean) => {
+        if (shouldSubscribe && !unsubscribe) {
+          unsubscribe = ngZone.runOutsideAngular(() => subscribeToObserver())
+        } else if (!shouldSubscribe && unsubscribe) {
+          unsubscribe()
+          unsubscribe = undefined
+          lifecycle.setPending(false)
+        }
+      }
+
+      syncSubscription(!untracked(isRestoring))
+
+      const activeEffect = effect(() => {
+        const shouldSubscribe = !isRestoring()
+
+        untracked(() => {
+          syncSubscription(shouldSubscribe)
+        })
+      })
+
+      return () => {
+        activeEffect.destroy()
+        syncSubscription(false)
+      }
+    },
   )
+
+  const getOptimisticResult = () => {
+    const observer = lazyObserver()
+    const queries = defaultedQueries()
+    const combine = observerOptionsSignal().combine
+    const [optimisticResult, getCombinedResult, trackResult] =
+      observer.getOptimisticResult(queries, combine)
+    const trackedResult = trackResult()
+
+    if (!combine) {
+      trackedResult.forEach((result, index) => {
+        if (!queries[index]?.notifyOnChangeProps) {
+          autoTrackResultProperties(result)
+        }
+      })
+    }
+
+    return {
+      optimisticResult,
+      combinedResult: getCombinedResult(trackedResult),
+    }
+  }
+
+  const subscribeToObserver = () => {
+    const observer = lazyObserver()
+    const { optimisticResult } = getOptimisticResult()
+    lifecycle.setPending(shouldBlockPendingTasks(observer, optimisticResult))
+
+    return observer.subscribe((state) => {
+      lifecycle.setPending(shouldBlockPendingTasks(observer, state))
+
+      if (lifecycle.destroyed) return
+
+      const observers = observer.getObservers()
+      const queries = observer.getQueries()
+      const resultWhichShouldThrow = state.find((result, index) => {
+        const queryObserver = observers[index]
+        const query = queries[index]
+
+        return (
+          result.isError &&
+          !result.isFetching &&
+          queryObserver !== undefined &&
+          query !== undefined &&
+          shouldThrowError(queryObserver.options.throwOnError, [
+            result.error,
+            query,
+          ])
+        )
+      })
+
+      if (resultWhichShouldThrow) {
+        queueMicrotask(() => {
+          if (lifecycle.destroyed) return
+          ngZone.run(() => {
+            ngZone.onError.emit(resultWhichShouldThrow.error)
+            throw resultWhichShouldThrow.error
+          })
+        })
+        return
+      }
+
+      ngZone.run(() => {
+        resultSignal.set(getOptimisticResult().combinedResult)
+      })
+    })
+  }
 
   // Do not notify on updates because of changes in the options because
   // these changes should already be reflected in the optimistic result.
   effect(() => {
-    observerSignal().setQueries(defaultedQueries(), observerOptionsSignal())
+    lazyObserver().setQueries(defaultedQueries(), observerOptionsSignal())
   })
 
   const optimisticResultSourceSignal = computed(() => {
@@ -338,45 +466,7 @@ export function injectQueries<
 
   const resultSignal = linkedSignal({
     source: optimisticResultSourceSignal,
-    computation: () => {
-      const observer = untracked(observerSignal)
-      const [_optimisticResult, getCombinedResult, trackResult] =
-        observer.getOptimisticResult(
-          defaultedQueries(),
-          observerOptionsSignal().combine,
-        )
-      return getCombinedResult(trackResult())
-    },
-  })
-
-  effect((onCleanup) => {
-    const observer = observerSignal()
-    const [optimisticResult, getCombinedResult] = optimisticResultSignal()
-
-    if (isRestoring()) {
-      lifecycle.setPending(false)
-      return
-    }
-
-    lifecycle.setPending(hasPendingQueriesState(optimisticResult))
-
-    const unsubscribe = untracked(() =>
-      ngZone.runOutsideAngular(() =>
-        observer.subscribe((state) => {
-          lifecycle.setPending(hasPendingQueriesState(state))
-
-          if (lifecycle.destroyed) return
-          ngZone.run(() => {
-            resultSignal.set(getCombinedResult(state))
-          })
-        }),
-      ),
-    )
-
-    onCleanup(() => {
-      unsubscribe()
-      lifecycle.setPending(false)
-    })
+    computation: () => getOptimisticResult().combinedResult,
   })
 
   // Angular does not use reactive getters on plain objects, so we wrap each

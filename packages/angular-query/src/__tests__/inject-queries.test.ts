@@ -4,6 +4,7 @@ import {
   ApplicationRef,
   ChangeDetectionStrategy,
   Component,
+  NgZone,
   computed,
   effect,
   input,
@@ -13,7 +14,13 @@ import {
 } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
 import { queryKey, sleep } from '@tanstack/query-test-utils'
-import { QueryClient, provideIsRestoring, provideTanStackQuery } from '..'
+import {
+  QueryClient,
+  onlineManager,
+  provideIsRestoring,
+  provideTanStackQuery,
+  skipToken,
+} from '..'
 import { injectQueries } from '../inject-queries'
 import { setupTanStackQueryTestBed } from './test-utils'
 
@@ -27,6 +34,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  onlineManager.setOnline(true)
   vi.useRealTimers()
 })
 
@@ -99,6 +107,47 @@ describe('injectQueries', () => {
     expect(results[0]).toMatchObject([{ data: undefined }, { data: undefined }])
     expect(results[1]).toMatchObject([{ data: 1 }, { data: undefined }])
     expect(results[2]).toMatchObject([{ data: 1 }, { data: 2 }])
+  })
+
+  it('should update a result field first read after an earlier update', async () => {
+    let count = 0
+
+    @Component({
+      template: '',
+      changeDetection: ChangeDetectionStrategy.OnPush,
+    })
+    class Page {
+      queries = injectQueries(() => ({
+        queries: [
+          {
+            queryKey: ['late-field-tracking'],
+            queryFn: async () => {
+              await sleep(10)
+              return ++count
+            },
+          },
+        ],
+      }))
+    }
+
+    const rendered = await render(Page)
+    const query = rendered.fixture.componentInstance.queries()[0]
+
+    // Only status is read before the first observer update.
+    expect(query.status()).toBe('pending')
+
+    await vi.advanceTimersByTimeAsync(11)
+    expect(query.status()).toBe('success')
+
+    // Data starts being observed after the result signal already contains a
+    // subscription update. It must still participate in future notifications.
+    expect(query.data()).toBe(1)
+
+    const refetch = query.refetch()
+    await vi.advanceTimersByTimeAsync(11)
+    await refetch
+
+    expect(query.data()).toBe(2)
   })
 
   it('should support combining results', async () => {
@@ -217,6 +266,150 @@ describe('injectQueries', () => {
     expect(successQuery.data()).toBe('mixed-success')
   })
 
+  describe('throwOnError', () => {
+    it('should evaluate throwOnError for the failed query', async () => {
+      const boundaryFn = vi.fn(() => false)
+
+      @Component({
+        template: '',
+        changeDetection: ChangeDetectionStrategy.OnPush,
+      })
+      class Page {
+        queries = injectQueries(() => ({
+          queries: [
+            {
+              queryKey: ['queries-throw-predicate'],
+              queryFn: () =>
+                sleep(10).then(() =>
+                  Promise.reject(new Error('queries predicate error')),
+                ),
+              retry: false,
+              throwOnError: boundaryFn,
+            },
+          ],
+        }))
+      }
+
+      TestBed.createComponent(Page).detectChanges()
+
+      await vi.advanceTimersByTimeAsync(11)
+
+      expect(boundaryFn).toHaveBeenCalledTimes(1)
+      expect(boundaryFn).toHaveBeenCalledWith(
+        Error('queries predicate error'),
+        expect.objectContaining({
+          state: expect.objectContaining({ status: 'error' }),
+        }),
+      )
+    })
+
+    it('should throw when throwOnError is true', async () => {
+      const zone = TestBed.inject(NgZone)
+      const zoneErrorPromise = new Promise<Error>((resolve) => {
+        const sub = zone.onError.subscribe((error) => {
+          sub.unsubscribe()
+          resolve(error as Error)
+        })
+      })
+      let resolveProcessError!: (error: Error) => void
+      const handler = (error: Error) => {
+        process.off('uncaughtException', handler)
+        resolveProcessError(error)
+      }
+      const processErrorPromise = new Promise<Error>((resolve) => {
+        resolveProcessError = resolve
+      })
+      process.on('uncaughtException', handler)
+
+      @Component({
+        template: '',
+        changeDetection: ChangeDetectionStrategy.OnPush,
+      })
+      class Page {
+        queries = injectQueries(() => ({
+          queries: [
+            {
+              queryKey: ['queries-throw-true'],
+              queryFn: () =>
+                sleep(0).then(() =>
+                  Promise.reject(new Error('queries throw error')),
+                ),
+              retry: false,
+              throwOnError: true,
+            },
+          ],
+        }))
+      }
+
+      TestBed.createComponent(Page).detectChanges()
+
+      try {
+        await vi.runAllTimersAsync()
+        await expect(zoneErrorPromise).resolves.toEqual(
+          Error('queries throw error'),
+        )
+        await expect(processErrorPromise).resolves.toEqual(
+          Error('queries throw error'),
+        )
+      } finally {
+        process.off('uncaughtException', handler)
+      }
+    })
+
+    it('should throw when throwOnError function returns true', async () => {
+      const zone = TestBed.inject(NgZone)
+      const zoneErrorPromise = new Promise<Error>((resolve) => {
+        const sub = zone.onError.subscribe((error) => {
+          sub.unsubscribe()
+          resolve(error as Error)
+        })
+      })
+      let resolveProcessError!: (error: Error) => void
+      const handler = (error: Error) => {
+        process.off('uncaughtException', handler)
+        resolveProcessError(error)
+      }
+      const processErrorPromise = new Promise<Error>((resolve) => {
+        resolveProcessError = resolve
+      })
+      process.on('uncaughtException', handler)
+
+      @Component({
+        template: '',
+        changeDetection: ChangeDetectionStrategy.OnPush,
+      })
+      class Page {
+        queries = injectQueries(() => ({
+          queries: [
+            {
+              queryKey: ['queries-throw-function'],
+              queryFn: () =>
+                sleep(0).then(() =>
+                  Promise.reject(new Error('queries function error')),
+                ),
+              retry: false,
+              throwOnError: () => true,
+            },
+          ],
+        }))
+      }
+
+      TestBed.createComponent(Page).detectChanges()
+
+      try {
+        await vi.runAllTimersAsync()
+        await expect(zoneErrorPromise).resolves.toEqual(
+          Error('queries function error'),
+        )
+        await expect(processErrorPromise).resolves.toEqual(
+          Error('queries function error'),
+        )
+      } finally {
+        process.off('uncaughtException', handler)
+      }
+    })
+  })
+
   it('should cleanup pending tasks when component with active queries is destroyed', async () => {
     @Component({
       template: '',
@@ -294,6 +487,55 @@ describe('injectQueries', () => {
     expect(fetchSpy).toHaveBeenCalledTimes(1)
     expect(query.status()).toBe('success')
     expect(query.data()).toBe('enabled-data')
+  })
+
+  it('should not resubscribe or refetch unchanged stale queries when options change', async () => {
+    const multiplier = signal(1)
+    const fetchSpy = vi.fn(() => sleep(10).then(() => 2))
+
+    @Component({
+      template: '',
+      changeDetection: ChangeDetectionStrategy.OnPush,
+    })
+    class Page {
+      queries = injectQueries(() => {
+        const currentMultiplier = multiplier()
+
+        return {
+          queries: [
+            {
+              queryKey: ['reactive-select'],
+              queryFn: fetchSpy,
+              select: (data: number) => data * currentMultiplier,
+              staleTime: 0,
+            },
+          ],
+        }
+      })
+    }
+
+    const rendered = await render(Page)
+    await vi.advanceTimersByTimeAsync(11)
+
+    const query = rendered.fixture.componentInstance.queries()[0]
+    const cachedQuery = queryClient
+      .getQueryCache()
+      .find({ queryKey: ['reactive-select'] })!
+
+    expect(query.data()).toBe(2)
+    expect(fetchSpy).toHaveBeenCalledTimes(1)
+    expect(cachedQuery.getObserversCount()).toBe(1)
+
+    multiplier.set(2)
+    rendered.fixture.detectChanges()
+    await vi.advanceTimersByTimeAsync(0)
+
+    expect(query.data()).toBe(4)
+    expect(fetchSpy).toHaveBeenCalledTimes(1)
+    expect(cachedQuery.getObserversCount()).toBe(1)
+
+    rendered.fixture.destroy()
+    expect(cachedQuery.getObserversCount()).toBe(0)
   })
 
   it('should refetch only changed keys when queries length stays the same', async () => {
@@ -503,6 +745,275 @@ describe('injectQueries', () => {
     expect(result).toEqual('signal-input-required-test')
   })
 
+  it('should allow reading query state in ngOnInit with required signal inputs', async () => {
+    @Component({
+      template: '',
+      changeDetection: ChangeDetectionStrategy.OnPush,
+    })
+    class Page {
+      name = input.required<string>()
+      initialStatus!: string
+
+      queries = injectQueries(() => ({
+        queries: [
+          {
+            queryKey: ['queries-ng-on-init', this.name()],
+            queryFn: () => this.name(),
+          },
+        ],
+      }))
+
+      ngOnInit() {
+        this.initialStatus = this.queries()[0].status()
+      }
+    }
+
+    const name = signal('queries-ng-on-init')
+    const rendered = await render(Page, {
+      bindings: [inputBinding('name', name.asReadonly())],
+      detectChangesOnRender: false,
+    })
+
+    rendered.fixture.detectChanges()
+
+    expect(rendered.fixture.componentInstance.initialStatus).toBe('pending')
+
+    await vi.advanceTimersByTimeAsync(0)
+    expect(rendered.fixture.componentInstance.queries()[0].data()).toBe(
+      'queries-ng-on-init',
+    )
+  })
+
+  describe('pending tasks', () => {
+    it('should handle synchronous success and error before whenStable resolves', async () => {
+      const app = TestBed.inject(ApplicationRef)
+
+      @Component({
+        template: '',
+        changeDetection: ChangeDetectionStrategy.OnPush,
+      })
+      class Page {
+        queries = injectQueries(() => ({
+          queries: [
+            {
+              queryKey: ['queries-sync-success'],
+              queryFn: () => 'instant-data',
+            },
+            {
+              queryKey: ['queries-sync-error'],
+              queryFn: () => {
+                throw new Error('instant-error')
+              },
+              retry: false,
+            },
+          ],
+        }))
+      }
+
+      const fixture = TestBed.createComponent(Page)
+      fixture.detectChanges()
+      const [successQuery, errorQuery] = fixture.componentInstance.queries()
+
+      expect(successQuery.status()).toBe('pending')
+      expect(errorQuery.status()).toBe('pending')
+
+      const stablePromise = app.whenStable()
+      await Promise.resolve()
+      await vi.advanceTimersByTimeAsync(10)
+      await stablePromise
+
+      expect(successQuery.status()).toBe('success')
+      expect(successQuery.data()).toBe('instant-data')
+      expect(errorQuery.status()).toBe('error')
+      expect(errorQuery.error()).toEqual(new Error('instant-error'))
+    })
+
+    it('should not register pending tasks for disabled queries', async () => {
+      const queryFn = vi.fn(() => Promise.resolve('disabled-data'))
+
+      @Component({
+        template: '',
+        changeDetection: ChangeDetectionStrategy.OnPush,
+      })
+      class Page {
+        queries = injectQueries(() => ({
+          queries: [
+            {
+              queryKey: ['queries-disabled-enabled'],
+              queryFn,
+              enabled: false,
+            },
+            {
+              queryKey: ['queries-disabled-skip-token'],
+              queryFn: skipToken,
+            },
+          ],
+        }))
+      }
+
+      const fixture = TestBed.createComponent(Page)
+      fixture.detectChanges()
+      await Promise.resolve()
+
+      const [disabledQuery, skippedQuery] = fixture.componentInstance.queries()
+      expect(disabledQuery.fetchStatus()).toBe('idle')
+      expect(skippedQuery.fetchStatus()).toBe('idle')
+      expect(queryFn).not.toHaveBeenCalled()
+      expect(fixture.isStable()).toBe(true)
+    })
+
+    it('should stay pending while queries are paused offline', async () => {
+      const app = TestBed.inject(ApplicationRef)
+      onlineManager.setOnline(false)
+
+      @Component({
+        template: '',
+        changeDetection: ChangeDetectionStrategy.OnPush,
+      })
+      class Page {
+        queries = injectQueries(() => ({
+          queries: [
+            {
+              queryKey: ['queries-start-offline'],
+              queryFn: () => sleep(10).then(() => 'online-data'),
+            },
+          ],
+        }))
+      }
+
+      const fixture = TestBed.createComponent(Page)
+      fixture.detectChanges()
+      await Promise.resolve()
+
+      const query = fixture.componentInstance.queries()[0]
+      expect(query.fetchStatus()).toBe('paused')
+
+      let stableResolved = false
+      const stablePromise = app.whenStable().then(() => {
+        stableResolved = true
+      })
+      await Promise.resolve()
+      expect(stableResolved).toBe(false)
+
+      onlineManager.setOnline(true)
+      await vi.advanceTimersByTimeAsync(20)
+      await stablePromise
+
+      expect(query.status()).toBe('success')
+      expect(query.data()).toBe('online-data')
+    })
+
+    it('should handle rapid refetches without leaking a pending task', async () => {
+      const app = TestBed.inject(ApplicationRef)
+      let count = 0
+
+      @Component({
+        template: '',
+        changeDetection: ChangeDetectionStrategy.OnPush,
+      })
+      class Page {
+        queries = injectQueries(() => ({
+          queries: [
+            {
+              queryKey: ['queries-rapid-refetch'],
+              queryFn: async () => {
+                await sleep(10)
+                return ++count
+              },
+            },
+          ],
+        }))
+      }
+
+      const fixture = TestBed.createComponent(Page)
+      fixture.detectChanges()
+      const query = fixture.componentInstance.queries()[0]
+
+      query.refetch()
+      query.refetch()
+      query.refetch()
+
+      const stablePromise = app.whenStable()
+      await vi.advanceTimersByTimeAsync(20)
+      await stablePromise
+
+      expect(query.status()).toBe('success')
+      expect(query.data()).toBeGreaterThan(0)
+      expect(fixture.isStable()).toBe(true)
+    })
+
+    it('should release the pending task when a query is cancelled', async () => {
+      const app = TestBed.inject(ApplicationRef)
+
+      @Component({
+        template: '',
+        changeDetection: ChangeDetectionStrategy.OnPush,
+      })
+      class Page {
+        queries = injectQueries(() => ({
+          queries: [
+            {
+              queryKey: ['queries-cancel'],
+              queryFn: () => sleep(100).then(() => 'data'),
+            },
+          ],
+        }))
+      }
+
+      const fixture = TestBed.createComponent(Page)
+      fixture.detectChanges()
+      const query = fixture.componentInstance.queries()[0]
+
+      await vi.advanceTimersByTimeAsync(20)
+      await queryClient.cancelQueries({ queryKey: ['queries-cancel'] })
+      await app.whenStable()
+
+      expect(query.status()).toBe('pending')
+      expect(query.fetchStatus()).toBe('idle')
+      expect(fixture.isStable()).toBe(true)
+    })
+
+    it('should keep the pending task through retries', async () => {
+      const app = TestBed.inject(ApplicationRef)
+      let attemptCount = 0
+
+      @Component({
+        template: '',
+        changeDetection: ChangeDetectionStrategy.OnPush,
+      })
+      class Page {
+        queries = injectQueries(() => ({
+          queries: [
+            {
+              queryKey: ['queries-retry'],
+              retry: 2,
+              retryDelay: 10,
+              queryFn: () => {
+                attemptCount++
+                if (attemptCount <= 2) {
+                  throw new Error(`Attempt ${attemptCount} failed`)
+                }
+                return 'success-data'
+              },
+            },
+          ],
+        }))
+      }
+
+      const fixture = TestBed.createComponent(Page)
+      fixture.detectChanges()
+      const query = fixture.componentInstance.queries()[0]
+
+      const stablePromise = app.whenStable()
+      await vi.advanceTimersByTimeAsync(50)
+      await stablePromise
+
+      expect(query.status()).toBe('success')
+      expect(query.data()).toBe('success-data')
+      expect(attemptCount).toBe(3)
+    })
+  })
+
   it('should pause fetching while restoring and fetch once restoring is disabled', async () => {
     const isRestoring = signal(true)
     const fetchSpy = vi.fn(() => sleep(10).then(() => 'restored-data'))
@@ -545,6 +1056,14 @@ describe('injectQueries', () => {
     expect(fetchSpy).toHaveBeenCalledTimes(1)
     expect(result.status()).toBe('success')
     expect(result.data()).toBe('restored-data')
+
+    const cachedQuery = queryClient
+      .getQueryCache()
+      .find({ queryKey: ['restoring'] })!
+    expect(cachedQuery.getObserversCount()).toBe(1)
+
+    fixture.destroy()
+    expect(cachedQuery.getObserversCount()).toBe(0)
   })
 
   it('should complete queries before whenStable resolves', async () => {

@@ -1,6 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TestBed } from '@angular/core/testing'
-import { Component, provideZonelessChangeDetection } from '@angular/core'
+import {
+  Component,
+  input,
+  inputBinding,
+  provideZonelessChangeDetection,
+  signal,
+} from '@angular/core'
 import { render } from '@testing-library/angular'
 import { queryKey, sleep } from '@tanstack/query-test-utils'
 import {
@@ -87,6 +93,34 @@ describe('injectIsMutating', () => {
     expect(rendered.getByText('mutating: 1')).toBeInTheDocument()
 
     await vi.advanceTimersByTimeAsync(11)
+    rendered.fixture.detectChanges()
+    expect(rendered.getByText('mutating: 0')).toBeInTheDocument()
+  })
+
+  it('should support signal reads in filter predicates', async () => {
+    const mutation = queryClient.getMutationCache().build(queryClient, {
+      mutationFn: () => sleep(100).then(() => 'data'),
+    })
+    void mutation.execute(undefined)
+
+    @Component({
+      template: `<div>mutating: {{ isMutating() }}</div>`,
+    })
+    class Page {
+      readonly includeMutation = input.required<boolean>()
+      readonly isMutating = injectIsMutating({
+        predicate: () => this.includeMutation(),
+      })
+    }
+
+    const includeMutation = signal(true)
+    const rendered = await render(Page, {
+      bindings: [inputBinding('includeMutation', includeMutation)],
+    })
+
+    expect(rendered.getByText('mutating: 1')).toBeInTheDocument()
+
+    includeMutation.set(false)
     rendered.fixture.detectChanges()
     expect(rendered.getByText('mutating: 0')).toBeInTheDocument()
   })

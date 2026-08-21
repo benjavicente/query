@@ -3,7 +3,7 @@ import {
   NgZone,
   assertInInjectionContext,
   inject,
-  signal,
+  linkedSignal,
 } from '@angular/core'
 import { QueryClient } from '@tanstack/query-core'
 import type { MutationFilters } from '@tanstack/query-core'
@@ -23,21 +23,14 @@ export function injectIsMutating(filters?: MutationFilters): Signal<number> {
   const queryClient = inject(QueryClient)
 
   const cache = queryClient.getMutationCache()
-  // isMutating is the prev value initialized on mount *
-  let isMutating = queryClient.isMutating(filters)
-
-  const result = signal(isMutating)
+  const result = linkedSignal(() => queryClient.isMutating(filters))
 
   const unsubscribe = ngZone.runOutsideAngular(() =>
     cache.subscribe(() => {
       const newIsMutating = queryClient.isMutating(filters)
-      if (isMutating !== newIsMutating) {
-        // * and update with each change
-        isMutating = newIsMutating
-        ngZone.run(() => {
-          result.set(isMutating)
-        })
-      }
+      ngZone.run(() => {
+        result.set(newIsMutating)
+      })
     }),
   )
 

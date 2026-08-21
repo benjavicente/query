@@ -2,14 +2,10 @@ import {
   DestroyRef,
   NgZone,
   assertInInjectionContext,
-  computed,
   inject,
-  signal,
+  linkedSignal,
 } from '@angular/core'
-import {
-  QueryClient,
-  replaceEqualDeep,
-} from '@tanstack/query-core'
+import { QueryClient, replaceEqualDeep } from '@tanstack/query-core'
 import type { Signal } from '@angular/core'
 import type {
   Mutation,
@@ -23,11 +19,6 @@ export type MutationStateOptions<TResult = MutationState> = {
   select?: (mutation: Mutation) => TResult
 }
 
-/**
- *
- * @param mutationCache
- * @param options
- */
 function getResult<TResult = MutationState>(
   mutationCache: MutationCache,
   options: MutationStateOptions<TResult>,
@@ -54,52 +45,24 @@ export function injectMutationState<TResult = MutationState>(
   const queryClient = inject(QueryClient)
   const mutationCache = queryClient.getMutationCache()
 
-  /**
-   * Computed signal that gets result from mutation cache based on passed options
-   * First element is the result, second element is the time when the result was set
-   */
-  const resultFromOptionsSignal = computed(() => {
-    return [
-      getResult(mutationCache, injectMutationStateFn()),
-      performance.now(),
-    ] as const
-  })
-
-  /**
-   * Signal that contains result set by subscriber
-   * First element is the result, second element is the time when the result was set
-   */
-  const resultFromSubscriberSignal = signal<[Array<TResult>, number] | null>(
-    null,
-  )
-
-  /**
-   * Returns the last result by either subscriber or options
-   */
-  const effectiveResultSignal = computed(() => {
-    const optionsResult = resultFromOptionsSignal()
-    const subscriberResult = resultFromSubscriberSignal()
-    return subscriberResult && subscriberResult[1] > optionsResult[1]
-      ? subscriberResult[0]
-      : optionsResult[0]
+  const resultSignal = linkedSignal<Array<TResult>, Array<TResult>>({
+    source: () => getResult(mutationCache, injectMutationStateFn()),
+    computation: (result, previous) =>
+      replaceEqualDeep(previous?.value, result),
   })
 
   const unsubscribe = ngZone.runOutsideAngular(() =>
     mutationCache.subscribe(() => {
-      const [lastResult] = effectiveResultSignal()
-      const nextResult = replaceEqualDeep(
-        lastResult,
-        getResult(mutationCache, injectMutationStateFn()),
-      )
-      if (lastResult !== nextResult) {
-        ngZone.run(() => {
-          resultFromSubscriberSignal.set([nextResult, performance.now()])
-        })
-      }
+      const nextResult = getResult(mutationCache, injectMutationStateFn())
+      ngZone.run(() => {
+        resultSignal.update((lastResult) =>
+          replaceEqualDeep(lastResult, nextResult),
+        )
+      })
     }),
   )
 
   destroyRef.onDestroy(unsubscribe)
 
-  return effectiveResultSignal
+  return resultSignal.asReadonly()
 }

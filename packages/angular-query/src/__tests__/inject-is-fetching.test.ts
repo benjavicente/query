@@ -2,7 +2,10 @@ import { TestBed } from '@angular/core/testing'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   Component,
+  input,
+  inputBinding,
   provideZonelessChangeDetection,
+  signal,
 } from '@angular/core'
 import { render } from '@testing-library/angular'
 import { queryKey, sleep } from '@tanstack/query-test-utils'
@@ -48,10 +51,6 @@ describe('injectIsFetching', () => {
 
     const rendered = await render(Page)
 
-    expect(rendered.getByText('fetching: 0')).toBeInTheDocument()
-
-    await vi.advanceTimersByTimeAsync(0)
-    rendered.fixture.detectChanges()
     expect(rendered.getByText('fetching: 1')).toBeInTheDocument()
 
     await vi.advanceTimersByTimeAsync(101)
@@ -85,6 +84,36 @@ describe('injectIsFetching', () => {
     expect(rendered.getByText('fetching: 1')).toBeInTheDocument()
 
     await vi.advanceTimersByTimeAsync(11)
+    rendered.fixture.detectChanges()
+    expect(rendered.getByText('fetching: 0')).toBeInTheDocument()
+  })
+
+  it('should support signal reads in filter predicates', async () => {
+    const key = queryKey()
+
+    void queryClient.fetchQuery({
+      queryKey: key,
+      queryFn: () => sleep(100).then(() => 'data'),
+    })
+
+    @Component({
+      template: `<div>fetching: {{ isFetching() }}</div>`,
+    })
+    class Page {
+      readonly includeQuery = input.required<boolean>()
+      readonly isFetching = injectIsFetching({
+        predicate: () => this.includeQuery(),
+      })
+    }
+
+    const includeQuery = signal(true)
+    const rendered = await render(Page, {
+      bindings: [inputBinding('includeQuery', includeQuery)],
+    })
+
+    expect(rendered.getByText('fetching: 1')).toBeInTheDocument()
+
+    includeQuery.set(false)
     rendered.fixture.detectChanges()
     expect(rendered.getByText('fetching: 0')).toBeInTheDocument()
   })
