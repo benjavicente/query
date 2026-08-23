@@ -103,8 +103,8 @@ export function injectMutation<
     TError,
     TVariables,
     TOnMutateResult
-  > = (variables, mutateOptions) => {
-    mutateAsync(variables, mutateOptions).catch(noop)
+  > = (...args) => {
+    mutateAsync(...args).catch(noop)
   }
 
   const mutateAsync: CreateMutateAsyncFunction<
@@ -112,9 +112,9 @@ export function injectMutation<
     TError,
     TVariables,
     TOnMutateResult
-  > = (variables, mutateOptions) => {
+  > = (...args) => {
     mutationStateSignal()
-    return observerSignal().mutate(variables, mutateOptions)
+    return observerSignal().mutate(args[0] as TVariables, args[1])
   }
 
   const reset = () => {

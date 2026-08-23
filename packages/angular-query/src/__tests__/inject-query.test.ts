@@ -513,7 +513,7 @@ describe('injectQuery', () => {
 
     expect(spy).toHaveBeenCalledTimes(2)
     // should call queryFn with context containing the new queryKey
-    expect(spy).toBeCalledWith({
+    expect(spy).toHaveBeenNthCalledWith(2, {
       client: queryClient,
       meta: undefined,
       queryKey: ['key8'],
@@ -1077,7 +1077,6 @@ describe('injectQuery', () => {
         }))
       }).toThrowError(/NG0203(.*?)injectQuery/)
     })
-
 
     it('should complete queries before whenStable() resolves', async () => {
       const app = TestBed.inject(ApplicationRef)

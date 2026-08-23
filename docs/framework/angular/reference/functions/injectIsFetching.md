@@ -3,8 +3,6 @@ id: injectIsFetching
 title: injectIsFetching
 ---
 
-# Function: injectIsFetching()
-
 ```ts
 function injectIsFetching(filters?): Signal<number>;
 ```

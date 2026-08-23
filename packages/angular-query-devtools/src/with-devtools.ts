@@ -148,9 +148,17 @@ export const withDevtools: WithDevtools = (withDevtoolsFn) =>
           update: (value: T | undefined) => void,
         ) => {
           if (!isSignal(option)) return
+
+          let isInitialRun = true
           afterRenderEffect({
             write: () => {
-              update(option())
+              const value = option()
+              if (isInitialRun) {
+                isInitialRun = false
+                return
+              }
+
+              update(value)
             },
           })
         }

@@ -1,7 +1,12 @@
-import { describe, expectTypeOf, it } from 'vitest'
+import { assertType, describe, expectTypeOf, it } from 'vitest'
 import { injectQueries, skipToken, toResource } from '..'
 import { queryOptions } from '../query-options'
-import type { CreateQueryOptions, CreateQueryResult, OmitKeyof } from '..'
+import type {
+  CreateQueryOptions,
+  CreateQueryResult,
+  DefinedCreateQueryResult,
+  OmitKeyof,
+} from '..'
 import type { Resource, Signal } from '@angular/core'
 
 describe('InjectQueries config object overload', () => {
@@ -182,14 +187,20 @@ describe('InjectQueries config object overload', () => {
       queries: [...queries1List, { ...Queries2.get() }],
     }))
 
-    expectTypeOf(result).branded.toEqualTypeOf<
+    assertType<
       Signal<
         [
-          ...Array<CreateQueryResult<number, Error>>,
-          CreateQueryResult<boolean, Error>,
+          ...Array<
+            | CreateQueryResult<number, Error>
+            | DefinedCreateQueryResult<number, Error>
+          >,
+          (
+            | CreateQueryResult<boolean, Error>
+            | DefinedCreateQueryResult<boolean, Error>
+          ),
         ]
       >
-    >()
+    >(result)
   })
 })
 

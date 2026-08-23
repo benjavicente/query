@@ -3,8 +3,6 @@ id: injectIsRestoring
 title: injectIsRestoring
 ---
 
-# Function: injectIsRestoring()
-
 ```ts
 function injectIsRestoring(): Signal<boolean>;
 ```
