@@ -2,9 +2,7 @@ import {
   NgZone,
   assertInInjectionContext,
   computed,
-  effect,
   inject,
-  signal,
   untracked,
 } from '@angular/core'
 import {
@@ -15,9 +13,10 @@ import {
 } from '@tanstack/query-core'
 import { signalProxy } from './utils/signal-proxy'
 import { injectPendingTasksLifecycle } from './utils/inject-pending-tasks-lifecycle'
-import { injectLazyValue } from './utils/inject-lazy-value'
-import type { DefaultError, MutationObserverResult } from '@tanstack/query-core'
+import { injectReactiveSubscription } from './utils/inject-reactive-subscription'
+import type { DefaultError } from '@tanstack/query-core'
 import type {
+  CreateMutateAsyncFunction,
   CreateMutateFunction,
   CreateMutationOptions,
   CreateMutationResult,
@@ -55,87 +54,82 @@ export function injectMutation<
    */
   const optionsSignal = computed(optionsFn)
 
-  const lazyObserver = injectLazyValue(
-    () => new MutationObserver(queryClient, optionsSignal()),
-    (observer) => {
-      const unsubscribe = ngZone.runOutsideAngular(() =>
-        observer.subscribe(
-          (state) => {
-            ngZone.run(() => {
-              if (lifecycle.destroyed) return
+  const observerSignal = computed(
+    () => new MutationObserver(queryClient, untracked(optionsSignal)),
+  )
+  let observerHasInitialOptions = false
 
-              lifecycle.setPending(state.isPending)
+  const mutationStateSignal = injectReactiveSubscription({
+    updateSource: optionsSignal,
+    update: (options) => {
+      if (!observerHasInitialOptions) {
+        observerHasInitialOptions = true
+        return
+      }
+      observerSignal().setOptions(options)
+    },
+    getSnapshot: () => observerSignal().getCurrentResult(),
+    subscribe: (onStoreChange) => {
+      const observer = observerSignal()
 
-              if (
-                state.isError &&
-                shouldThrowError(observer.options.throwOnError, [state.error])
-              ) {
-                ngZone.onError.emit(state.error)
-                throw state.error
-              }
+      const unsubscribe = observer.subscribe((state) => {
+        if (lifecycle.destroyed) return
 
-              resultFromSubscriberSignal.set(state)
-            })
-          },
-        ),
-      )
+        lifecycle.setPending(state.isPending)
+
+        if (
+          state.isError &&
+          shouldThrowError(observer.options.throwOnError, [state.error])
+        ) {
+          ngZone.run(() => {
+            ngZone.onError.emit(state.error)
+            throw state.error
+          })
+          return
+        }
+
+        onStoreChange()
+      })
+
       return () => {
         lifecycle.setPending(false)
         unsubscribe()
       }
     },
-  )
-
-  const lazyMutateFn = injectLazyValue<
-    CreateMutateFunction<TData, TError, TVariables, TOnMutateResult>
-  >(() => {
-    const observer = lazyObserver()
-    return (variables, mutateOptions) => {
-      observer.mutate(variables, mutateOptions).catch(noop)
-    }
   })
 
-  /**
-   * Computed signal that gets result from mutation cache based on passed options
-   */
-  const firstResultFromInitialOptionsSignal = computed(() => {
-    const observer = lazyObserver()
-    return observer.getCurrentResult()
-  })
-
-  /**
-   * Signal that contains result set by subscriber
-   */
-  const resultFromSubscriberSignal = signal<MutationObserverResult<
+  const mutate: CreateMutateFunction<
     TData,
     TError,
     TVariables,
     TOnMutateResult
-  > | null>(null)
+  > = (variables, mutateOptions) => {
+    mutateAsync(variables, mutateOptions).catch(noop)
+  }
 
-  effect(() => {
-    const observer = lazyObserver()
-    const observerOptions = optionsSignal()
+  const mutateAsync: CreateMutateAsyncFunction<
+    TData,
+    TError,
+    TVariables,
+    TOnMutateResult
+  > = (variables, mutateOptions) => {
+    mutationStateSignal()
+    return observerSignal().mutate(variables, mutateOptions)
+  }
 
-    untracked(() => {
-      observer.setOptions(observerOptions)
-    })
-  })
+  const reset = () => {
+    mutationStateSignal()
+    observerSignal().reset()
+  }
 
-  const resultSignal = computed(() => {
-    const result =
-      resultFromSubscriberSignal() ?? firstResultFromInitialOptionsSignal()
-
-    return {
-      ...result,
-      mutate: lazyMutateFn(),
-      mutateAsync: result.mutate,
-    }
-  })
-
-  return signalProxy(resultSignal, [
-    'mutate',
-    'mutateAsync',
-    'reset',
-  ]) as CreateMutationResult<TData, TError, TVariables, TOnMutateResult>
+  return Object.assign(signalProxy(mutationStateSignal), {
+    mutate,
+    mutateAsync,
+    reset,
+  }) as unknown as CreateMutationResult<
+    TData,
+    TError,
+    TVariables,
+    TOnMutateResult
+  >
 }

@@ -11,4 +11,14 @@ describe('queryOptions', () => {
 
     expect(queryOptions(object)).toBe(object)
   })
+
+  it('keeps notifyOnChangeProps adapter-owned', () => {
+    const options: CreateQueryOptions = {
+      queryKey: ['key'],
+      // @ts-expect-error Angular Query always subscribes to every result change.
+      notifyOnChangeProps: ['data'],
+    }
+
+    expect(options).toHaveProperty('notifyOnChangeProps', ['data'])
+  })
 })

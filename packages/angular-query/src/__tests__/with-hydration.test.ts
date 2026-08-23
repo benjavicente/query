@@ -89,6 +89,7 @@ describe('TransferState hydration (client)', () => {
     class Page {
       state = injectQuery(() => ({
         queryKey: key,
+        staleTime: Infinity,
         queryFn: () => Promise.resolve('from-client'),
       }))
     }

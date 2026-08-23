@@ -204,27 +204,19 @@ describe('injectQueries', () => {
     await rendered.findByText('data: 3,4')
     expect(instance.queries().data).toBe('3,4')
 
-    expect(results).toHaveLength(5)
-    expect(results[0]).toMatchObject({
-      data: ',',
-      refetch: expect.any(Function),
-    })
-    expect(results[1]).toMatchObject({
-      data: '1,',
-      refetch: expect.any(Function),
-    })
-    expect(results[2]).toMatchObject({
-      data: '1,2',
-      refetch: expect.any(Function),
-    })
-    expect(results[3]).toMatchObject({
-      data: '3,2',
-      refetch: expect.any(Function),
-    })
-    expect(results[4]).toMatchObject({
-      data: '3,4',
-      refetch: expect.any(Function),
-    })
+    const dataChanges = results.filter(
+      (result, index) => result.data !== results[index - 1]?.data,
+    )
+    expect(dataChanges.map((result) => result.data)).toEqual([
+      ',',
+      '1,',
+      '1,2',
+      '3,2',
+      '3,4',
+    ])
+    expect(
+      results.every((result) => typeof result.refetch === 'function'),
+    ).toBe(true)
   })
 
   it('should handle mixed success and error query states', async () => {

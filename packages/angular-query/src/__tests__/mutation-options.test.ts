@@ -63,7 +63,7 @@ describe('mutationOptions', () => {
     expect(isMutating()).toBe(0)
 
     mutation.mutate()
-    expect(isMutating()).toBe(0)
+    expect(isMutating()).toBe(1)
     await vi.advanceTimersByTimeAsync(0)
     expect(isMutating()).toBe(1)
     await vi.advanceTimersByTimeAsync(51)
@@ -83,7 +83,7 @@ describe('mutationOptions', () => {
     expect(isMutating()).toBe(0)
 
     mutation.mutate()
-    expect(isMutating()).toBe(0)
+    expect(isMutating()).toBe(1)
     await vi.advanceTimersByTimeAsync(0)
     expect(isMutating()).toBe(1)
     await vi.advanceTimersByTimeAsync(51)
@@ -112,7 +112,7 @@ describe('mutationOptions', () => {
 
     mutation1.mutate()
     mutation2.mutate()
-    expect(isMutating()).toBe(0)
+    expect(isMutating()).toBe(2)
     await vi.advanceTimersByTimeAsync(0)
     expect(isMutating()).toBe(2)
     await vi.advanceTimersByTimeAsync(51)
@@ -141,7 +141,7 @@ describe('mutationOptions', () => {
 
     mutation1.mutate()
     mutation2.mutate()
-    expect(isMutating()).toBe(0)
+    expect(isMutating()).toBe(1)
     await vi.advanceTimersByTimeAsync(0)
     expect(isMutating()).toBe(1)
     await vi.advanceTimersByTimeAsync(51)

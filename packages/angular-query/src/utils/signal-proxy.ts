@@ -19,7 +19,10 @@ export type MapToSignals<T, TExcludeFields extends MethodKeys<T> = never> = {
 export function signalProxy<
   TInput extends Record<string | symbol, any>,
   const TExcludeFields extends ReadonlyArray<MethodKeys<TInput>> = [],
->(inputSignal: Signal<TInput>, excludeFields: TExcludeFields) {
+>(
+  inputSignal: Signal<TInput>,
+  excludeFields: TExcludeFields = [] as unknown as TExcludeFields,
+) {
   const internalState = {} as MapToSignals<TInput, TExcludeFields[number]>
   const excludeFieldsArray = excludeFields as ReadonlyArray<string>
 

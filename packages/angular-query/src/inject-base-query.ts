@@ -1,25 +1,16 @@
-import {
-  NgZone,
-  computed,
-  effect,
-  inject,
-  linkedSignal,
-  untracked,
-} from '@angular/core'
+import { NgZone, computed, inject, untracked } from '@angular/core'
 import { QueryClient, shouldThrowError } from '@tanstack/query-core'
 import { signalProxy } from './utils/signal-proxy'
 import { injectIsRestoring } from './inject-is-restoring'
 import { injectPendingTasksLifecycle } from './utils/inject-pending-tasks-lifecycle'
-import { injectLazyValue } from './utils/inject-lazy-value'
+import { injectReactiveSubscription } from './utils/inject-reactive-subscription'
 import type {
-  DefaultedQueryObserverOptions,
   QueryKey,
   QueryObserver,
+  QueryObserverOptions,
   QueryObserverResult,
 } from '@tanstack/query-core'
-import type { CreateBaseQueryOptions } from './types'
 import type { MethodKeys } from './utils/signal-proxy'
-import type { CleanupFn } from './utils/inject-lazy-value'
 
 /**
  * Base implementation for `injectQuery` and `injectInfiniteQuery`.
@@ -34,7 +25,7 @@ export function injectBaseQuery<
   TQueryData,
   TQueryKey extends QueryKey,
 >(
-  optionsFn: () => CreateBaseQueryOptions<
+  optionsFn: () => QueryObserverOptions<
     TQueryFnData,
     TError,
     TData,
@@ -47,6 +38,7 @@ export function injectBaseQuery<
   const ngZone = inject(NgZone)
   const queryClient = inject(QueryClient)
   const isRestoring = injectIsRestoring()
+  const shouldSubscribe = computed(() => !isRestoring())
   const lifecycle = injectPendingTasksLifecycle()
 
   const shouldBlockPendingTasks = (
@@ -70,138 +62,64 @@ export function injectBaseQuery<
     defaultedOptions._optimisticResults = isRestoring()
       ? 'isRestoring'
       : 'optimistic'
+    defaultedOptions.notifyOnChangeProps = 'all'
     return defaultedOptions
   })
 
-  const lazyObserver = injectLazyValue(
-    () => new Observer(queryClient, defaultedOptionsSignal()),
-    () => {
-      let unsubscribe: CleanupFn | undefined
+  const observerSignal = computed(
+    () => new Observer(queryClient, untracked(defaultedOptionsSignal)),
+  )
 
-      const syncSubscription = (shouldSubscribe: boolean) => {
-        if (shouldSubscribe && !unsubscribe) {
-          // Subscribe as soon as possible
-          unsubscribe = ngZone.runOutsideAngular(() => subscribeToObserver())
-        } else if (!shouldSubscribe && unsubscribe) {
-          unsubscribe()
-          unsubscribe = undefined
-          lifecycle.setPending(false)
+  const resultSignal = injectReactiveSubscription({
+    shouldSubscribe,
+    updateSource: defaultedOptionsSignal,
+    update: (options) => observerSignal().setOptions(options),
+    getSnapshot: () => {
+      const observer = observerSignal()
+      const defaultedOptions = defaultedOptionsSignal()
+
+      return observer.getOptimisticResult(defaultedOptions)
+    },
+    subscribe: (onStoreChange) => {
+      const observer = observerSignal()
+      const initialState = observer.getCurrentResult()
+      lifecycle.setPending(shouldBlockPendingTasks(observer, initialState))
+
+      const unsubscribe = observer.subscribe((state) => {
+        lifecycle.setPending(shouldBlockPendingTasks(observer, state))
+
+        if (lifecycle.destroyed) return
+        const shouldThrow =
+          state.isError &&
+          !state.isFetching &&
+          shouldThrowError(observer.options.throwOnError, [
+            state.error,
+            observer.getCurrentQuery(),
+          ])
+
+        if (shouldThrow) {
+          queueMicrotask(() => {
+            if (lifecycle.destroyed) return
+            ngZone.run(() => {
+              ngZone.onError.emit(state.error)
+              throw state.error
+            })
+          })
+          return
         }
-      }
 
-      // Synchronous initialization
-      syncSubscription(!untracked(isRestoring))
-
-      // Change subscription depending on restoring state
-      // In most cases isRestoring will be the same so the
-      // subscription setup eagerly will not change
-      const activeEffect = effect(() => {
-        const shouldSubscribe = !isRestoring()
-
-        untracked(() => {
-          syncSubscription(shouldSubscribe)
-        })
+        onStoreChange()
       })
 
       return () => {
-        activeEffect.destroy()
-        syncSubscription(false)
+        lifecycle.setPending(false)
+        unsubscribe()
       }
-    },
-  )
-
-  effect(() => {
-    lazyObserver().setOptions(defaultedOptionsSignal())
-  })
-
-  const trackObserverResult = (
-    result: QueryObserverResult<TData, TError>,
-    notifyOnChangeProps?: DefaultedQueryObserverOptions<
-      TQueryFnData,
-      TError,
-      TData,
-      TQueryData,
-      TQueryKey
-    >['notifyOnChangeProps'],
-  ) => {
-    const observer = lazyObserver()
-    const trackedResult = observer.trackResult(result)
-
-    if (!notifyOnChangeProps) {
-      autoTrackResultProperties(trackedResult)
-    }
-
-    return trackedResult
-  }
-
-  const autoTrackResultProperties = (
-    result: QueryObserverResult<TData, TError>,
-  ) => {
-    for (const key of Object.keys(result) as Array<
-      keyof QueryObserverResult<TData, TError>
-    >) {
-      if (key === 'promise') continue
-      const value = result[key]
-      if (typeof value === 'function') continue
-      // Access value once so QueryObserver knows this prop is tracked.
-      void value
-    }
-  }
-
-  const subscribeToObserver = () => {
-    const observer = lazyObserver()
-    const initialState = observer.getCurrentResult()
-    lifecycle.setPending(shouldBlockPendingTasks(observer, initialState))
-
-    return observer.subscribe((state) => {
-      lifecycle.setPending(shouldBlockPendingTasks(observer, state))
-
-      if (lifecycle.destroyed) return
-      const shouldThrow =
-        state.isError &&
-        !state.isFetching &&
-        shouldThrowError(observer.options.throwOnError, [
-          state.error,
-          observer.getCurrentQuery(),
-        ])
-
-      if (shouldThrow) {
-        // Keep error propagation asynchronous without delaying ordinary result
-        // signal updates. This mirrors Vue's watcher-based error handling while
-        // avoiding an adapter-level notification batch.
-        queueMicrotask(() => {
-          if (lifecycle.destroyed) return
-          ngZone.run(() => {
-            ngZone.onError.emit(state.error)
-            throw state.error
-          })
-        })
-        return
-      }
-
-      ngZone.run(() => {
-        const trackedState = trackObserverResult(
-          state,
-          observer.options.notifyOnChangeProps,
-        )
-        resultSignal.set(trackedState)
-      })
-    })
-  }
-
-  const resultSignal = linkedSignal({
-    source: defaultedOptionsSignal,
-    computation: () => {
-      const observer = lazyObserver()
-      const defaultedOptions = defaultedOptionsSignal()
-
-      const result = observer.getOptimisticResult(defaultedOptions)
-      return trackObserverResult(result, defaultedOptions.notifyOnChangeProps)
     },
   })
 
   return signalProxy(
-    resultSignal.asReadonly(),
+    resultSignal,
     excludeFunctions as Array<MethodKeys<QueryObserverResult<TData, TError>>>,
   )
 }

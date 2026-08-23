@@ -1,11 +1,6 @@
-import {
-  DestroyRef,
-  NgZone,
-  assertInInjectionContext,
-  inject,
-  linkedSignal,
-} from '@angular/core'
+import { assertInInjectionContext, computed, inject } from '@angular/core'
 import { QueryClient } from '@tanstack/query-core'
+import { injectReactiveSubscription } from './utils/inject-reactive-subscription'
 import type { QueryFilters } from '@tanstack/query-core'
 import type { Signal } from '@angular/core'
 
@@ -19,25 +14,14 @@ import type { Signal } from '@angular/core'
  */
 export function injectIsFetching(filters?: QueryFilters): Signal<number> {
   assertInInjectionContext(injectIsFetching)
-  const destroyRef = inject(DestroyRef)
-  const ngZone = inject(NgZone)
   const queryClient = inject(QueryClient)
 
   const cache = queryClient.getQueryCache()
-  const result = linkedSignal(() => queryClient.isFetching(filters))
+  const resultSource = computed(() => queryClient.isFetching(filters))
 
-  const unsubscribe = ngZone.runOutsideAngular(() =>
-    cache.subscribe(() => {
-      queueMicrotask(() => {
-        const newIsFetching = queryClient.isFetching(filters)
-        ngZone.run(() => {
-          result.set(newIsFetching)
-        })
-      })
-    }),
-  )
-
-  destroyRef.onDestroy(unsubscribe)
-
-  return result.asReadonly()
+  return injectReactiveSubscription({
+    updateSource: resultSource,
+    getSnapshot: () => queryClient.isFetching(filters),
+    subscribe: (onStoreChange) => cache.subscribe(onStoreChange),
+  })
 }

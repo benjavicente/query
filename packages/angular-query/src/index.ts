@@ -34,16 +34,14 @@ export { injectIsRestoring, provideIsRestoring } from './inject-is-restoring'
 
 export { injectMutation } from './inject-mutation'
 
-export type {
-  MutationStateOptions,
-} from './inject-mutation-state'
+export type { MutationStateOptions } from './inject-mutation-state'
 export { injectMutationState } from './inject-mutation-state'
 
 export type {
   InjectQueriesOptions,
   QueriesOptions,
   QueriesResults,
-} from './inject-queries'
+} from './inject-queries.types'
 export { injectQueries } from './inject-queries'
 
 export { injectQuery } from './inject-query'

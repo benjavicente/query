@@ -40,6 +40,8 @@ type QueryResourceSource<TValue> = {
 export function toResource<TValue>(
   query: QueryResourceSource<TValue>,
 ): QueryResource<TValue> {
+  // Intentionally does not use resource from snapshot to have
+  // support for the reload method for compatible libraries
   const status = computed<ResourceStatus>(() => {
     const fetchStatus = query.fetchStatus()
     const data = query.data()

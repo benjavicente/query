@@ -20,22 +20,14 @@ import type { MapToSignals, MethodKeys } from './utils/signal-proxy'
 
 type SignalFunction<T extends () => any> = T & Signal<ReturnType<T>>
 
-export type CreateBaseQueryOptions<
-  TQueryFnData = unknown,
-  TError = DefaultError,
-  TData = TQueryFnData,
-  TQueryData = TQueryFnData,
-  TQueryKey extends QueryKey = QueryKey,
-> = QueryObserverOptions<TQueryFnData, TError, TData, TQueryData, TQueryKey>
-
 export type CreateQueryOptions<
   TQueryFnData = unknown,
   TError = DefaultError,
   TData = TQueryFnData,
   TQueryKey extends QueryKey = QueryKey,
 > = OmitKeyof<
-  CreateBaseQueryOptions<TQueryFnData, TError, TData, TQueryFnData, TQueryKey>,
-  'suspense'
+  QueryObserverOptions<TQueryFnData, TError, TData, TQueryFnData, TQueryKey>,
+  'notifyOnChangeProps' | 'suspense'
 >
 
 type CreateStatusBasedQueryResult<
@@ -67,21 +59,27 @@ type CreateStatusBasedDefinedInfiniteQueryResult<
 
 export interface BaseQueryNarrowing<TData = unknown, TError = DefaultError> {
   isSuccess: SignalFunction<
-    (this: CreateBaseQueryResult<TData, TError>) => this is CreateBaseQueryResult<
+    (
+      this: CreateBaseQueryResult<TData, TError>,
+    ) => this is CreateBaseQueryResult<
       TData,
       TError,
       CreateStatusBasedQueryResult<'success', TData, TError>
     >
   >
   isError: SignalFunction<
-    (this: CreateBaseQueryResult<TData, TError>) => this is CreateBaseQueryResult<
+    (
+      this: CreateBaseQueryResult<TData, TError>,
+    ) => this is CreateBaseQueryResult<
       TData,
       TError,
       CreateStatusBasedQueryResult<'error', TData, TError>
     >
   >
   isPending: SignalFunction<
-    (this: CreateBaseQueryResult<TData, TError>) => this is CreateBaseQueryResult<
+    (
+      this: CreateBaseQueryResult<TData, TError>,
+    ) => this is CreateBaseQueryResult<
       TData,
       TError,
       CreateStatusBasedQueryResult<'pending', TData, TError>
@@ -89,10 +87,7 @@ export interface BaseQueryNarrowing<TData = unknown, TError = DefaultError> {
   >
 }
 
-export interface DefinedQueryNarrowing<
-  TData = unknown,
-  TError = DefaultError,
-> {
+export interface DefinedQueryNarrowing<TData = unknown, TError = DefaultError> {
   isSuccess: SignalFunction<
     (
       this: DefinedCreateQueryResult<TData, TError>,
@@ -190,7 +185,7 @@ export interface CreateInfiniteQueryOptions<
     TQueryKey,
     TPageParam
   >,
-  'suspense'
+  'notifyOnChangeProps' | 'suspense'
 > {}
 
 export type CreateBaseQueryResult<

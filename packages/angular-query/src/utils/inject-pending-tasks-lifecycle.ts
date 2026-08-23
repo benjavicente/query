@@ -1,23 +1,24 @@
-import { DestroyRef, PendingTasks, inject } from '@angular/core'
+import { PendingTasks, inject } from '@angular/core'
+import { injectDestroyRefCompat } from './destroy-ref-compat'
 
 export interface QueryLifecycle {
   readonly destroyed: boolean
   setPending: (pending: boolean) => void
 }
 
+/** Tracks pending work for the lifetime of the current injection context. */
 export function injectPendingTasksLifecycle(): QueryLifecycle {
-  const destroyRef = inject(DestroyRef)
+  const destroyRef = injectDestroyRefCompat()
   const pendingTasks = inject(PendingTasks)
-  let destroyed = false // In Angular >= 20.1, read destroyRef.destroyed directly
   let taskCleanup: (() => void) | undefined
 
   const lifecycle: QueryLifecycle = {
     get destroyed() {
-      return destroyed
+      return destroyRef.destroyed
     },
     setPending(pending) {
       if (pending) {
-        if (!destroyed && !taskCleanup) {
+        if (!destroyRef.destroyed && !taskCleanup) {
           taskCleanup = pendingTasks.add()
         }
         return
@@ -30,7 +31,6 @@ export function injectPendingTasksLifecycle(): QueryLifecycle {
   }
 
   destroyRef.onDestroy(() => {
-    destroyed = true
     lifecycle.setPending(false)
   })
 

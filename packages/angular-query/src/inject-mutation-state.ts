@@ -1,11 +1,6 @@
-import {
-  DestroyRef,
-  NgZone,
-  assertInInjectionContext,
-  inject,
-  linkedSignal,
-} from '@angular/core'
-import { QueryClient, replaceEqualDeep } from '@tanstack/query-core'
+import { assertInInjectionContext, computed, inject } from '@angular/core'
+import { QueryClient } from '@tanstack/query-core'
+import { injectReactiveSubscription } from './utils/inject-reactive-subscription'
 import type { Signal } from '@angular/core'
 import type {
   Mutation,
@@ -40,29 +35,13 @@ export function injectMutationState<TResult = MutationState>(
   options: () => MutationStateOptions<TResult> = () => ({}),
 ): Signal<Array<TResult>> {
   assertInInjectionContext(injectMutationState)
-  const destroyRef = inject(DestroyRef)
-  const ngZone = inject(NgZone)
   const queryClient = inject(QueryClient)
   const mutationCache = queryClient.getMutationCache()
+  const optionsSignal = computed(options)
 
-  const resultSignal = linkedSignal<Array<TResult>, Array<TResult>>({
-    source: () => getResult(mutationCache, options()),
-    computation: (result, previous) =>
-      replaceEqualDeep(previous?.value, result),
+  return injectReactiveSubscription({
+    updateSource: optionsSignal,
+    getSnapshot: () => getResult(mutationCache, optionsSignal()),
+    subscribe: (onStoreChange) => mutationCache.subscribe(onStoreChange),
   })
-
-  const unsubscribe = ngZone.runOutsideAngular(() =>
-    mutationCache.subscribe(() => {
-      const nextResult = getResult(mutationCache, options())
-      ngZone.run(() => {
-        resultSignal.update((lastResult) =>
-          replaceEqualDeep(lastResult, nextResult),
-        )
-      })
-    }),
-  )
-
-  destroyRef.onDestroy(unsubscribe)
-
-  return resultSignal.asReadonly()
 }

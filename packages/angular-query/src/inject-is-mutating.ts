@@ -1,11 +1,6 @@
-import {
-  DestroyRef,
-  NgZone,
-  assertInInjectionContext,
-  inject,
-  linkedSignal,
-} from '@angular/core'
+import { assertInInjectionContext, computed, inject } from '@angular/core'
 import { QueryClient } from '@tanstack/query-core'
+import { injectReactiveSubscription } from './utils/inject-reactive-subscription'
 import type { MutationFilters } from '@tanstack/query-core'
 import type { Signal } from '@angular/core'
 
@@ -18,23 +13,14 @@ import type { Signal } from '@angular/core'
  */
 export function injectIsMutating(filters?: MutationFilters): Signal<number> {
   assertInInjectionContext(injectIsMutating)
-  const destroyRef = inject(DestroyRef)
-  const ngZone = inject(NgZone)
   const queryClient = inject(QueryClient)
 
   const cache = queryClient.getMutationCache()
-  const result = linkedSignal(() => queryClient.isMutating(filters))
+  const resultSource = computed(() => queryClient.isMutating(filters))
 
-  const unsubscribe = ngZone.runOutsideAngular(() =>
-    cache.subscribe(() => {
-      const newIsMutating = queryClient.isMutating(filters)
-      ngZone.run(() => {
-        result.set(newIsMutating)
-      })
-    }),
-  )
-
-  destroyRef.onDestroy(unsubscribe)
-
-  return result.asReadonly()
+  return injectReactiveSubscription({
+    updateSource: resultSource,
+    getSnapshot: () => queryClient.isMutating(filters),
+    subscribe: (onStoreChange) => cache.subscribe(onStoreChange),
+  })
 }

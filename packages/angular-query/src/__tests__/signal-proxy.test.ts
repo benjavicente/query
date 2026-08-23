@@ -22,6 +22,13 @@ describe('signalProxy', () => {
   })
   const proxy = signalProxy(inputSignal, ['fn'])
 
+  it('defaults to proxying every field as a signal', () => {
+    const defaultProxy = signalProxy(inputSignal)
+
+    expect(defaultProxy.baz()).toBe('qux')
+    expect(defaultProxy.fn()()).toBe('bar')
+  })
+
   it('should have computed fields', () => {
     expect(proxy.baz()).toEqual('qux')
     expect(isSignal(proxy.baz)).toBe(true)
