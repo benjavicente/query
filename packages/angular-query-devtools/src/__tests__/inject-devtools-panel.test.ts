@@ -92,6 +92,42 @@ describe('injectDevtoolsPanel', () => {
     expect(mockDevtoolsPanelInstance.unmount).toHaveBeenCalledTimes(1)
   })
 
+  it('should stop reacting after it is manually destroyed', async () => {
+    const hostElement = signal<ElementRef | undefined>(mockElementRef)
+    const result = TestBed.runInInjectionContext(() =>
+      injectDevtoolsPanel(() => ({
+        hostElement: hostElement(),
+      })),
+    )
+
+    await TestBed.inject(ApplicationRef).whenStable()
+    await waitForDevtoolsToBeCreated()
+
+    result.destroy()
+    hostElement.set(undefined)
+    hostElement.set(mockElementRef)
+    await TestBed.inject(ApplicationRef).whenStable()
+
+    expect(mocks.mockTanstackQueryDevtoolsPanel).toHaveBeenCalledTimes(1)
+    expect(mockDevtoolsPanelInstance.mount).toHaveBeenCalledTimes(1)
+    expect(mockDevtoolsPanelInstance.unmount).toHaveBeenCalledTimes(1)
+  })
+
+  it('should not mount when destroyed while the devtools import is pending', async () => {
+    const result = TestBed.runInInjectionContext(() =>
+      injectDevtoolsPanel(() => ({
+        hostElement: mockElementRef,
+      })),
+    )
+
+    TestBed.tick()
+    result.destroy()
+    await TestBed.inject(ApplicationRef).whenStable()
+
+    expect(mocks.mockTanstackQueryDevtoolsPanel).not.toHaveBeenCalled()
+    expect(mockDevtoolsPanelInstance.mount).not.toHaveBeenCalled()
+  })
+
   it('should destroy TanstackQueryDevtoolsPanel when hostElement is removed', async () => {
     const hostElement = signal<ElementRef>(mockElementRef)
 

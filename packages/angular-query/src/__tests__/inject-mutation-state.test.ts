@@ -3,7 +3,6 @@ import {
   Component,
   input,
   inputBinding,
-  provideZonelessChangeDetection,
   signal,
 } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
@@ -16,6 +15,7 @@ import {
   injectMutationState,
   provideTanStackQuery,
 } from '..'
+import { provideAngularQueryChangeDetection } from './test-utils'
 
 describe('injectMutationState', () => {
   let queryClient: QueryClient
@@ -25,7 +25,7 @@ describe('injectMutationState', () => {
     vi.useFakeTimers()
     TestBed.configureTestingModule({
       providers: [
-        provideZonelessChangeDetection(),
+        provideAngularQueryChangeDetection(),
         provideTanStackQuery(() => queryClient),
       ],
     })
@@ -96,6 +96,25 @@ describe('injectMutationState', () => {
       expect(mutationState()).toEqual([variables2])
     })
 
+    it('preserves result identity when an unrelated mutation changes', () => {
+      const mutationState = TestBed.runInInjectionContext(() =>
+        injectMutationState(() => ({
+          filters: { mutationKey: ['matching'] },
+        })),
+      )
+      const unrelatedMutation = TestBed.runInInjectionContext(() =>
+        injectMutation(() => ({
+          mutationKey: ['unrelated'],
+          mutationFn: () => Promise.resolve(),
+        })),
+      )
+      const initialResult = mutationState()
+
+      unrelatedMutation.mutate()
+
+      expect(mutationState()).toBe(initialResult)
+    })
+
     it('should return variables after calling mutate 2', () => {
       queryClient.clear()
       const mutationKey = ['mutation']
@@ -162,7 +181,7 @@ describe('injectMutationState', () => {
       const name = signal(fakeName)
       const rendered = await render(FakeComponent, {
         providers: [
-          provideZonelessChangeDetection(),
+          provideAngularQueryChangeDetection(),
           provideTanStackQuery(() => queryClient),
         ],
         bindings: [inputBinding('name', name.asReadonly())],
@@ -170,26 +189,15 @@ describe('injectMutationState', () => {
       })
       rendered.fixture.detectChanges()
 
-      const fixture = rendered.fixture
       await vi.advanceTimersByTimeAsync(0)
 
-      const readSpans = () =>
-        Array.from(
-          fixture.nativeElement.querySelectorAll(
-            'span',
-          ) as NodeListOf<HTMLSpanElement>,
-        ).map((span) => span.textContent)
-
-      let spans = readSpans()
-
-      expect(spans).toEqual(['pending', 'pending'])
+      expect(rendered.getAllByText('pending')).toHaveLength(2)
 
       await vi.advanceTimersByTimeAsync(11)
-      fixture.detectChanges()
+      rendered.fixture.detectChanges()
 
-      spans = readSpans()
-
-      expect(spans).toEqual(['success', 'error'])
+      expect(rendered.getByText('success')).toBeInTheDocument()
+      expect(rendered.getByText('error')).toBeInTheDocument()
     })
 
     describe('injection context', () => {
@@ -198,7 +206,6 @@ describe('injectMutationState', () => {
           injectMutationState()
         }).toThrowError(/NG0203(.*?)injectMutationState/)
       })
-
     })
   })
 })

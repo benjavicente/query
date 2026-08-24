@@ -1,13 +1,13 @@
 import {
   ApplicationRef,
   Injector,
-  provideZonelessChangeDetection,
   runInInjectionContext,
   signal,
 } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { injectReactiveSubscription } from '../utils/inject-reactive-subscription'
+import { injectObserverSignal } from '../inject-observer-signal'
+import { provideAngularQueryChangeDetection } from '../../__tests__/test-utils'
 
 function makeSource(initial: number) {
   let value = initial
@@ -32,10 +32,10 @@ function makeSource(initial: number) {
   }
 }
 
-describe('injectReactiveSubscription', () => {
+describe('injectObserverSignal', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [provideZonelessChangeDetection()],
+      providers: [provideAngularQueryChangeDetection()],
     })
   })
 
@@ -43,7 +43,8 @@ describe('injectReactiveSubscription', () => {
     it('returns an initial snapshot before effects run', () => {
       const source = makeSource(1)
       const value = TestBed.runInInjectionContext(() =>
-        injectReactiveSubscription({
+        injectObserverSignal({
+          updateSource: signal(undefined),
           getSnapshot: source.get,
           subscribe: source.subscribe,
         }),
@@ -56,29 +57,14 @@ describe('injectReactiveSubscription', () => {
     it('initializes an unread subscription when effects run', async () => {
       const source = makeSource(1)
       TestBed.runInInjectionContext(() =>
-        injectReactiveSubscription({
+        injectObserverSignal({
+          updateSource: signal(undefined),
           getSnapshot: source.get,
           subscribe: source.subscribe,
         }),
       )
 
       await TestBed.inject(ApplicationRef).whenStable()
-      expect(source.subscriberCount()).toBe(1)
-    })
-
-    it('defers a lazy subscription until its first read', async () => {
-      const source = makeSource(1)
-      const value = TestBed.runInInjectionContext(() =>
-        injectReactiveSubscription({
-          lazy: true,
-          getSnapshot: source.get,
-          subscribe: source.subscribe,
-        }),
-      )
-
-      await TestBed.inject(ApplicationRef).whenStable()
-      expect(source.subscriberCount()).toBe(0)
-      expect(value()).toBe(1)
       expect(source.subscriberCount()).toBe(1)
     })
   })
@@ -87,7 +73,8 @@ describe('injectReactiveSubscription', () => {
     it('reads notifications synchronously', () => {
       const source = makeSource(1)
       const value = TestBed.runInInjectionContext(() =>
-        injectReactiveSubscription({
+        injectObserverSignal({
+          updateSource: signal(undefined),
           getSnapshot: source.get,
           subscribe: source.subscribe,
         }),
@@ -106,7 +93,7 @@ describe('injectReactiveSubscription', () => {
       const update = vi.fn((next: number) => source.set(next))
       const subscribe = vi.fn(source.subscribe)
       const value = TestBed.runInInjectionContext(() =>
-        injectReactiveSubscription({
+        injectObserverSignal({
           updateSource,
           update,
           getSnapshot: source.get,
@@ -125,7 +112,7 @@ describe('injectReactiveSubscription', () => {
       let snapshot = 1
       const updateSource = signal(1)
       const value = TestBed.runInInjectionContext(() =>
-        injectReactiveSubscription({
+        injectObserverSignal({
           updateSource,
           getSnapshot: () => snapshot,
           subscribe: () => () => undefined,
@@ -144,7 +131,7 @@ describe('injectReactiveSubscription', () => {
       const updateSource = signal(1)
       const updates: Array<[number, number]> = []
       const value = TestBed.runInInjectionContext(() =>
-        injectReactiveSubscription({
+        injectObserverSignal({
           updateSource,
           update: (next) => updates.push([next, incidental()]),
           getSnapshot: () => snapshotSignal(),
@@ -165,18 +152,68 @@ describe('injectReactiveSubscription', () => {
         [2, 20],
       ])
     })
+
+    it('propagates nested store notifications synchronously', () => {
+      const firstSource = makeSource(0)
+      const secondSource = makeSource(0)
+      const updateSource = signal(1)
+
+      const [firstValue, secondValue] = TestBed.runInInjectionContext(() => [
+        injectObserverSignal({
+          updateSource,
+          update: (next) => {
+            firstSource.set(next)
+            secondSource.set(next * 10)
+          },
+          getSnapshot: firstSource.get,
+          subscribe: firstSource.subscribe,
+        }),
+        injectObserverSignal({
+          updateSource: signal(undefined),
+          getSnapshot: secondSource.get,
+          subscribe: secondSource.subscribe,
+        }),
+      ])
+
+      expect(secondValue()).toBe(0)
+      expect(firstValue()).toBe(1)
+      expect(secondValue()).toBe(10)
+
+      updateSource.set(2)
+      expect(firstValue()).toBe(2)
+      expect(secondValue()).toBe(20)
+    })
   })
 
   describe('subscription', () => {
-    it('uses shouldSubscribe for exceptional subscription gates', () => {
+    it('supports a synchronous notification while subscribing', () => {
       const source = makeSource(1)
-      const shouldSubscribe = signal(false)
+      const value = TestBed.runInInjectionContext(() =>
+        injectObserverSignal({
+          updateSource: signal(undefined),
+          getSnapshot: source.get,
+          subscribe: (notify) => {
+            const unsubscribe = source.subscribe(notify)
+            notify()
+            return unsubscribe
+          },
+        }),
+      )
+
+      expect(value()).toBe(1)
+      expect(source.subscriberCount()).toBe(1)
+    })
+
+    it('can defer installing its single subscription until an update', () => {
+      const source = makeSource(1)
+      const canSubscribe = signal(false)
       const subscribe = vi.fn(source.subscribe)
       const value = TestBed.runInInjectionContext(() =>
-        injectReactiveSubscription({
-          shouldSubscribe,
+        injectObserverSignal({
+          updateSource: canSubscribe,
           getSnapshot: source.get,
-          subscribe,
+          subscribe: (notify) =>
+            canSubscribe() ? subscribe(notify) : undefined,
         }),
       )
 
@@ -184,13 +221,17 @@ describe('injectReactiveSubscription', () => {
       expect(subscribe).not.toHaveBeenCalled()
 
       source.set(2)
-      shouldSubscribe.set(true)
+      canSubscribe.set(true)
       expect(value()).toBe(2)
       expect(subscribe).toHaveBeenCalledOnce()
 
-      shouldSubscribe.set(false)
+      canSubscribe.set(false)
       expect(value()).toBe(2)
-      expect(source.subscriberCount()).toBe(0)
+      expect(source.subscriberCount()).toBe(1)
+
+      source.set(3)
+      expect(value()).toBe(3)
+      expect(subscribe).toHaveBeenCalledOnce()
     })
 
     it('does not track signals read while installing the subscription', () => {
@@ -198,7 +239,8 @@ describe('injectReactiveSubscription', () => {
       const incidental = signal('first')
       const installedWith: Array<string> = []
       const value = TestBed.runInInjectionContext(() =>
-        injectReactiveSubscription({
+        injectObserverSignal({
+          updateSource: signal(undefined),
           getSnapshot: source.get,
           subscribe: (notify) => {
             installedWith.push(incidental())
@@ -212,6 +254,47 @@ describe('injectReactiveSubscription', () => {
       expect(value()).toBe(1)
       expect(installedWith).toEqual(['first'])
     })
+
+    it('retries a failed subscription on a later update and ignores the stale callback', () => {
+      const source = makeSource(1)
+      const updateSource = signal(1)
+      const subscribeError = new Error('subscription failed')
+      let attempt = 0
+      let staleNotify: (() => void) | undefined
+      const getSnapshot = vi.fn(source.get)
+      const subscribe = vi.fn((notify: () => void) => {
+        attempt++
+        if (attempt === 1) {
+          staleNotify = notify
+          throw subscribeError
+        }
+        return source.subscribe(notify)
+      })
+      const value = TestBed.runInInjectionContext(() =>
+        injectObserverSignal({
+          updateSource,
+          getSnapshot,
+          subscribe,
+        }),
+      )
+
+      expect(() => value()).toThrow(subscribeError)
+      expect(subscribe).toHaveBeenCalledOnce()
+
+      source.set(2)
+      updateSource.set(2)
+      expect(value()).toBe(2)
+      expect(subscribe).toHaveBeenCalledTimes(2)
+
+      getSnapshot.mockClear()
+      staleNotify?.()
+      expect(value()).toBe(2)
+      expect(getSnapshot).not.toHaveBeenCalled()
+
+      source.set(3)
+      expect(value()).toBe(3)
+      expect(subscribe).toHaveBeenCalledTimes(2)
+    })
   })
 
   describe('cleanup and failures', () => {
@@ -222,7 +305,8 @@ describe('injectReactiveSubscription', () => {
         parent: TestBed.inject(Injector),
       })
       const value = runInInjectionContext(injector, () =>
-        injectReactiveSubscription({
+        injectObserverSignal({
+          updateSource: signal(undefined),
           getSnapshot: source.get,
           subscribe: source.subscribe,
         }),
@@ -240,7 +324,8 @@ describe('injectReactiveSubscription', () => {
       const source = makeSource(1)
       const error = new Error('snapshot failed')
       const value = TestBed.runInInjectionContext(() =>
-        injectReactiveSubscription({
+        injectObserverSignal({
+          updateSource: signal(undefined),
           getSnapshot: () => {
             throw error
           },
@@ -250,6 +335,35 @@ describe('injectReactiveSubscription', () => {
 
       expect(() => value()).toThrow(error)
       expect(source.subscriberCount()).toBe(0)
+    })
+
+    it('propagates an update failure and recovers on a later update', () => {
+      const source = makeSource(0)
+      const updateSource = signal(1)
+      const updateError = new Error('update failed')
+      let shouldFail = true
+      const update = vi.fn((next: number) => {
+        if (shouldFail) throw updateError
+        source.set(next)
+      })
+      const value = TestBed.runInInjectionContext(() =>
+        injectObserverSignal({
+          updateSource,
+          update,
+          getSnapshot: source.get,
+          subscribe: source.subscribe,
+        }),
+      )
+
+      expect(() => value()).toThrow(updateError)
+      expect(update).toHaveBeenCalledWith(1)
+      expect(source.subscriberCount()).toBe(0)
+
+      shouldFail = false
+      updateSource.set(2)
+      expect(value()).toBe(2)
+      expect(update).toHaveBeenLastCalledWith(2)
+      expect(source.subscriberCount()).toBe(1)
     })
   })
 })

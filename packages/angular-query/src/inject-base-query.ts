@@ -3,7 +3,7 @@ import { QueryClient, shouldThrowError } from '@tanstack/query-core'
 import { signalProxy } from './utils/signal-proxy'
 import { injectIsRestoring } from './inject-is-restoring'
 import { injectPendingTasksLifecycle } from './utils/inject-pending-tasks-lifecycle'
-import { injectReactiveSubscription } from './utils/inject-reactive-subscription'
+import { injectObserverSignal } from './utils/inject-observer-signal'
 import type {
   QueryKey,
   QueryObserver,
@@ -38,7 +38,6 @@ export function injectBaseQuery<
   const ngZone = inject(NgZone)
   const queryClient = inject(QueryClient)
   const isRestoring = injectIsRestoring()
-  const shouldSubscribe = computed(() => !isRestoring())
   const lifecycle = injectPendingTasksLifecycle()
 
   const shouldBlockPendingTasks = (
@@ -70,8 +69,7 @@ export function injectBaseQuery<
     () => new Observer(queryClient, untracked(defaultedOptionsSignal)),
   )
 
-  const resultSignal = injectReactiveSubscription({
-    shouldSubscribe,
+  const resultSignal = injectObserverSignal({
     updateSource: defaultedOptionsSignal,
     update: (options) => observerSignal().setOptions(options),
     getSnapshot: () => {
@@ -81,6 +79,8 @@ export function injectBaseQuery<
       return observer.getOptimisticResult(defaultedOptions)
     },
     subscribe: (onStoreChange) => {
+      if (isRestoring()) return undefined
+
       const observer = observerSignal()
       const initialState = observer.getCurrentResult()
       lifecycle.setPending(shouldBlockPendingTasks(observer, initialState))

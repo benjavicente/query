@@ -7,7 +7,6 @@ import {
   effect,
   input,
   inputBinding,
-  provideZonelessChangeDetection,
   signal,
 } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
@@ -36,6 +35,7 @@ import {
   provideTanStackQuery,
   toResource,
 } from '..'
+import { provideAngularQueryChangeDetection } from './test-utils'
 import type { CreateQueryOptions, OmitKeyof, QueryFunction } from '..'
 
 describe('injectQuery', () => {
@@ -47,7 +47,7 @@ describe('injectQuery', () => {
     queryClient = new QueryClient({ queryCache })
     TestBed.configureTestingModule({
       providers: [
-        provideZonelessChangeDetection(),
+        provideAngularQueryChangeDetection(),
         provideTanStackQuery(() => queryClient),
       ],
     })
@@ -993,7 +993,7 @@ describe('injectQuery', () => {
     expect(instance.initialStatus).toEqual('pending')
   })
 
-  it('should update query data on the same macro task when query data changes', async () => {
+  it('should update query data synchronously when query data changes', () => {
     const query = TestBed.runInInjectionContext(() =>
       injectQuery(() => ({
         queryKey: ['test'],
@@ -1006,10 +1006,6 @@ describe('injectQuery', () => {
 
     expect(query.data()).toBe('initial data')
     queryClient.setQueryData(['test'], 'new data')
-
-    // Flush microtasks
-    await Promise.resolve()
-
     expect(query.data()).toBe('new data')
   })
 
@@ -1020,7 +1016,7 @@ describe('injectQuery', () => {
     TestBed.resetTestingModule()
     TestBed.configureTestingModule({
       providers: [
-        provideZonelessChangeDetection(),
+        provideAngularQueryChangeDetection(),
         provideTanStackQuery(() => queryClient),
         provideIsRestoring(isRestoring.asReadonly()),
       ],
@@ -1114,7 +1110,7 @@ describe('injectQuery', () => {
       TestBed.resetTestingModule()
       TestBed.configureTestingModule({
         providers: [
-          provideZonelessChangeDetection(),
+          provideAngularQueryChangeDetection(),
           provideTanStackQuery(() => queryClient),
           provideHttpClient(),
           provideHttpClientTesting(),
@@ -1169,7 +1165,7 @@ describe('injectQuery', () => {
       TestBed.resetTestingModule()
       TestBed.configureTestingModule({
         providers: [
-          provideZonelessChangeDetection(),
+          provideAngularQueryChangeDetection(),
           provideTanStackQuery(() => queryClient),
         ],
       })
@@ -1220,7 +1216,7 @@ describe('injectQuery', () => {
       TestBed.resetTestingModule()
       TestBed.configureTestingModule({
         providers: [
-          provideZonelessChangeDetection(),
+          provideAngularQueryChangeDetection(),
           provideTanStackQuery(() => queryClient),
         ],
       })
@@ -1276,7 +1272,7 @@ describe('injectQuery', () => {
       TestBed.resetTestingModule()
       TestBed.configureTestingModule({
         providers: [
-          provideZonelessChangeDetection(),
+          provideAngularQueryChangeDetection(),
           provideTanStackQuery(() => queryClient),
         ],
       })

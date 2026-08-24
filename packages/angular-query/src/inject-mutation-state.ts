@@ -1,6 +1,6 @@
-import { assertInInjectionContext, computed, inject } from '@angular/core'
-import { QueryClient } from '@tanstack/query-core'
-import { injectReactiveSubscription } from './utils/inject-reactive-subscription'
+import { assertInInjectionContext, inject } from '@angular/core'
+import { QueryClient, replaceEqualDeep } from '@tanstack/query-core'
+import { injectLinkedStoreSignal } from './utils/inject-linked-store-signal'
 import type { Signal } from '@angular/core'
 import type {
   Mutation,
@@ -9,20 +9,41 @@ import type {
   MutationState,
 } from '@tanstack/query-core'
 
-export type MutationStateOptions<TResult = MutationState> = {
+type MutationTypeFromResult<TResult> = [TResult] extends [
+  MutationState<
+    infer TData,
+    infer TError,
+    infer TVariables,
+    infer TOnMutateResult
+  >,
+]
+  ? Mutation<TData, TError, TVariables, TOnMutateResult>
+  : Mutation
+
+export type MutationStateOptions<
+  TResult = MutationState,
+  TMutation extends Mutation<any, any, any, any> =
+    MutationTypeFromResult<TResult>,
+> = {
   filters?: MutationFilters
-  select?: (mutation: Mutation) => TResult
+  select?: (mutation: TMutation) => TResult
 }
 
-function getResult<TResult = MutationState>(
+function getResult<
+  TResult = MutationState,
+  TMutation extends Mutation<any, any, any, any> =
+    MutationTypeFromResult<TResult>,
+>(
   mutationCache: MutationCache,
-  options: MutationStateOptions<TResult>,
+  options: MutationStateOptions<TResult, TMutation>,
 ): Array<TResult> {
   return mutationCache
     .findAll(options.filters)
     .map(
       (mutation): TResult =>
-        (options.select ? options.select(mutation) : mutation.state) as TResult,
+        (options.select
+          ? options.select(mutation as TMutation)
+          : mutation.state) as TResult,
     )
 }
 
@@ -31,17 +52,20 @@ function getResult<TResult = MutationState>(
  * @param options - A function that returns mutation state options.
  * @returns The signal that tracks the state of all mutations.
  */
-export function injectMutationState<TResult = MutationState>(
-  options: () => MutationStateOptions<TResult> = () => ({}),
+export function injectMutationState<
+  TResult = MutationState,
+  TMutation extends Mutation<any, any, any, any> =
+    MutationTypeFromResult<TResult>,
+>(
+  options: () => MutationStateOptions<TResult, TMutation> = () => ({}),
 ): Signal<Array<TResult>> {
   assertInInjectionContext(injectMutationState)
   const queryClient = inject(QueryClient)
   const mutationCache = queryClient.getMutationCache()
-  const optionsSignal = computed(options)
 
-  return injectReactiveSubscription({
-    updateSource: optionsSignal,
-    getSnapshot: () => getResult(mutationCache, optionsSignal()),
+  return injectLinkedStoreSignal({
+    computation: () => getResult(mutationCache, options()),
     subscribe: (onStoreChange) => mutationCache.subscribe(onStoreChange),
+    equal: (previous, next) => replaceEqualDeep(previous, next) === previous,
   })
 }

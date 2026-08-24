@@ -1,6 +1,6 @@
-import { assertInInjectionContext, computed, inject } from '@angular/core'
+import { assertInInjectionContext, inject } from '@angular/core'
 import { QueryClient } from '@tanstack/query-core'
-import { injectReactiveSubscription } from './utils/inject-reactive-subscription'
+import { injectLinkedStoreSignal } from './utils/inject-linked-store-signal'
 import type { MutationFilters } from '@tanstack/query-core'
 import type { Signal } from '@angular/core'
 
@@ -14,13 +14,10 @@ import type { Signal } from '@angular/core'
 export function injectIsMutating(filters?: MutationFilters): Signal<number> {
   assertInInjectionContext(injectIsMutating)
   const queryClient = inject(QueryClient)
-
   const cache = queryClient.getMutationCache()
-  const resultSource = computed(() => queryClient.isMutating(filters))
 
-  return injectReactiveSubscription({
-    updateSource: resultSource,
-    getSnapshot: () => queryClient.isMutating(filters),
+  return injectLinkedStoreSignal({
+    computation: () => queryClient.isMutating(filters),
     subscribe: (onStoreChange) => cache.subscribe(onStoreChange),
   })
 }

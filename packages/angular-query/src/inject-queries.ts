@@ -13,7 +13,7 @@ import {
 import { signalProxy } from './utils/signal-proxy'
 import { injectIsRestoring } from './inject-is-restoring'
 import { injectPendingTasksLifecycle } from './utils/inject-pending-tasks-lifecycle'
-import { injectReactiveSubscription } from './utils/inject-reactive-subscription'
+import { injectObserverSignal } from './utils/inject-observer-signal'
 import type {
   InjectQueriesOptions,
   QueriesResults,
@@ -56,7 +56,6 @@ export function injectQueries<
   const ngZone = inject(NgZone)
   const queryClient = inject(QueryClient)
   const isRestoring = injectIsRestoring()
-  const shouldSubscribe = computed(() => !isRestoring())
   const lifecycle = injectPendingTasksLifecycle()
 
   const optionsSignal = computed(optionsFn)
@@ -121,8 +120,7 @@ export function injectQueries<
     options: observerOptionsSignal(),
   }))
 
-  const resultSignal = injectReactiveSubscription({
-    shouldSubscribe,
+  const resultSignal = injectObserverSignal({
     updateSource: observerUpdateSignal,
     update: ({ queries, options }) => {
       observerSignal().setQueries(queries, options)
@@ -132,6 +130,8 @@ export function injectQueries<
       return getOptimisticResult(observer).combinedResult
     },
     subscribe: (onStoreChange) => {
+      if (isRestoring()) return undefined
+
       const observer = observerSignal()
       const { optimisticResult } = getOptimisticResult(observer)
       lifecycle.setPending(shouldBlockPendingTasks(observer, optimisticResult))
@@ -187,11 +187,15 @@ export function injectQueries<
     return signalProxy(resultAtIndexSignal, methodsToExclude)
   }
 
-  const proxiedResultsSignal = computed(() =>
-    (resultSignal() as Array<QueryObserverResult>).map((_, index) =>
-      createResultProxy(index),
-    ),
-  )
+  const resultProxies: Array<ReturnType<typeof createResultProxy>> = []
+  const proxiedResultsSignal = computed(() => {
+    const results = resultSignal() as Array<QueryObserverResult>
+    resultProxies.length = results.length
+
+    return results.map((_, index) => {
+      return (resultProxies[index] ??= createResultProxy(index))
+    })
+  })
 
   return computed(() => {
     const result = resultSignal()

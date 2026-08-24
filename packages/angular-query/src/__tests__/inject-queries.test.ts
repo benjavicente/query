@@ -9,7 +9,6 @@ import {
   effect,
   input,
   inputBinding,
-  provideZonelessChangeDetection,
   signal,
 } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
@@ -22,7 +21,10 @@ import {
   skipToken,
 } from '..'
 import { injectQueries } from '../inject-queries'
-import { setupTanStackQueryTestBed } from './test-utils'
+import {
+  provideAngularQueryChangeDetection,
+  setupTanStackQueryTestBed,
+} from './test-utils'
 
 let queryClient: QueryClient
 
@@ -93,7 +95,7 @@ describe('injectQueries', () => {
 
     const rendered = await render(Page, {
       providers: [
-        provideZonelessChangeDetection(),
+        provideAngularQueryChangeDetection(),
         provideTanStackQuery(() => queryClient),
       ],
     })
@@ -583,6 +585,101 @@ describe('injectQueries', () => {
     expect(secondQuery.data()).toBe('second-b')
     expect(firstSpy).toHaveBeenCalledTimes(2)
     expect(secondSpy).toHaveBeenCalledTimes(1)
+  })
+
+  it('should retain result proxy and field signal identities across updates', async () => {
+    @Component({
+      template: '',
+      changeDetection: ChangeDetectionStrategy.OnPush,
+    })
+    class Page {
+      queries = injectQueries(() => ({
+        queries: [
+          {
+            queryKey: ['proxy-cache-update'],
+            queryFn: () => Promise.resolve('initial'),
+          },
+        ],
+      }))
+    }
+
+    const rendered = await render(Page)
+    await vi.advanceTimersByTimeAsync(0)
+
+    const initialQuery = rendered.fixture.componentInstance.queries()[0]
+    const initialDataSignal = initialQuery.data
+
+    queryClient.setQueryData(['proxy-cache-update'], 'updated')
+    await vi.advanceTimersByTimeAsync(0)
+
+    const updatedQuery = rendered.fixture.componentInstance.queries()[0]
+    expect(updatedQuery).toBe(initialQuery)
+    expect(updatedQuery.data).toBe(initialDataSignal)
+    expect(updatedQuery.data()).toBe('updated')
+  })
+
+  it('should cache result proxies by index as the queries array changes', async () => {
+    const queryIds = signal(['a', 'b'])
+
+    @Component({
+      template: '',
+      changeDetection: ChangeDetectionStrategy.OnPush,
+    })
+    class Page {
+      ids = queryIds
+
+      queries = injectQueries(() => ({
+        queries: this.ids().map((id) => ({
+          queryKey: ['proxy-cache-list', id],
+          queryFn: () => Promise.resolve(id),
+          staleTime: Number.POSITIVE_INFINITY,
+        })),
+      }))
+    }
+
+    const rendered = await render(Page)
+    await vi.advanceTimersByTimeAsync(0)
+
+    const instance = rendered.fixture.componentInstance
+    const initialQueries = instance.queries()
+    const firstQuery = initialQueries[0]
+    const secondQuery = initialQueries[1]
+
+    queryIds.set(['a', 'b', 'c'])
+    rendered.fixture.detectChanges()
+    await vi.advanceTimersByTimeAsync(0)
+
+    const appendedQueries = instance.queries()
+    expect(appendedQueries).toHaveLength(3)
+    expect(appendedQueries[0]).toBe(firstQuery)
+    expect(appendedQueries[1]).toBe(secondQuery)
+    expect(appendedQueries[2]).not.toBe(firstQuery)
+
+    queryIds.set(['a'])
+    rendered.fixture.detectChanges()
+    await vi.advanceTimersByTimeAsync(0)
+
+    const removedQueries = instance.queries()
+    expect(removedQueries).toHaveLength(1)
+    expect(removedQueries[0]).toBe(firstQuery)
+
+    queryIds.set(['a', 'd'])
+    rendered.fixture.detectChanges()
+    await vi.advanceTimersByTimeAsync(0)
+
+    const queriesAfterAddingAgain = instance.queries()
+    expect(queriesAfterAddingAgain[0]).toBe(firstQuery)
+    expect(queriesAfterAddingAgain[1]).not.toBe(secondQuery)
+
+    queryIds.set(['d', 'a'])
+    rendered.fixture.detectChanges()
+    await vi.advanceTimersByTimeAsync(0)
+
+    const reorderedQueries = instance.queries()
+    expect(reorderedQueries[0]).toBe(firstQuery)
+    expect(reorderedQueries[1]).not.toBe(secondQuery)
+    expect(reorderedQueries[0]!.data()).toBe('d')
+    expect(reorderedQueries[1]!.data()).toBe('a')
   })
 
   it('should support changes on the queries array', async () => {

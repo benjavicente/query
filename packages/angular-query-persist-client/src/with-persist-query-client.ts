@@ -1,22 +1,21 @@
+import { QueryClient, provideIsRestoring } from '@benjavicente/angular-query'
 import {
-  QueryClient,
-  provideIsRestoring,
-  queryFeature,
-} from '@benjavicente/angular-query'
-import {
-  DestroyRef,
   PLATFORM_ID,
   inject,
   makeEnvironmentProviders,
   provideEnvironmentInitializer,
   signal,
 } from '@angular/core'
+import {
+  injectDestroyRefCompat,
+  queryFeature,
+} from '@benjavicente/angular-query/internal'
 import { isPlatformBrowser } from '@angular/common'
 import {
   persistQueryClientRestore,
   persistQueryClientSubscribe,
 } from '@tanstack/query-persist-client-core'
-import type { PersistQueryClientFeature } from '@benjavicente/angular-query'
+import type { QueryFeature } from '@benjavicente/angular-query'
 import type {
   PersistQueryClientUserOptions,
   WithPersistQueryClientFn,
@@ -90,10 +89,10 @@ function resolvePersistOptions(
  */
 export function withPersistQueryClient(
   factoryOrOptions: WithPersistQueryClientFn,
-): PersistQueryClientFeature
+): QueryFeature
 export function withPersistQueryClient(
   options: PersistQueryClientUserOptions,
-): PersistQueryClientFeature
+): QueryFeature
 /**
  * @param factoryOrOptions - Either a callback (runs only in the browser) or a static options object.
  * @returns A set of providers for use with `provideTanStackQuery`.
@@ -101,7 +100,7 @@ export function withPersistQueryClient(
  */
 export function withPersistQueryClient(
   factoryOrOptions: PersistQueryClientUserOptions | WithPersistQueryClientFn,
-): PersistQueryClientFeature {
+): QueryFeature {
   const isRestoring = signal(true)
   return queryFeature(
     'PersistQueryClient',
@@ -112,15 +111,8 @@ export function withPersistQueryClient(
           isRestoring.set(false)
           return
         }
-        const destroyRef = inject(DestroyRef)
+        const destroyRef = injectDestroyRefCompat()
         const queryClient = inject(QueryClient)
-        let injectorDestroyed = false
-
-        // Angular versions newer than our minimum expose DestroyRef.destroyed.
-        // Keep a local flag so this remains compatible with Angular 20.0.
-        destroyRef.onDestroy(() => {
-          injectorDestroyed = true
-        })
 
         const { onSuccess, onError, persistOptions } =
           resolvePersistOptions(factoryOrOptions)
@@ -133,7 +125,7 @@ export function withPersistQueryClient(
             return onError?.()
           })
           .finally(() => {
-            if (injectorDestroyed) return
+            if (destroyRef.destroyed) return
             isRestoring.set(false)
             const cleanup = persistQueryClientSubscribe(options)
             destroyRef.onDestroy(cleanup)

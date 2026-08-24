@@ -127,25 +127,29 @@ export function provideQueryClient(
  */
 export function provideTanStackQuery(
   queryClientFactoryOrToken: InjectionToken<QueryClient> | (() => QueryClient),
-  ...features: Array<AnyQueryFeature>
+  ...features: ReadonlyArray<QueryFeature>
 ): EnvironmentProviders {
   return makeEnvironmentProviders([
     createQueryClientProvider(queryClientFactoryOrToken),
-    ...features.map((feature) => feature.ɵproviders),
+    ...features.map(getQueryFeatureProviders),
     provideEnvironmentInitializer(configureQueryClient),
   ])
 }
 
-const queryFeatures = ['Devtools', 'Hydration', 'PersistQueryClient'] as const
+const queryFeatureBrand: unique symbol = Symbol('QueryFeature')
 
-type QueryFeatureKind = (typeof queryFeatures)[number]
+export type QueryFeatureKind = 'Devtools' | 'Hydration' | 'PersistQueryClient'
 
 /**
  * Helper type to represent a Query feature.
  */
-export interface QueryFeature<TFeatureKind extends QueryFeatureKind> {
-  ɵkind: TFeatureKind
-  ɵproviders: EnvironmentProviders
+export interface QueryFeature {
+  readonly [queryFeatureBrand]: true
+}
+
+interface InternalQueryFeature extends QueryFeature {
+  readonly ɵkind: QueryFeatureKind
+  readonly ɵproviders: EnvironmentProviders
 }
 
 /**
@@ -154,30 +158,24 @@ export interface QueryFeature<TFeatureKind extends QueryFeatureKind> {
  * @param providers -
  * @returns A Query feature.
  */
-export function queryFeature<TFeatureKind extends QueryFeatureKind>(
-  kind: TFeatureKind,
-  providers: Array<Provider> | EnvironmentProviders,
-): QueryFeature<TFeatureKind> {
-  return {
+export function queryFeature(
+  kind: QueryFeatureKind,
+  providers: EnvironmentProviders,
+): QueryFeature {
+  const feature: InternalQueryFeature = {
+    [queryFeatureBrand]: true,
     ɵkind: kind,
-    ɵproviders: Array.isArray(providers)
-      ? makeEnvironmentProviders(providers)
-      : providers,
+    ɵproviders: providers,
   }
+
+  return feature
 }
 
-/**
- * A type alias that represents a feature which enables developer tools.
- * The type is used to describe the return value of the `withDevtools` function.
- * @see {@link withDevtools}
- */
-export type DevtoolsFeature = QueryFeature<'Devtools'>
-
-/**
- * A type alias that represents a feature which enables persistence.
- * The type is used to describe the return value of the `withPersistQueryClient` function.
- */
-export type PersistQueryClientFeature = QueryFeature<'PersistQueryClient'>
+export function getQueryFeatureProviders(
+  feature: QueryFeature,
+): EnvironmentProviders {
+  return (feature as InternalQueryFeature).ɵproviders
+}
 
 /**
  * Sets a non-default serialization key for this injector's `QueryClient` cache (server dehydrate /
@@ -195,7 +193,7 @@ export type PersistQueryClientFeature = QueryFeature<'PersistQueryClient'>
  *
  * @param key - A unique string for this client's `TransferState` entry.
  */
-export function withHydrationKey(key: string): QueryFeature<'Hydration'> {
+export function withHydrationKey(key: string): QueryFeature {
   return queryFeature(
     'Hydration',
     makeEnvironmentProviders([
@@ -210,7 +208,7 @@ export function withHydrationKey(key: string): QueryFeature<'Hydration'> {
 /**
  * Disables `TransferState` hydration and dehydration for the current environment injector.
  */
-export function withNoQueryHydration(): QueryFeature<'Hydration'> {
+export function withNoQueryHydration(): QueryFeature {
   return queryFeature(
     'Hydration',
     makeEnvironmentProviders([
@@ -221,15 +219,3 @@ export function withNoQueryHydration(): QueryFeature<'Hydration'> {
     ]),
   )
 }
-
-/**
- * A type alias that represents all Query features available for use with `provideTanStackQuery`.
- * Features can be enabled by adding special functions to the `provideTanStackQuery` call.
- * See documentation for each symbol to find corresponding function name. See also `provideTanStackQuery`
- * documentation on how to use those functions.
- * @see {@link provideTanStackQuery}
- */
-export type AnyQueryFeature =
-  | DevtoolsFeature
-  | QueryFeature<'Hydration'>
-  | PersistQueryClientFeature

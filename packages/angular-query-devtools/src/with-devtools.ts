@@ -1,6 +1,5 @@
 import { isPlatformBrowser } from '@angular/common'
 import {
-  DestroyRef,
   InjectionToken,
   PLATFORM_ID,
   afterNextRender,
@@ -11,9 +10,12 @@ import {
   makeEnvironmentProviders,
   provideEnvironmentInitializer,
 } from '@angular/core'
+import {
+  injectDestroyRefCompat,
+  queryFeature,
+} from '@benjavicente/angular-query/internal'
 import { QueryClient, onlineManager } from '@tanstack/query-core'
 import { TanstackQueryDevtools } from '@tanstack/query-devtools'
-import { queryFeature } from '@benjavicente/angular-query'
 import type { Signal } from '@angular/core'
 import type { DevtoolsOptions, WithDevtools } from './types'
 
@@ -75,7 +77,7 @@ export const withDevtools: WithDevtools = (withDevtoolsFn) =>
 
         devtoolsProvided.isProvided = true
 
-        const destroyRef = inject(DestroyRef)
+        const destroyRef = injectDestroyRefCompat()
         const injectedClient = inject(QueryClient, { optional: true })
         const options = inject(DEVTOOLS_OPTIONS)
         const client = resolveOption(options.client) ?? injectedClient
@@ -97,7 +99,6 @@ export const withDevtools: WithDevtools = (withDevtoolsFn) =>
           theme: resolveOption(options.theme),
         })
 
-        let injectorIsDestroyed = false
         let renderCompleted = false
         let element: HTMLElement | null = null
 
@@ -122,13 +123,9 @@ export const withDevtools: WithDevtools = (withDevtoolsFn) =>
           element = null
         }
 
-        destroyRef.onDestroy(() => {
-          injectorIsDestroyed = true
-        })
-
         afterNextRender({
           write: () => {
-            if (injectorIsDestroyed) return
+            if (destroyRef.destroyed) return
 
             renderCompleted = true
             mount()

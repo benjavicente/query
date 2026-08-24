@@ -1,6 +1,6 @@
-import { assertInInjectionContext, computed, inject } from '@angular/core'
+import { assertInInjectionContext, inject } from '@angular/core'
 import { QueryClient } from '@tanstack/query-core'
-import { injectReactiveSubscription } from './utils/inject-reactive-subscription'
+import { injectLinkedStoreSignal } from './utils/inject-linked-store-signal'
 import type { QueryFilters } from '@tanstack/query-core'
 import type { Signal } from '@angular/core'
 
@@ -15,13 +15,10 @@ import type { Signal } from '@angular/core'
 export function injectIsFetching(filters?: QueryFilters): Signal<number> {
   assertInInjectionContext(injectIsFetching)
   const queryClient = inject(QueryClient)
-
   const cache = queryClient.getQueryCache()
-  const resultSource = computed(() => queryClient.isFetching(filters))
 
-  return injectReactiveSubscription({
-    updateSource: resultSource,
-    getSnapshot: () => queryClient.isFetching(filters),
+  return injectLinkedStoreSignal({
+    computation: () => queryClient.isFetching(filters),
     subscribe: (onStoreChange) => cache.subscribe(onStoreChange),
   })
 }

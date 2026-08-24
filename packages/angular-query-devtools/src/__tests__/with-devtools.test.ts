@@ -14,6 +14,7 @@ import {
   signal,
 } from '@angular/core'
 import { provideTanStackQuery } from '@benjavicente/angular-query'
+import { getQueryFeatureProviders } from '@benjavicente/angular-query/internal'
 import { withDevtools } from '../index'
 import type {
   DevtoolsButtonPosition,
@@ -199,9 +200,11 @@ describe('withDevtools feature', () => {
 
     createEnvironmentInjector(
       [
-        withDevtools(() => ({
-          loadDevtools: true,
-        })).ɵproviders,
+        getQueryFeatureProviders(
+          withDevtools(() => ({
+            loadDevtools: true,
+          })),
+        ),
       ],
       injector,
     )

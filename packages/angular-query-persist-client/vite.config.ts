@@ -6,12 +6,17 @@ import packageJson from './package.json'
 
 const packageDir = path.dirname(fileURLToPath(import.meta.url))
 const angularQueryEntry = path.join(packageDir, '../angular-query/src/index.ts')
+const angularQueryInternalEntry = path.join(
+  packageDir,
+  '../angular-query/src/internal.ts',
+)
 
 export default defineConfig({
   // fix from https://github.com/vitest-dev/vitest/issues/6992#issuecomment-2509408660
   resolve: {
     conditions: ['@tanstack/custom-condition'],
     alias: {
+      '@benjavicente/angular-query/internal': angularQueryInternalEntry,
       '@benjavicente/angular-query': angularQueryEntry,
     },
   },

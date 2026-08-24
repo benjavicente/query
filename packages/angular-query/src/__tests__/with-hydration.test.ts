@@ -9,7 +9,6 @@ import {
   inject,
   makeStateKey,
   provideEnvironmentInitializer,
-  provideZonelessChangeDetection,
 } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
 import { render } from '@testing-library/angular'
@@ -23,6 +22,7 @@ import {
   withNoQueryHydration,
 } from '..'
 import { INTERNAL_TANSTACK_QUERY_HYDRATION_STATE_KEY } from '../hydration-state-key'
+import { provideAngularQueryChangeDetection } from './test-utils'
 import type { DehydratedState } from '@tanstack/query-core'
 
 beforeEach(() => {
@@ -54,7 +54,7 @@ describe('TransferState hydration (client)', () => {
 
     const rendered = await render(Page, {
       providers: [
-        provideZonelessChangeDetection(),
+        provideAngularQueryChangeDetection(),
         provideEnvironmentInitializer(() => {
           inject(TransferState).set(
             INTERNAL_TANSTACK_QUERY_HYDRATION_STATE_KEY,
@@ -96,7 +96,7 @@ describe('TransferState hydration (client)', () => {
 
     const rendered = await render(Page, {
       providers: [
-        provideZonelessChangeDetection(),
+        provideAngularQueryChangeDetection(),
         provideEnvironmentInitializer(() => {
           inject(TransferState).set(customKey, dehydrated)
         }),
@@ -141,7 +141,7 @@ describe('TransferState hydration (client)', () => {
 
     await render(Page, {
       providers: [
-        provideZonelessChangeDetection(),
+        provideAngularQueryChangeDetection(),
         provideEnvironmentInitializer(() => {
           inject(TransferState).set(
             INTERNAL_TANSTACK_QUERY_HYDRATION_STATE_KEY,
@@ -175,7 +175,7 @@ describe('TransferState hydration (client)', () => {
 
     const rendered = await render(Page, {
       providers: [
-        provideZonelessChangeDetection(),
+        provideAngularQueryChangeDetection(),
         provideEnvironmentInitializer(() => {
           inject(TransferState).set(
             INTERNAL_TANSTACK_QUERY_HYDRATION_STATE_KEY,
@@ -207,7 +207,7 @@ describe('TransferState dehydration (server)', () => {
   ) {
     TestBed.configureTestingModule({
       providers: [
-        provideZonelessChangeDetection(),
+        provideAngularQueryChangeDetection(),
         { provide: PLATFORM_ID, useValue: platformId },
       ],
     })
@@ -292,7 +292,7 @@ describe('TransferState dehydration (server)', () => {
 
     TestBed.configureTestingModule({
       providers: [
-        provideZonelessChangeDetection(),
+        provideAngularQueryChangeDetection(),
         { provide: PLATFORM_ID, useValue: 'server' },
       ],
     })

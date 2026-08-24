@@ -1,5 +1,4 @@
 import {
-  DestroyRef,
   PLATFORM_ID,
   assertInInjectionContext,
   computed,
@@ -9,6 +8,7 @@ import {
 } from '@angular/core'
 import { QueryClient, onlineManager } from '@tanstack/query-core'
 import { isPlatformBrowser } from '@angular/common'
+import { injectDestroyRefCompat } from '@benjavicente/angular-query/internal'
 import type { TanstackQueryDevtoolsPanel } from '@tanstack/query-devtools'
 import type { DevtoolsPanelOptions, InjectDevtoolsPanel } from './types'
 
@@ -27,16 +27,28 @@ export const injectDevtoolsPanel: InjectDevtoolsPanel = (
   injectDevtoolsPanelFn: () => DevtoolsPanelOptions,
 ) => {
   assertInInjectionContext(injectDevtoolsPanel)
-  const destroyRef = inject(DestroyRef)
+  const destroyRef = injectDestroyRefCompat()
   const isBrowser = isPlatformBrowser(inject(PLATFORM_ID))
   const injectedClient = inject(QueryClient, { optional: true })
 
   const queryOptions = computed(injectDevtoolsPanelFn)
   let devtools: TanstackQueryDevtoolsPanel | null = null
+  let optionsEffect: ReturnType<typeof effect> | undefined
+  let manuallyDestroyed = false
+  let loadGeneration = 0
 
-  const destroy = () => {
+  const unmount = () => {
     devtools?.unmount()
     devtools = null
+  }
+
+  const destroy = () => {
+    if (manuallyDestroyed) return
+
+    manuallyDestroyed = true
+    loadGeneration++
+    optionsEffect?.destroy()
+    unmount()
   }
 
   if (!isBrowser)
@@ -44,7 +56,8 @@ export const injectDevtoolsPanel: InjectDevtoolsPanel = (
       destroy,
     }
 
-  effect(() => {
+  optionsEffect = effect(() => {
+    const generation = ++loadGeneration
     const {
       client = injectedClient,
       errorTypes = [],
@@ -59,6 +72,14 @@ export const injectDevtoolsPanel: InjectDevtoolsPanel = (
       if (!devtools && hostElement) {
         import('@tanstack/query-devtools')
           .then((queryDevtools) => {
+            if (
+              manuallyDestroyed ||
+              destroyRef.destroyed ||
+              generation !== loadGeneration
+            ) {
+              return
+            }
+
             devtools = new queryDevtools.TanstackQueryDevtoolsPanel({
               client,
               queryFlavor: 'Angular Query',
@@ -82,7 +103,7 @@ export const injectDevtoolsPanel: InjectDevtoolsPanel = (
         devtools.setErrorTypes(errorTypes)
         onClose && devtools.setOnClose(onClose)
       } else if (devtools && !hostElement) {
-        destroy()
+        unmount()
       }
     })
   })

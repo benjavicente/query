@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { provideZonelessChangeDetection } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
 import { QueryClient } from '@tanstack/query-core'
 import { queryKey, sleep } from '@tanstack/query-test-utils'
@@ -10,6 +9,7 @@ import {
   mutationOptions,
   provideTanStackQuery,
 } from '..'
+import { provideAngularQueryChangeDetection } from './test-utils'
 import type { CreateMutationOptions } from '../types'
 
 describe('mutationOptions', () => {
@@ -20,7 +20,7 @@ describe('mutationOptions', () => {
     queryClient = new QueryClient()
     TestBed.configureTestingModule({
       providers: [
-        provideZonelessChangeDetection(),
+        provideAngularQueryChangeDetection(),
         provideTanStackQuery(() => queryClient),
       ],
     })

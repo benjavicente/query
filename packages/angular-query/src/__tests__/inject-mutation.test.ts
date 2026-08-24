@@ -3,9 +3,9 @@ import {
   ChangeDetectionStrategy,
   Component,
   NgZone,
+  effect,
   input,
   inputBinding,
-  provideZonelessChangeDetection,
   signal,
 } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
@@ -13,8 +13,16 @@ import { render } from '@testing-library/angular'
 import { sleep } from '@tanstack/query-test-utils'
 import { firstValueFrom } from 'rxjs'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { QueryClient, injectMutation, provideTanStackQuery } from '..'
-import { expectSignals } from './test-utils'
+import {
+  QueryClient,
+  injectMutation,
+  injectQuery,
+  provideTanStackQuery,
+} from '..'
+import {
+  expectSignals,
+  provideAngularQueryChangeDetection,
+} from './test-utils'
 
 describe('injectMutation', () => {
   let queryClient: QueryClient
@@ -24,7 +32,7 @@ describe('injectMutation', () => {
     vi.useFakeTimers()
     TestBed.configureTestingModule({
       providers: [
-        provideZonelessChangeDetection(),
+        provideAngularQueryChangeDetection(),
         provideTanStackQuery(() => queryClient),
       ],
     })
@@ -136,6 +144,33 @@ describe('injectMutation', () => {
     const mutations = mutationCache.find({ mutationKey: ['2'] })
 
     expect(mutations?.options.mutationKey).toEqual(['2'])
+  })
+
+  it('does not track mutation state when mutating from a reactive context', async () => {
+    const trigger = signal(false)
+    const runs = vi.fn()
+    const mutation = TestBed.runInInjectionContext(() =>
+      injectMutation(() => ({
+        mutationFn: () => sleep(10),
+      })),
+    )
+
+    TestBed.runInInjectionContext(() =>
+      effect(() => {
+        runs()
+        if (trigger()) mutation.mutate()
+      }),
+    )
+    TestBed.tick()
+    expect(runs).toHaveBeenCalledOnce()
+
+    trigger.set(true)
+    TestBed.tick()
+    expect(runs).toHaveBeenCalledTimes(2)
+
+    await vi.advanceTimersByTimeAsync(11)
+    TestBed.tick()
+    expect(runs).toHaveBeenCalledTimes(2)
   })
 
   it('should reset state after invoking mutation.reset', async () => {
@@ -332,18 +367,12 @@ describe('injectMutation', () => {
     })
     rendered.fixture.detectChanges()
 
-    const fixture = rendered.fixture
-
-    const hostButton = fixture.nativeElement.querySelector(
-      'button',
-    ) as HTMLButtonElement
-    hostButton.click()
+    rendered.getByRole('button').click()
 
     await vi.advanceTimersByTimeAsync(11)
-    fixture.detectChanges()
+    rendered.fixture.detectChanges()
 
-    const span = fixture.nativeElement.querySelector('span') as HTMLSpanElement
-    expect(span.textContent).toEqual('value')
+    expect(rendered.getByText('value')).toBeInTheDocument()
     const mutation = mutationCache.find({
       mutationKey: ['fake', 'value'],
     })
@@ -382,28 +411,20 @@ describe('injectMutation', () => {
     })
     rendered.fixture.detectChanges()
 
-    const fixture = rendered.fixture
-
-    let button = fixture.nativeElement.querySelector(
-      'button',
-    ) as HTMLButtonElement
-    button.click()
+    rendered.getByRole('button').click()
     await vi.advanceTimersByTimeAsync(11)
-    fixture.detectChanges()
+    rendered.fixture.detectChanges()
 
-    let span = fixture.nativeElement.querySelector('span') as HTMLSpanElement
-    expect(span.textContent).toEqual('value')
+    expect(rendered.getByText('value')).toBeInTheDocument()
 
     name.set('updatedValue')
-    fixture.detectChanges()
+    rendered.fixture.detectChanges()
 
-    button = fixture.nativeElement.querySelector('button') as HTMLButtonElement
-    button.click()
+    rendered.getByRole('button').click()
     await vi.advanceTimersByTimeAsync(11)
-    fixture.detectChanges()
+    rendered.fixture.detectChanges()
 
-    span = fixture.nativeElement.querySelector('span') as HTMLSpanElement
-    expect(span.textContent).toEqual('updatedValue')
+    expect(rendered.getByText('updatedValue')).toBeInTheDocument()
 
     const mutations = mutationCache.findAll()
     expect(mutations.length).toBe(2)
@@ -549,7 +570,7 @@ describe('injectMutation', () => {
       TestBed.resetTestingModule()
       TestBed.configureTestingModule({
         providers: [
-          provideZonelessChangeDetection(),
+          provideAngularQueryChangeDetection(),
           provideTanStackQuery(() => queryClient),
         ],
       })
@@ -599,7 +620,7 @@ describe('injectMutation', () => {
       TestBed.resetTestingModule()
       TestBed.configureTestingModule({
         providers: [
-          provideZonelessChangeDetection(),
+          provideAngularQueryChangeDetection(),
           provideTanStackQuery(() => queryClient),
         ],
       })
@@ -651,7 +672,7 @@ describe('injectMutation', () => {
       TestBed.resetTestingModule()
       TestBed.configureTestingModule({
         providers: [
-          provideZonelessChangeDetection(),
+          provideAngularQueryChangeDetection(),
           provideTanStackQuery(() => queryClient),
         ],
       })
@@ -660,9 +681,18 @@ describe('injectMutation', () => {
       const testQueryKey = ['sync-optimistic']
       let onMutateCalled = false
       let onSuccessCalled = false
+      let queryDataInsideOnMutate: string | undefined
 
       // Set initial data
       queryClient.setQueryData(testQueryKey, 'initial')
+
+      const query = TestBed.runInInjectionContext(() =>
+        injectQuery(() => ({
+          queryKey: testQueryKey,
+          queryFn: () => Promise.resolve('initial'),
+          staleTime: Infinity,
+        })),
+      )
 
       const mutation = TestBed.runInInjectionContext(() =>
         injectMutation(() => ({
@@ -673,6 +703,7 @@ describe('injectMutation', () => {
           onMutate: async (variables) => {
             onMutateCalled = true
             queryClient.setQueryData(testQueryKey, `optimistic: ${variables}`)
+            queryDataInsideOnMutate = query.data()
           },
           onSuccess: (data) => {
             onSuccessCalled = true
@@ -691,9 +722,11 @@ describe('injectMutation', () => {
       // Flush microtasks to allow TanStack Query's scheduled notifications to process
       await Promise.resolve()
 
-      // Check for optimistic update in the same macro task
+      // The observed query signal must be current inside the onMutate callback,
+      // immediately after the optimistic cache write.
       expect(onMutateCalled).toBe(true)
       expect(queryClient.getQueryData(testQueryKey)).toBe('optimistic: test')
+      expect(queryDataInsideOnMutate).toBe('optimistic: test')
 
       // Check stability before the mutation completes, waiting for the next macro task
       await vi.advanceTimersByTimeAsync(0)
@@ -715,7 +748,7 @@ describe('injectMutation', () => {
       TestBed.resetTestingModule()
       TestBed.configureTestingModule({
         providers: [
-          provideZonelessChangeDetection(),
+          provideAngularQueryChangeDetection(),
           provideTanStackQuery(() => queryClient),
         ],
       })

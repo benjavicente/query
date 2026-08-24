@@ -5,13 +5,13 @@ import {
   input,
   inputBinding,
   isSignal,
-  provideZonelessChangeDetection,
   signal,
   untracked,
 } from '@angular/core'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { TestBed } from '@angular/core/testing'
 import { signalProxy } from '../utils/signal-proxy'
+import { provideAngularQueryChangeDetection } from './test-utils'
 
 describe('signalProxy', () => {
   const inputSignal = signal({
@@ -70,7 +70,7 @@ describe('signalProxy', () => {
 
     beforeEach(() => {
       TestBed.configureTestingModule({
-        providers: [provideZonelessChangeDetection()],
+        providers: [provideAngularQueryChangeDetection()],
       })
     })
 

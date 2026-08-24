@@ -13,7 +13,7 @@ import {
 } from '@tanstack/query-core'
 import { signalProxy } from './utils/signal-proxy'
 import { injectPendingTasksLifecycle } from './utils/inject-pending-tasks-lifecycle'
-import { injectReactiveSubscription } from './utils/inject-reactive-subscription'
+import { injectObserverSignal } from './utils/inject-observer-signal'
 import type { DefaultError } from '@tanstack/query-core'
 import type {
   CreateMutateAsyncFunction,
@@ -57,17 +57,10 @@ export function injectMutation<
   const observerSignal = computed(
     () => new MutationObserver(queryClient, untracked(optionsSignal)),
   )
-  let observerHasInitialOptions = false
 
-  const mutationStateSignal = injectReactiveSubscription({
+  const mutationStateSignal = injectObserverSignal({
     updateSource: optionsSignal,
-    update: (options) => {
-      if (!observerHasInitialOptions) {
-        observerHasInitialOptions = true
-        return
-      }
-      observerSignal().setOptions(options)
-    },
+    update: (options) => observerSignal().setOptions(options),
     getSnapshot: () => observerSignal().getCurrentResult(),
     subscribe: (onStoreChange) => {
       const observer = observerSignal()
@@ -113,13 +106,17 @@ export function injectMutation<
     TVariables,
     TOnMutateResult
   > = (...args) => {
-    mutationStateSignal()
-    return observerSignal().mutate(args[0] as TVariables, args[1])
+    return untracked(() => {
+      mutationStateSignal()
+      return observerSignal().mutate(args[0] as TVariables, args[1])
+    })
   }
 
   const reset = () => {
-    mutationStateSignal()
-    observerSignal().reset()
+    untracked(() => {
+      mutationStateSignal()
+      observerSignal().reset()
+    })
   }
 
   return Object.assign(signalProxy(mutationStateSignal), {

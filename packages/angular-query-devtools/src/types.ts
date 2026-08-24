@@ -5,7 +5,7 @@ import type {
   DevtoolsPosition,
   Theme,
 } from '@tanstack/query-devtools'
-import type { DevtoolsFeature } from '@benjavicente/angular-query'
+import type { QueryFeature } from '@benjavicente/angular-query'
 import type { Signal } from '@angular/core'
 
 /** A static devtools option or an Angular signal containing that option. */
@@ -89,4 +89,4 @@ export interface DevtoolsOptions {
  */
 export type WithDevtoolsFn = () => DevtoolsOptions
 
-export type WithDevtools = (withDevtoolsFn?: WithDevtoolsFn) => DevtoolsFeature
+export type WithDevtools = (withDevtoolsFn?: WithDevtoolsFn) => QueryFeature

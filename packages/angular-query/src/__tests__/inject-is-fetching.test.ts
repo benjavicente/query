@@ -4,7 +4,6 @@ import {
   Component,
   input,
   inputBinding,
-  provideZonelessChangeDetection,
   signal,
 } from '@angular/core'
 import { render } from '@testing-library/angular'
@@ -15,6 +14,7 @@ import {
   injectQuery,
   provideTanStackQuery,
 } from '..'
+import { provideAngularQueryChangeDetection } from './test-utils'
 
 describe('injectIsFetching', () => {
   let queryClient: QueryClient
@@ -25,7 +25,7 @@ describe('injectIsFetching', () => {
 
     TestBed.configureTestingModule({
       providers: [
-        provideZonelessChangeDetection(),
+        provideAngularQueryChangeDetection(),
         provideTanStackQuery(() => queryClient),
       ],
     })

@@ -1,12 +1,13 @@
 import { TestBed } from '@angular/core/testing'
 import { describe, expect, it } from 'vitest'
-import { provideZonelessChangeDetection, signal } from '@angular/core'
+import { signal } from '@angular/core'
 import {
   QueryClient,
   injectIsRestoring,
   provideIsRestoring,
   provideTanStackQuery,
 } from '..'
+import { provideAngularQueryChangeDetection } from './test-utils'
 
 describe('injectIsRestoring', () => {
   let queryClient: QueryClient
@@ -16,7 +17,7 @@ describe('injectIsRestoring', () => {
 
     TestBed.configureTestingModule({
       providers: [
-        provideZonelessChangeDetection(),
+        provideAngularQueryChangeDetection(),
         provideTanStackQuery(() => queryClient),
       ],
     })
@@ -34,7 +35,7 @@ describe('injectIsRestoring', () => {
 
     TestBed.configureTestingModule({
       providers: [
-        provideZonelessChangeDetection(),
+        provideAngularQueryChangeDetection(),
         provideTanStackQuery(() => queryClient),
         provideIsRestoring(restoringSignal.asReadonly()),
       ],

@@ -28,7 +28,7 @@ export default defineConfig({
   ],
   test: {
     name: packageJson.name,
-    dir: './src/__tests__',
+    dir: './src',
     watch: false,
     environment: 'jsdom',
     setupFiles: ['./test-setup.ts'],
@@ -39,6 +39,9 @@ export default defineConfig({
       exclude: ['src/__tests__/**'],
     },
     include: ['**/*.{test,spec}.{ts,mts,cts,tsx,js,mjs,cjs,jsx}'],
+    // The focused Zone.js project opts this file back in. The default project
+    // must not load provideZoneChangeDetection without the Zone.js setup file.
+    exclude: ['**/zoneful-integration.test.ts'],
     typecheck: {
       enabled: true,
       include: ['**/*.test-d.ts'],

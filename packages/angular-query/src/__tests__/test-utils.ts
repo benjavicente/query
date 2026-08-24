@@ -1,5 +1,7 @@
+// cspell:ignore ZONEFUL zoneful
 import {
   isSignal,
+  provideZoneChangeDetection,
   provideZonelessChangeDetection,
   untracked,
 } from '@angular/core'
@@ -8,6 +10,17 @@ import { expect, vi } from 'vitest'
 import { provideTanStackQuery } from '..'
 import type { QueryClient } from '@tanstack/query-core'
 import type { EnvironmentProviders, Provider, Signal } from '@angular/core'
+
+/**
+ * Use the same change-detection mode as the test runner. The default runner
+ * is zoneless; the zoneful runner sets ANGULAR_QUERY_ZONEFUL before loading
+ * tests and installs the real Zone.js testing patches.
+ */
+export function provideAngularQueryChangeDetection(): EnvironmentProviders {
+  return process.env.ANGULAR_QUERY_ZONEFUL === 'true'
+    ? provideZoneChangeDetection()
+    : provideZonelessChangeDetection()
+}
 
 // Evaluate all signals on an object and return the result
 function evaluateSignals<T extends Record<string, any>>(
@@ -51,7 +64,7 @@ export function setupTanStackQueryTestBed(
   TestBed.resetTestingModule()
   TestBed.configureTestingModule({
     providers: [
-      provideZonelessChangeDetection(),
+      provideAngularQueryChangeDetection(),
       provideTanStackQuery(() => queryClient),
       ...(options.providers ?? []),
     ],

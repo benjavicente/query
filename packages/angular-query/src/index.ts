@@ -46,16 +46,10 @@ export { injectQueries } from './inject-queries'
 
 export { injectQuery } from './inject-query'
 
-export type {
-  DevtoolsFeature,
-  AnyQueryFeature,
-  PersistQueryClientFeature,
-  QueryFeature,
-} from './providers'
+export type { QueryFeature } from './providers'
 export {
   provideQueryClient,
   provideTanStackQuery,
-  queryFeature,
   withHydrationKey,
   withNoQueryHydration,
 } from './providers'
