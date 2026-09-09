@@ -6,7 +6,6 @@ import {
   inputBinding,
   isSignal,
   signal,
-  untracked,
 } from '@angular/core'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { TestBed } from '@angular/core/testing'
@@ -14,58 +13,39 @@ import { signalProxy } from '../utils/signal-proxy'
 import { provideAngularQueryChangeDetection } from './test-utils'
 
 describe('signalProxy', () => {
-  const inputSignal = signal({
-    fn: () => 'bar',
-    baz: 'qux',
-    falsy: false,
-    zero: 0,
-  })
-  const proxy = signalProxy(inputSignal, ['fn'])
+  it('only exposes declared fields with ordinary object semantics', async () => {
+    const source = signal({ value: 'data', falsy: false, zero: 0 })
+    const proxy = signalProxy(source, ['value', 'falsy', 'zero'])
 
-  it('defaults to proxying every field as a signal', () => {
-    const defaultProxy = signalProxy(inputSignal)
-
-    expect(defaultProxy.baz()).toBe('qux')
-    expect(defaultProxy.fn()()).toBe('bar')
+    expect(Object.keys(proxy)).toEqual(['value', 'falsy', 'zero'])
+    expect('value' in proxy).toBe(true)
+    expect('falsy' in proxy).toBe(true)
+    expect('zero' in proxy).toBe(true)
+    expect('missing' in proxy).toBe(false)
+    expect(Object.hasOwn(proxy, 'missing')).toBe(false)
+    expect(Reflect.get(proxy, 'then')).toBeUndefined()
+    expect(await Promise.resolve(proxy)).toBe(proxy)
   })
 
   it('should have computed fields', () => {
-    expect(proxy.baz()).toEqual('qux')
-    expect(isSignal(proxy.baz)).toBe(true)
-  })
-
-  it('should pass through functions as-is', () => {
-    expect(proxy.fn()).toEqual('bar')
-    expect(isSignal(proxy.fn)).toBe(false)
-  })
-
-  it('supports "in" operator', () => {
-    expect('baz' in proxy).toBe(true)
-    expect('falsy' in proxy).toBe(true)
-    expect('zero' in proxy).toBe(true)
-    expect('foo' in proxy).toBe(false)
-  })
-
-  it('supports "Object.keys"', () => {
-    expect(Object.keys(proxy)).toEqual(['fn', 'baz', 'falsy', 'zero'])
+    const source = signal({ value: 'data' })
+    const proxy = signalProxy(source, ['value'])
+    expect(proxy.value()).toBe('data')
+    expect(isSignal(proxy.value)).toBe(true)
   })
 
   describe('in component fixture', () => {
     @Component({
       selector: 'app-test',
       standalone: true,
-      template: '{{ proxy.baz() }}',
+      template: '{{ proxy.number() }}',
       changeDetection: ChangeDetectionStrategy.OnPush,
     })
     class TestComponent {
       number = input.required<number>()
-      obj = computed(() => ({
-        number: this.number(),
-        fn: () => untracked(this.number) + 1,
-      }))
-      proxy = signalProxy(this.obj, ['fn'])
+      obj = computed(() => ({ number: this.number() }))
+      proxy = signalProxy(this.obj, ['number'])
       shortNumber = this.proxy.number
-      shortFn = this.proxy.fn
     }
 
     beforeEach(() => {
@@ -74,24 +54,7 @@ describe('signalProxy', () => {
       })
     })
 
-    it('should generate fixed fields after initial change detection run', async () => {
-      const number = signal(1)
-      const fixture = TestBed.createComponent(TestComponent, {
-        bindings: [inputBinding('number', number.asReadonly())],
-      })
-      fixture.detectChanges()
-      const instance = fixture.componentInstance
-
-      expect(isSignal(instance.proxy.number)).toBe(true)
-      expect(instance.proxy.number()).toBe(1)
-      expect(instance.shortNumber).toBe(instance.proxy.number)
-
-      expect(instance.proxy.fn()).toBe(2)
-      expect(isSignal(instance.proxy.fn)).toBe(false)
-      expect(instance.shortFn).toBe(instance.proxy.fn)
-    })
-
-    it('should reflect updates on the proxy', async () => {
+    it('should retain field signals and update aliases of required inputs', () => {
       const number = signal(0)
       const fixture = TestBed.createComponent(TestComponent, {
         bindings: [inputBinding('number', number.asReadonly())],
@@ -99,14 +62,16 @@ describe('signalProxy', () => {
       fixture.detectChanges()
       const instance = fixture.componentInstance
 
+      expect(isSignal(instance.proxy.number)).toBe(true)
+      expect(instance.shortNumber).toBe(instance.proxy.number)
       expect(instance.shortNumber()).toBe(0)
-      expect(instance.shortFn()).toBe(1)
 
       number.set(1)
       fixture.detectChanges()
 
+      expect(instance.shortNumber).toBe(instance.proxy.number)
       expect(instance.shortNumber()).toBe(1)
-      expect(instance.shortFn()).toBe(2)
+      expect(fixture.nativeElement.textContent).toBe('1')
     })
   })
 })

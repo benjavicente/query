@@ -1,12 +1,19 @@
 import { InfiniteQueryObserver } from '@tanstack/query-core'
-import { assertInInjectionContext } from '@angular/core'
+import { assertInInjectionContext, untracked } from '@angular/core'
 import { injectBaseQuery } from './inject-base-query'
+import { signalProxy } from './utils/signal-proxy'
+import { infiniteQueryResultFields } from './utils/result-fields'
 import type {
   DefaultError,
+  FetchNextPageOptions,
+  FetchPreviousPageOptions,
   InfiniteData,
+  InfiniteQueryObserverResult,
   QueryKey,
   QueryObserver,
+  RefetchOptions,
 } from '@tanstack/query-core'
+import type { Signal } from '@angular/core'
 import type {
   CreateInfiniteQueryOptions,
   CreateInfiniteQueryResult,
@@ -99,17 +106,32 @@ export function injectInfiniteQuery<
   | DefinedCreateInfiniteQueryResult<TData, TError>
   | CreateInfiniteQueryResult<TData, TError> {
   assertInInjectionContext(injectInfiniteQuery)
-  return injectBaseQuery(
+  const { resultSignal, getObserver } = injectBaseQuery(
     optionsFn,
     InfiniteQueryObserver as typeof QueryObserver,
-    methodsToExclude,
+  )
+  const getInfiniteObserver = () =>
+    getObserver() as InfiniteQueryObserver<
+      TQueryFnData,
+      TError,
+      TData,
+      TQueryKey,
+      TPageParam
+    >
+  return Object.assign(
+    signalProxy(
+      resultSignal as Signal<InfiniteQueryObserverResult<TData, TError>>,
+      infiniteQueryResultFields,
+    ),
+    {
+      refetch: (options?: RefetchOptions) =>
+        untracked(() => getInfiniteObserver().refetch(options)),
+      fetchNextPage: (options?: FetchNextPageOptions) =>
+        untracked(() => getInfiniteObserver().fetchNextPage(options)),
+      fetchPreviousPage: (options?: FetchPreviousPageOptions) =>
+        untracked(() => getInfiniteObserver().fetchPreviousPage(options)),
+    },
   ) as unknown as
     | DefinedCreateInfiniteQueryResult<TData, TError>
     | CreateInfiniteQueryResult<TData, TError>
 }
-
-const methodsToExclude = [
-  'fetchNextPage',
-  'fetchPreviousPage',
-  'refetch',
-] as const

@@ -1,9 +1,7 @@
 ---
-id: "@tanstack/angular-query"
-title: "@tanstack/angular-query"
+id: "@benjavicente/angular-query"
+title: "@benjavicente/angular-query"
 ---
-
-# @tanstack/angular-query
 
 ## Interfaces
 
@@ -13,15 +11,14 @@ title: "@tanstack/angular-query"
 - [CreateInfiniteQueryOptions](interfaces/CreateInfiniteQueryOptions.md)
 - [CreateMutationOptions](interfaces/CreateMutationOptions.md)
 - [DefinedInfiniteQueryNarrowing](interfaces/DefinedInfiniteQueryNarrowing.md)
+- [DefinedQueryNarrowing](interfaces/DefinedQueryNarrowing.md)
 - [InjectQueriesOptions](interfaces/InjectQueriesOptions.md)
 - [QueryFeature](interfaces/QueryFeature.md)
 - [QueryResource](interfaces/QueryResource.md)
 
 ## Type Aliases
 
-- [AnyQueryFeature](type-aliases/AnyQueryFeature.md)
 - [CreateBaseMutationResult](type-aliases/CreateBaseMutationResult.md)
-- [CreateBaseQueryOptions](type-aliases/CreateBaseQueryOptions.md)
 - [CreateBaseQueryResult](type-aliases/CreateBaseQueryResult.md)
 - [CreateInfiniteQueryResult](type-aliases/CreateInfiniteQueryResult.md)
 - [CreateMutateAsyncFunction](type-aliases/CreateMutateAsyncFunction.md)
@@ -33,9 +30,7 @@ title: "@tanstack/angular-query"
 - [DefinedCreateQueryResult](type-aliases/DefinedCreateQueryResult.md)
 - [DefinedInitialDataInfiniteOptions](type-aliases/DefinedInitialDataInfiniteOptions.md)
 - [DefinedInitialDataOptions](type-aliases/DefinedInitialDataOptions.md)
-- [DevtoolsFeature](type-aliases/DevtoolsFeature.md)
 - [MutationStateOptions](type-aliases/MutationStateOptions.md)
-- [PersistQueryClientFeature](type-aliases/PersistQueryClientFeature.md)
 - [QueriesOptions](type-aliases/QueriesOptions.md)
 - [QueriesResults](type-aliases/QueriesResults.md)
 - [UndefinedInitialDataInfiniteOptions](type-aliases/UndefinedInitialDataInfiniteOptions.md)
@@ -56,9 +51,7 @@ title: "@tanstack/angular-query"
 - [injectQuery](functions/injectQuery.md)
 - [mutationOptions](functions/mutationOptions.md)
 - [provideIsRestoring](functions/provideIsRestoring.md)
-- [provideQueryClient](functions/provideQueryClient.md)
 - [provideTanStackQuery](functions/provideTanStackQuery.md)
-- [queryFeature](functions/queryFeature.md)
 - [queryOptions](functions/queryOptions.md)
 - [toResource](functions/toResource.md)
 - [withHydrationKey](functions/withHydrationKey.md)

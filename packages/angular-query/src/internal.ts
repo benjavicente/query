@@ -4,9 +4,5 @@
  * This entry point is not part of the application-facing API and may change
  * without notice.
  */
-export {
-  DestroyRefCompat,
-  injectDestroyRefCompat,
-} from './utils/destroy-ref-compat'
-export type { QueryFeatureKind } from './providers'
 export { getQueryFeatureProviders, queryFeature } from './providers'
+export { IS_RESTORING } from './inject-is-restoring'

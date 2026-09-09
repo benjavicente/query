@@ -787,8 +787,16 @@
               "to": "framework/angular/guides/does-this-replace-client-state"
             },
             {
-              "label": "Migrating to Angular Query",
-              "to": "framework/angular/guides/migrating-to-angular-query"
+              "label": "Migrating from Experimental",
+              "to": "framework/angular/guides/migrating-from-experimental"
+            },
+            {
+              "label": "Migrating from ngneat/query",
+              "to": "framework/angular/guides/migrating-from-ngneat-query"
+            },
+            {
+              "label": "Error Handling",
+              "to": "framework/angular/guides/error-handling"
             }
           ]
         },
@@ -1394,16 +1402,8 @@
               "to": "framework/angular/reference/functions/provideIsRestoring"
             },
             {
-              "label": "provideQueryClient",
-              "to": "framework/angular/reference/functions/provideQueryClient"
-            },
-            {
               "label": "provideTanStackQuery",
               "to": "framework/angular/reference/functions/provideTanStackQuery"
-            },
-            {
-              "label": "queryFeature",
-              "to": "framework/angular/reference/functions/queryFeature"
             },
             {
               "label": "queryOptions",

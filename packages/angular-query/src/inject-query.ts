@@ -1,7 +1,9 @@
 import { QueryObserver } from '@tanstack/query-core'
-import { assertInInjectionContext } from '@angular/core'
+import { assertInInjectionContext, untracked } from '@angular/core'
 import { injectBaseQuery } from './inject-base-query'
-import type { DefaultError, QueryKey } from '@tanstack/query-core'
+import { signalProxy } from './utils/signal-proxy'
+import { queryResultFields } from './utils/result-fields'
+import type { DefaultError, QueryKey, RefetchOptions } from '@tanstack/query-core'
 import type {
   CreateQueryOptions,
   CreateQueryResult,
@@ -46,12 +48,7 @@ export function injectQuery<
   TData = TQueryFnData,
   TQueryKey extends QueryKey = QueryKey,
 >(
-  optionsFn: () => CreateQueryOptions<
-    TQueryFnData,
-    TError,
-    TData,
-    TQueryKey
-  >,
+  optionsFn: () => CreateQueryOptions<TQueryFnData, TError, TData, TQueryKey>,
 ): CreateQueryResult<TData, TError>
 
 /**
@@ -97,11 +94,12 @@ export function injectQuery(
   optionsFn: () => CreateQueryOptions,
 ): DefinedCreateQueryResult | CreateQueryResult {
   assertInInjectionContext(injectQuery)
-  return injectBaseQuery(
+  const { resultSignal, getObserver } = injectBaseQuery(
     optionsFn,
     QueryObserver,
-    methodsToExclude,
-  ) as unknown as DefinedCreateQueryResult | CreateQueryResult
+  )
+  return Object.assign(signalProxy(resultSignal, queryResultFields), {
+    refetch: (options?: RefetchOptions) =>
+      untracked(() => getObserver().refetch(options)),
+  }) as unknown as DefinedCreateQueryResult | CreateQueryResult
 }
-
-const methodsToExclude = ['refetch'] as const

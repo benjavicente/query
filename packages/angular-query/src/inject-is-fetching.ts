@@ -1,6 +1,6 @@
 import { assertInInjectionContext, inject } from '@angular/core'
 import { QueryClient } from '@tanstack/query-core'
-import { injectLinkedStoreSignal } from './utils/inject-linked-store-signal'
+import { injectExternalStore } from './utils/inject-external-store'
 import type { QueryFilters } from '@tanstack/query-core'
 import type { Signal } from '@angular/core'
 
@@ -9,16 +9,18 @@ import type { Signal } from '@angular/core'
  * fetching in the background.
  *
  * Can be used for app-wide loading indicators
- * @param filters - The filters to apply to the query.
+ * @param filters - A reactive factory for the filters.
  * @returns signal with number of loading or fetching queries.
  */
-export function injectIsFetching(filters?: QueryFilters): Signal<number> {
+export function injectIsFetching(
+  filters: () => QueryFilters = () => ({}),
+): Signal<number> {
   assertInInjectionContext(injectIsFetching)
   const queryClient = inject(QueryClient)
   const cache = queryClient.getQueryCache()
 
-  return injectLinkedStoreSignal({
-    computation: () => queryClient.isFetching(filters),
+  return injectExternalStore(() => ({
+    getSnapshot: () => queryClient.isFetching(filters()),
     subscribe: (onStoreChange) => cache.subscribe(onStoreChange),
-  })
+  }))
 }

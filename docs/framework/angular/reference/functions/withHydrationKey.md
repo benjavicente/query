@@ -3,13 +3,11 @@ id: withHydrationKey
 title: withHydrationKey
 ---
 
-# Function: withHydrationKey()
-
 ```ts
-function withHydrationKey(key): QueryFeature<"Hydration">;
+function withHydrationKey(key): QueryFeature;
 ```
 
-Defined in: [packages/angular-query/src/providers.ts:198](https://github.com/TanStack/query/blob/main/packages/angular-query/src/providers.ts#L198)
+Defined in: [packages/angular-query/src/providers.ts:167](https://github.com/TanStack/query/blob/main/packages/angular-query/src/providers.ts#L167)
 
 Sets a non-default serialization key for this injector's `QueryClient` cache (server dehydrate /
 browser hydrate via `TransferState`). Use this when you have multiple `QueryClient` instances
@@ -34,4 +32,4 @@ A unique string for this client's `TransferState` entry.
 
 ## Returns
 
-[`QueryFeature`](../interfaces/QueryFeature.md)\<`"Hydration"`\>
+[`QueryFeature`](../interfaces/QueryFeature.md)

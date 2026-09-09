@@ -1,6 +1,6 @@
 import { assertInInjectionContext, inject } from '@angular/core'
-import { QueryClient, replaceEqualDeep } from '@tanstack/query-core'
-import { injectLinkedStoreSignal } from './utils/inject-linked-store-signal'
+import { QueryClient } from '@tanstack/query-core'
+import { injectExternalStore } from './utils/inject-external-store'
 import type { Signal } from '@angular/core'
 import type {
   Mutation,
@@ -63,9 +63,15 @@ export function injectMutationState<
   const queryClient = inject(QueryClient)
   const mutationCache = queryClient.getMutationCache()
 
-  return injectLinkedStoreSignal({
-    computation: () => getResult(mutationCache, options()),
-    subscribe: (onStoreChange) => mutationCache.subscribe(onStoreChange),
-    equal: (previous, next) => replaceEqualDeep(previous, next) === previous,
-  })
+  return injectExternalStore(
+    () => ({
+      getSnapshot: () => getResult(mutationCache, options()),
+      subscribe: (onStoreChange) => mutationCache.subscribe(onStoreChange),
+    }),
+    {
+      equal: (previous, next) =>
+        previous.length === next.length &&
+        previous.every((value, index) => Object.is(value, next[index])),
+    },
+  )
 }

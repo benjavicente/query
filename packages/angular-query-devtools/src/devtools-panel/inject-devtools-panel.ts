@@ -1,4 +1,5 @@
 import {
+  DestroyRef,
   PLATFORM_ID,
   assertInInjectionContext,
   computed,
@@ -8,7 +9,6 @@ import {
 } from '@angular/core'
 import { QueryClient, onlineManager } from '@tanstack/query-core'
 import { isPlatformBrowser } from '@angular/common'
-import { injectDestroyRefCompat } from '@benjavicente/angular-query/internal'
 import type { TanstackQueryDevtoolsPanel } from '@tanstack/query-devtools'
 import type { DevtoolsPanelOptions, InjectDevtoolsPanel } from './types'
 
@@ -27,7 +27,7 @@ export const injectDevtoolsPanel: InjectDevtoolsPanel = (
   injectDevtoolsPanelFn: () => DevtoolsPanelOptions,
 ) => {
   assertInInjectionContext(injectDevtoolsPanel)
-  const destroyRef = injectDestroyRefCompat()
+  const destroyRef = inject(DestroyRef)
   const isBrowser = isPlatformBrowser(inject(PLATFORM_ID))
   const injectedClient = inject(QueryClient, { optional: true })
 

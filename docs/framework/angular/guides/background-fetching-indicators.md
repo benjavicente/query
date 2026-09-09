@@ -58,3 +58,14 @@ export class GlobalLoadingIndicatorComponent {
 ```
 
 [//]: # 'Example2'
+
+## Reactive filters
+
+Pass a factory when filtering activity. It can read signals or required component inputs:
+
+```ts
+readonly isFetching = injectIsFetching(() => ({ queryKey: ['todos', this.userId()] }))
+readonly isMutating = injectIsMutating(() => ({ mutationKey: ['save', this.userId()] }))
+```
+
+The count updates when these dependencies change, without reconnecting the cache subscription.

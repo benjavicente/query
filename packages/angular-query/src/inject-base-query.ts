@@ -1,22 +1,19 @@
-import { NgZone, computed, inject, untracked } from '@angular/core'
-import { QueryClient, shouldThrowError } from '@tanstack/query-core'
-import { signalProxy } from './utils/signal-proxy'
+import { computed, effect, inject, untracked } from '@angular/core'
+import { QueryClient } from '@tanstack/query-core'
 import { injectIsRestoring } from './inject-is-restoring'
 import { injectPendingTasksLifecycle } from './utils/inject-pending-tasks-lifecycle'
-import { injectObserverSignal } from './utils/inject-observer-signal'
+import { injectExternalStore } from './utils/inject-external-store'
 import type {
   QueryKey,
   QueryObserver,
   QueryObserverOptions,
   QueryObserverResult,
 } from '@tanstack/query-core'
-import type { MethodKeys } from './utils/signal-proxy'
 
 /**
  * Base implementation for `injectQuery` and `injectInfiniteQuery`.
  * @param optionsFn
  * @param Observer
- * @param excludeFunctions
  */
 export function injectBaseQuery<
   TQueryFnData,
@@ -33,9 +30,7 @@ export function injectBaseQuery<
     TQueryKey
   >,
   Observer: typeof QueryObserver,
-  excludeFunctions: ReadonlyArray<string>,
 ) {
-  const ngZone = inject(NgZone)
   const queryClient = inject(QueryClient)
   const isRestoring = injectIsRestoring()
   const lifecycle = injectPendingTasksLifecycle()
@@ -65,61 +60,60 @@ export function injectBaseQuery<
     return defaultedOptions
   })
 
+  // The observer is intentionally lazy so options may read required inputs. Its
+  // first construction and subscription can synchronously emit QueryCache
+  // events; a listener for either initial event must not re-enter this same,
+  // not-yet-initialized result. Subscription setup and cleanup must not synchronously read
+  // this result during reconciliation.
   const observerSignal = computed(
     () => new Observer(queryClient, untracked(defaultedOptionsSignal)),
   )
 
-  const resultSignal = injectObserverSignal({
-    updateSource: defaultedOptionsSignal,
-    update: (options) => observerSignal().setOptions(options),
-    getSnapshot: () => {
-      const observer = observerSignal()
-      const defaultedOptions = defaultedOptionsSignal()
-
-      return observer.getOptimisticResult(defaultedOptions)
-    },
-    subscribe: (onStoreChange) => {
-      if (isRestoring()) return undefined
-
-      const observer = observerSignal()
-      const initialState = observer.getCurrentResult()
-      lifecycle.setPending(shouldBlockPendingTasks(observer, initialState))
-
-      const unsubscribe = observer.subscribe((state) => {
-        lifecycle.setPending(shouldBlockPendingTasks(observer, state))
-
-        if (lifecycle.destroyed) return
-        const shouldThrow =
-          state.isError &&
-          !state.isFetching &&
-          shouldThrowError(observer.options.throwOnError, [
-            state.error,
-            observer.getCurrentQuery(),
-          ])
-
-        if (shouldThrow) {
-          queueMicrotask(() => {
-            if (lifecycle.destroyed) return
-            ngZone.run(() => {
-              ngZone.onError.emit(state.error)
-              throw state.error
-            })
-          })
-          return
-        }
-
-        onStoreChange()
-      })
-
-      return () => {
-        lifecycle.setPending(false)
-        unsubscribe()
-      }
-    },
+  // Configure the observer outside the result computation. Cache listeners can
+  // synchronously read the public result while setOptions notifies.
+  effect(() => {
+    const options = defaultedOptionsSignal()
+    untracked(() => observerSignal().setOptions(options))
   })
 
-  return signalProxy(
-    resultSignal,
-    excludeFunctions as Array<MethodKeys<QueryObserverResult<TData, TError>>>,
-  )
+  const resultSignal = injectExternalStore(() => {
+    const observer = observerSignal()
+    const restoring = isRestoring()
+    return {
+      getSnapshot: () => observer.getOptimisticResult(defaultedOptionsSignal()),
+      subscribe: restoring
+        ? undefined
+        : (onStoreChange) => {
+            lifecycle.setPending(
+              shouldBlockPendingTasks(observer, observer.getCurrentResult()),
+            )
+            const unsubscribe = observer.subscribe((state) => {
+              if (lifecycle.destroyed) return
+              if (shouldBlockPendingTasks(observer, state))
+                lifecycle.setPending(true)
+              // Notify before releasing work so dependent queries can be scheduled.
+              onStoreChange()
+              lifecycle.setPending(
+                shouldBlockPendingTasks(observer, observer.getCurrentResult()),
+              )
+            })
+            return () => {
+              lifecycle.setPending(false)
+              unsubscribe()
+            }
+          },
+    }
+  })
+
+  // Every imperative method uses current options and initializes observation
+  // before starting work, even when invoked before Angular's effects run.
+  const getObserver = () =>
+    untracked(() => {
+      const observer = observerSignal()
+      observer.setOptions(defaultedOptionsSignal())
+      resultSignal()
+      return observer
+    })
+
+  return { resultSignal, getObserver }
 }

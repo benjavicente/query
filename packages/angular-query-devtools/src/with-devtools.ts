@@ -1,5 +1,6 @@
 import { isPlatformBrowser } from '@angular/common'
 import {
+  DestroyRef,
   InjectionToken,
   PLATFORM_ID,
   afterNextRender,
@@ -10,10 +11,7 @@ import {
   makeEnvironmentProviders,
   provideEnvironmentInitializer,
 } from '@angular/core'
-import {
-  injectDestroyRefCompat,
-  queryFeature,
-} from '@benjavicente/angular-query/internal'
+import { queryFeature } from '@benjavicente/angular-query/internal'
 import { QueryClient, onlineManager } from '@tanstack/query-core'
 import { TanstackQueryDevtools } from '@tanstack/query-devtools'
 import type { Signal } from '@angular/core'
@@ -61,7 +59,6 @@ function resolveOption<T>(option: T | Signal<T | undefined> | undefined) {
  */
 export const withDevtools: WithDevtools = (withDevtoolsFn) =>
   queryFeature(
-    'Devtools',
     makeEnvironmentProviders([
       {
         provide: DEVTOOLS_OPTIONS,
@@ -77,7 +74,7 @@ export const withDevtools: WithDevtools = (withDevtoolsFn) =>
 
         devtoolsProvided.isProvided = true
 
-        const destroyRef = injectDestroyRefCompat()
+        const destroyRef = inject(DestroyRef)
         const injectedClient = inject(QueryClient, { optional: true })
         const options = inject(DEVTOOLS_OPTIONS)
         const client = resolveOption(options.client) ?? injectedClient

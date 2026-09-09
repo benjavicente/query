@@ -42,9 +42,6 @@ class ServiceOrComponent {
 
 A function that returns query options.
 
-## Param
-
-
 ## See
 
 https://tanstack.com/query/latest/docs/framework/angular/guides/queries
@@ -55,7 +52,7 @@ https://tanstack.com/query/latest/docs/framework/angular/guides/queries
 function injectQuery<TQueryFnData, TError, TData, TQueryKey>(optionsFn): DefinedCreateQueryResult<TData, TError>;
 ```
 
-Defined in: [packages/angular-query/src/inject-query.ts:29](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-query.ts#L29)
+Defined in: [packages/angular-query/src/inject-query.ts:17](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-query.ts#L17)
 
 ### Type Parameters
 
@@ -91,7 +88,7 @@ Defined in: [packages/angular-query/src/inject-query.ts:29](https://github.com/T
 function injectQuery<TQueryFnData, TError, TData, TQueryKey>(optionsFn): CreateQueryResult<TData, TError>;
 ```
 
-Defined in: [packages/angular-query/src/inject-query.ts:44](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-query.ts#L44)
+Defined in: [packages/angular-query/src/inject-query.ts:31](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-query.ts#L31)
 
 ### Type Parameters
 
@@ -127,7 +124,7 @@ Defined in: [packages/angular-query/src/inject-query.ts:44](https://github.com/T
 function injectQuery<TQueryFnData, TError, TData, TQueryKey>(optionsFn): CreateQueryResult<TData, TError>;
 ```
 
-Defined in: [packages/angular-query/src/inject-query.ts:59](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-query.ts#L59)
+Defined in: [packages/angular-query/src/inject-query.ts:45](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-query.ts#L45)
 
 ### Type Parameters
 

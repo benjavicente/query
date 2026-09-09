@@ -48,6 +48,15 @@ Use the query's field signals and methods for normal application code. Use `toRe
 an Angular API expects a Resource or when Resource terminology makes an integration clearer. Call
 `query.refetch()` instead of `resource.reload()` when you need an unconditional refetch.
 
+## Errors
+
+`value()` throws when the Resource's status is `error`. Read `hasValue()` before accessing it, or
+inspect `error()` and `snapshot()` to render an error state. A failed background refetch can leave
+cached data available through `query.data()` while the Resource is in its error state.
+
+Resource errors are not automatically reported globally. See [Error handling](./guides/error-handling.md)
+for an opt-in `ErrorHandler` integration.
+
 ## Using Resource with Signal Forms
 
 > Signal Forms integration requires Angular 21 or newer.

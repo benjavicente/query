@@ -1,11 +1,6 @@
 import { TestBed } from '@angular/core/testing'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import {
-  Component,
-  input,
-  inputBinding,
-  signal,
-} from '@angular/core'
+import { Component, input, inputBinding, signal } from '@angular/core'
 import { render } from '@testing-library/angular'
 import { queryKey, sleep } from '@tanstack/query-test-utils'
 import {
@@ -80,7 +75,7 @@ describe('injectIsFetching', () => {
         queryKey: key2,
         queryFn: () => sleep(100).then(() => 'test2'),
       }))
-      readonly isFetching = injectIsFetching({ queryKey: key1 })
+      readonly isFetching = injectIsFetching(() => ({ queryKey: key1 }))
     }
 
     const rendered = await render(Page)
@@ -107,11 +102,12 @@ describe('injectIsFetching', () => {
     })
     class Page {
       readonly includeQuery = input.required<boolean>()
-      readonly isFetching = injectIsFetching({
+      readonly isFetching = injectIsFetching(() => ({
         predicate: () => this.includeQuery(),
-      })
+      }))
     }
 
+    const subscribe = vi.spyOn(queryClient.getQueryCache(), 'subscribe')
     const includeQuery = signal(true)
     const rendered = await render(Page, {
       bindings: [inputBinding('includeQuery', includeQuery)],
@@ -121,6 +117,7 @@ describe('injectIsFetching', () => {
 
     includeQuery.set(false)
     rendered.fixture.detectChanges()
+    expect(subscribe).toHaveBeenCalledTimes(1)
     expect(rendered.getByText('fetching: 0')).toBeInTheDocument()
   })
 
@@ -130,6 +127,5 @@ describe('injectIsFetching', () => {
         injectIsFetching()
       }).toThrow(/NG0203(.*?)injectIsFetching/)
     })
-
   })
 })

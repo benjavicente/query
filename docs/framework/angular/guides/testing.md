@@ -9,7 +9,7 @@ TanStack Query's `inject*` functions integrate with [`PendingTasks`](https://ang
 
 This means tests and SSR can wait until mutations and queries resolve. In unit tests you can use `ApplicationRef.whenStable()` or `fixture.whenStable()` to await query completion. This works for both Zone.js and Zoneless setups.
 
-> This integration requires Angular 20 or later. Earlier versions of Angular do not support `PendingTasks`.
+> This adapter requires Angular 20.1 or later. It uses `PendingTasks` to keep application stability open while observed work is pending.
 
 ## TestBed setup
 
@@ -69,6 +69,7 @@ For components, bootstrap them through `TestBed.createComponent`, then await `fi
 
 ```ts
 const fixture = TestBed.createComponent(ExampleComponent)
+fixture.autoDetectChanges()
 
 await fixture.whenStable()
 expect(fixture.componentInstance.query.data()).toEqual({ value: 42 })
@@ -101,6 +102,7 @@ const query = TestBed.runInInjectionContext(() =>
   })),
 )
 
+TestBed.tick() // Initialize the query subscription and start the request
 const fixturePromise = TestBed.inject(ApplicationRef).whenStable()
 httpCtrl.expectOne('/api/todos').flush([{ id: 1 }])
 await fixturePromise
@@ -117,19 +119,20 @@ Use the same pattern for infinite queries: call `fetchNextPage()`, advance timer
 const infinite = TestBed.runInInjectionContext(() =>
   injectInfiniteQuery(() => ({
     queryKey: ['pages'],
-    queryFn: ({ pageParam = 1 }) => fetchPage(pageParam),
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) => fetchPage(pageParam),
     getNextPageParam: (last, all) => all.length + 1,
   })),
 )
 
+TestBed.tick()
 await appRef.whenStable()
-expect(infinite.data().pages).toHaveLength(1)
+expect(infinite.data()?.pages).toHaveLength(1)
 
 await infinite.fetchNextPage()
-await vi.advanceTimersByTimeAsync(0)
 await appRef.whenStable()
 
-expect(infinite.data().pages).toHaveLength(2)
+expect(infinite.data()?.pages).toHaveLength(2)
 ```
 
 ## Mutations and optimistic updates
@@ -151,6 +154,10 @@ await appRef.whenStable()
 expect(mutation.isSuccess()).toBe(true)
 expect(mutation.data()).toBe('TEST')
 ```
+
+`whenStable()` waits for every mutation invocation, including awaited lifecycle callbacks.
+Resolve or reject all outstanding mocked mutations before awaiting stability; calling `reset()`
+does not finish a request. Queries paused offline also keep stability open until resumed or cancelled.
 
 ## Quick checklist
 

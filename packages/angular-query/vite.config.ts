@@ -13,14 +13,20 @@ function ensureImportFileExtension({
 }) {
   // replace e.g. `import { foo } from './foo'` with `import { foo } from './foo.js'`
   content = content.replace(
-    /(im|ex)port\s[\w{}/*\s,]+from\s['"](?:\.\.?\/)+?[^.'"]+(?=['"];?)/gm,
-    `$&.${extension}`,
+    /(im|ex)port\s[\w{}/*\s,]+from\s['"](?:\.\.?\/)+?[^'"]+(?=['"];?)/gm,
+    (specifier) =>
+      /\.(?:[cm]?js|json)$/.test(specifier)
+        ? specifier
+        : `${specifier}.${extension}`,
   )
 
   // replace e.g. `import('./foo')` with `import('./foo.js')`
   content = content.replace(
-    /import\(['"](?:\.\.?\/)+?[^.'"]+(?=['"];?)/gm,
-    `$&.${extension}`,
+    /import\(['"](?:\.\.?\/)+?[^'"]+(?=['"];?)/gm,
+    (specifier) =>
+      /\.(?:[cm]?js|json)$/.test(specifier)
+        ? specifier
+        : `${specifier}.${extension}`,
   )
   return content
 }
@@ -93,7 +99,7 @@ export default mergeConfig(
   tanstackViteConfig({
     cjs: false,
     entry: ['./src/index.ts', './src/internal.ts'],
-    exclude: ['src/__tests__'],
+    exclude: ['src/**/__tests__/**', 'src/**/__test__/**'],
     srcDir: './src',
     tsconfigPath: 'tsconfig.prod.json',
   }),

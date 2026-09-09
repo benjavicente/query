@@ -1,6 +1,7 @@
 import { describe, expectTypeOf, it } from 'vitest'
 import { sleep } from '@tanstack/query-test-utils'
 import { injectQuery, queryOptions, toResource } from '..'
+import type { CreateQueryOptions } from '..'
 import type { Resource, Signal } from '@angular/core'
 
 describe('initialData', () => {
@@ -239,5 +240,11 @@ describe('Discriminated union return type', () => {
     if (query.isError()) {
       expectTypeOf(query.error).toEqualTypeOf<Signal<Error>>()
     }
+  })
+})
+
+describe('injectQuery options', () => {
+  it('omits observer error reporting options', () => {
+    expectTypeOf<CreateQueryOptions>().not.toHaveProperty('throwOnError')
   })
 })

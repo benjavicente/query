@@ -2,7 +2,7 @@ import {
   ApplicationRef,
   ChangeDetectionStrategy,
   Component,
-  NgZone,
+  ErrorHandler,
   effect,
   input,
   inputBinding,
@@ -11,18 +11,18 @@ import {
 import { TestBed } from '@angular/core/testing'
 import { render } from '@testing-library/angular'
 import { sleep } from '@tanstack/query-test-utils'
+import { MutationObserver } from '@tanstack/query-core'
 import { firstValueFrom } from 'rxjs'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   QueryClient,
+  injectIsMutating,
   injectMutation,
+  injectMutationState,
   injectQuery,
   provideTanStackQuery,
 } from '..'
-import {
-  expectSignals,
-  provideAngularQueryChangeDetection,
-} from './test-utils'
+import { expectSignals, provideAngularQueryChangeDetection } from './test-utils'
 
 describe('injectMutation', () => {
   let queryClient: QueryClient
@@ -40,6 +40,40 @@ describe('injectMutation', () => {
 
   afterEach(() => {
     vi.useRealTimers()
+  })
+
+  it('publishes mutation failures to observers and cache signals without global reporting', async () => {
+    vi.useRealTimers()
+    queryClient.setDefaultOptions({ mutations: { throwOnError: true } })
+    const cacheReport = vi.fn()
+    queryClient.getMutationCache().config.onError = cacheReport
+    const report = vi.spyOn(TestBed.inject(ErrorHandler), 'handleError')
+    const error = new Error('mutation failed')
+    const mutation = TestBed.runInInjectionContext(() =>
+      injectMutation(() => ({
+        mutationFn: async () => {
+          throw error
+        },
+      })),
+    )
+    const count = TestBed.runInInjectionContext(() => injectIsMutating())
+    const states = TestBed.runInInjectionContext(() => injectMutationState())
+    count()
+    states()
+    const promise = mutation.mutateAsync()
+    expect(mutation.status()).toBe('pending')
+    expect(count()).toBe(1)
+    expect(states()[0]?.status).toBe('pending')
+    await expect(promise).rejects.toBe(error)
+    expect(mutation.error()).toBe(error)
+    expect(mutation.status()).toBe('error')
+    expect(count()).toBe(0)
+    expect(states()[0]?.status).toBe('error')
+    expect(cacheReport).toHaveBeenCalledTimes(1)
+    expect(report).not.toHaveBeenCalled()
+    mutation.mutate()
+    await TestBed.inject(ApplicationRef).whenStable()
+    expect(mutation.error()).toBe(error)
   })
 
   it('should be in idle state initially', () => {
@@ -144,6 +178,65 @@ describe('injectMutation', () => {
     const mutations = mutationCache.find({ mutationKey: ['2'] })
 
     expect(mutations?.options.mutationKey).toEqual(['2'])
+  })
+
+  it('subscribes before a mutation started in ngOnInit emits pending state', async () => {
+    const subscribe = vi.spyOn(MutationObserver.prototype, 'subscribe')
+    const subscriptionCountsInsideOnMutate: Array<number> = []
+    const statusesInsideOnMutate: Array<string> = []
+
+    @Component({ template: '' })
+    class TestComponent {
+      readonly mutation = injectMutation(() => ({
+        mutationFn: () => sleep(10).then(() => 'done'),
+        onMutate: () => {
+          subscriptionCountsInsideOnMutate.push(subscribe.mock.calls.length)
+          statusesInsideOnMutate.push(this.mutation.status())
+        },
+      }))
+
+      ngOnInit() {
+        this.mutation.mutate()
+      }
+    }
+
+    const fixture = TestBed.createComponent(TestComponent)
+    fixture.detectChanges()
+
+    expect(subscriptionCountsInsideOnMutate).toEqual([1])
+    expect(statusesInsideOnMutate).toEqual(['pending'])
+    expect(fixture.componentInstance.mutation.status()).toBe('pending')
+
+    await vi.advanceTimersByTimeAsync(11)
+    TestBed.tick()
+    expect(fixture.componentInstance.mutation.status()).toBe('success')
+  })
+
+  it('allows cache listeners to read the result while options update', () => {
+    const mutationKey = signal('one')
+    const mutation = TestBed.runInInjectionContext(() =>
+      injectMutation(() => ({
+        mutationKey: ['reentrant-options', mutationKey()],
+        mutationFn: () => Promise.resolve(),
+      })),
+    )
+
+    mutation.status()
+    TestBed.tick()
+
+    const readResult = vi.fn(() => mutation.status())
+    const unsubscribe = queryClient.getMutationCache().subscribe((event) => {
+      // setOptions emits synchronously; this read must not re-enter the signal
+      // computation that caused the options update.
+      if (event.type === 'observerOptionsUpdated') readResult()
+    })
+
+    mutationKey.set('two')
+
+    expect(() => TestBed.tick()).not.toThrow()
+    expect(readResult).toHaveBeenCalled()
+
+    unsubscribe()
   })
 
   it('does not track mutation state when mutating from a reactive context', async () => {
@@ -433,93 +526,6 @@ describe('injectMutation', () => {
     expect(mutation2!.options.mutationKey).toEqual(['fake', 'updatedValue'])
   })
 
-  describe('throwOnError', () => {
-    it('should evaluate throwOnError when mutation is expected to throw', async () => {
-      const err = new Error('Expected mock error. All is well!')
-      const boundaryFn = vi.fn()
-      const { mutate } = TestBed.runInInjectionContext(() => {
-        return injectMutation(() => ({
-          mutationKey: ['fake'],
-          mutationFn: () => {
-            return Promise.reject(err)
-          },
-          throwOnError: boundaryFn,
-        }))
-      })
-
-      TestBed.tick()
-
-      mutate()
-
-      await vi.advanceTimersByTimeAsync(0)
-
-      expect(boundaryFn).toHaveBeenCalledTimes(1)
-      expect(boundaryFn).toHaveBeenCalledWith(err)
-    })
-
-    it('should emit zone error when throwOnError is true and mutate is used', async () => {
-      const err = new Error('Expected mock error. All is well!')
-      const zone = TestBed.inject(NgZone)
-      const zoneErrorEmitSpy = vi.spyOn(zone.onError, 'emit')
-      const runSpy = vi
-        .spyOn(zone, 'run')
-        .mockImplementation((callback: any) => {
-          try {
-            return callback()
-          } catch {
-            return undefined
-          }
-        })
-
-      const { mutate } = TestBed.runInInjectionContext(() =>
-        injectMutation(() => ({
-          mutationKey: ['fake'],
-          mutationFn: () => {
-            return sleep(0).then(() => Promise.reject(err))
-          },
-          throwOnError: true,
-        })),
-      )
-
-      mutate()
-
-      await vi.runAllTimersAsync()
-
-      expect(zoneErrorEmitSpy).toHaveBeenCalledWith(err)
-      expect(runSpy).toHaveBeenCalled()
-    })
-  })
-
-  it('should throw when throwOnError is true', async () => {
-    const err = new Error('Expected mock error. All is well!')
-    const { mutateAsync } = TestBed.runInInjectionContext(() => {
-      return injectMutation(() => ({
-        mutationKey: ['fake'],
-        mutationFn: () => {
-          return Promise.reject(err)
-        },
-        throwOnError: true,
-      }))
-    })
-
-    await expect(() => mutateAsync()).rejects.toThrowError(err)
-  })
-
-  it('should throw when throwOnError function returns true', async () => {
-    const err = new Error('Expected mock error. All is well!')
-    const { mutateAsync } = TestBed.runInInjectionContext(() => {
-      return injectMutation(() => ({
-        mutationKey: ['fake'],
-        mutationFn: () => {
-          return Promise.reject(err)
-        },
-        throwOnError: () => true,
-      }))
-    })
-
-    await expect(() => mutateAsync()).rejects.toThrowError(err)
-  })
-
   describe('injection context', () => {
     it('throws NG0203 with descriptive error outside injection context', () => {
       expect(() => {
@@ -742,6 +748,36 @@ describe('injectMutation', () => {
       expect(mutation.isSuccess()).toBe(true)
       expect(mutation.data()).toBe('final: test')
       expect(queryClient.getQueryData(testQueryKey)).toBe('final: test')
+    })
+
+    it('reads an optimistic update inside onMutate before the query signal or effects initialize', async () => {
+      const testQueryKey = ['unread-sync-optimistic']
+      const seenInsideOnMutate: Array<string | undefined> = []
+      queryClient.setQueryData(testQueryKey, 'initial')
+
+      const query = TestBed.runInInjectionContext(() =>
+        injectQuery(() => ({
+          queryKey: testQueryKey,
+          queryFn: () => Promise.resolve('initial'),
+          staleTime: Infinity,
+        })),
+      )
+      const mutation = TestBed.runInInjectionContext(() =>
+        injectMutation(() => ({
+          mutationFn: async () => 'server',
+          onMutate: () => {
+            queryClient.setQueryData(testQueryKey, 'optimistic')
+            seenInsideOnMutate.push(query.data())
+          },
+        })),
+      )
+
+      // No signal read and no TestBed.tick() occurs before mutateAsync. The
+      // first query read must still pull the optimistic cache value; its
+      // observer subscription can be committed later.
+      await mutation.mutateAsync()
+
+      expect(seenInsideOnMutate).toEqual(['optimistic'])
     })
 
     it('should handle synchronous mutation cancellation', async () => {

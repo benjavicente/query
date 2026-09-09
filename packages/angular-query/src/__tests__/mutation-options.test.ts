@@ -133,7 +133,7 @@ describe('mutationOptions', () => {
       () => [
         injectMutation(() => mutationOpts1),
         injectMutation(() => mutationOpts2),
-        injectIsMutating({ mutationKey: mutationOpts1.mutationKey }),
+        injectIsMutating(() => ({ mutationKey: mutationOpts1.mutationKey })),
       ],
     )
 

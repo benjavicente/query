@@ -3,13 +3,26 @@ id: injectQueries
 title: injectQueries
 ---
 
-# Function: injectQueries()
-
 ```ts
 function injectQueries<T, TCombinedResult>(optionsFn): Signal<TCombinedResult>;
 ```
 
-Defined in: [packages/angular-query/src/inject-queries.ts:287](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-queries.ts#L287)
+Defined in: [packages/angular-query/src/inject-queries.ts:43](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-queries.ts#L43)
+
+Injects multiple queries that run in parallel and react to Angular signals.
+
+```ts
+class UsersComponent {
+  readonly users = input.required<Array<User>>()
+
+  readonly userQueries = injectQueries(() => ({
+    queries: this.users().map((user) => ({
+      queryKey: ['user', user.id],
+      queryFn: () => fetchUserById(user.id),
+    })),
+  }))
+}
+```
 
 ## Type Parameters
 
@@ -32,3 +45,5 @@ A function that returns queries' options.
 ## Returns
 
 `Signal`\<`TCombinedResult`\>
+
+A signal containing the query results in the same order as the input queries.

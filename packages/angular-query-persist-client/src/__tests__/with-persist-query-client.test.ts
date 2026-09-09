@@ -826,4 +826,41 @@ describe('withPersistQueryClient', () => {
 
     expect(subscribeSpy).not.toHaveBeenCalled()
   })
+  it('keeps restoration state independent when a provider configuration is reused', async () => {
+    TestBed.configureTestingModule({
+      providers: [provideZonelessChangeDetection()],
+    })
+    const resolutions: Array<(value: undefined) => void> = []
+    const providers = provideTanStackQuery(
+      () => new QueryClient(),
+      withPersistQueryClient(() => ({
+        persistOptions: {
+          persister: {
+            restoreClient: () =>
+              new Promise<undefined>((resolve) => resolutions.push(resolve)),
+            persistClient: () => {},
+            removeClient: () => {},
+          },
+        },
+      })),
+    )
+    const parent = TestBed.inject(EnvironmentInjector)
+    const first = createEnvironmentInjector([providers], parent)
+    const second = createEnvironmentInjector([providers], parent)
+    const firstState = first.runInContext(() => injectIsRestoring())
+    const secondState = second.runInContext(() => injectIsRestoring())
+    expect(firstState).not.toBe(secondState)
+    expect(firstState()).toBe(true)
+    expect(secondState()).toBe(true)
+    resolutions[0]!(undefined)
+    await vi.advanceTimersByTimeAsync(0)
+    expect(firstState()).toBe(false)
+    expect(secondState()).toBe(true)
+    first.destroy()
+    expect(secondState()).toBe(true)
+    resolutions[1]!(undefined)
+    await vi.advanceTimersByTimeAsync(0)
+    expect(secondState()).toBe(false)
+    second.destroy()
+  })
 })

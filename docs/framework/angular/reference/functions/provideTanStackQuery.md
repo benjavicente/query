@@ -3,13 +3,11 @@ id: provideTanStackQuery
 title: provideTanStackQuery
 ---
 
-# Function: provideTanStackQuery()
-
 ```ts
 function provideTanStackQuery(queryClientFactoryOrToken, ...features): EnvironmentProviders;
 ```
 
-Defined in: [packages/angular-query/src/providers.ts:128](https://github.com/TanStack/query/blob/main/packages/angular-query/src/providers.ts#L128)
+Defined in: [packages/angular-query/src/providers.ts:107](https://github.com/TanStack/query/blob/main/packages/angular-query/src/providers.ts#L107)
 
 Provides a `QueryClient` and optional TanStack Query features.
 The factory runs once per injector in Angular's injection context, so it can
@@ -62,7 +60,7 @@ A `QueryClient` factory or an `InjectionToken` that resolves one.
 
 ### features
 
-...[`AnyQueryFeature`](../type-aliases/AnyQueryFeature.md)[]
+...readonly [`QueryFeature`](../interfaces/QueryFeature.md)[]
 
 Optional features to configure additional Query functionality.
 

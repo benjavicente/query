@@ -2,7 +2,7 @@ import {
   ApplicationRef,
   ChangeDetectionStrategy,
   Component,
-  NgZone,
+  ErrorHandler,
   computed,
   effect,
   input,
@@ -38,6 +38,8 @@ import {
 import { provideAngularQueryChangeDetection } from './test-utils'
 import type { CreateQueryOptions, OmitKeyof, QueryFunction } from '..'
 
+// cspell:ignore ZONEFUL
+
 describe('injectQuery', () => {
   let queryCache: QueryCache
   let queryClient: QueryClient
@@ -55,6 +57,45 @@ describe('injectQuery', () => {
 
   afterEach(() => {
     vi.useRealTimers()
+  })
+
+  it('should keep failed refetch state and cached data readable without global reporting', async () => {
+    vi.useRealTimers()
+    queryClient.setDefaultOptions({
+      queries: { retry: false, throwOnError: true },
+    })
+    const report = vi.spyOn(TestBed.inject(ErrorHandler), 'handleError')
+    const error = new Error('query failed')
+    const options = {
+      queryKey: ['error'],
+      initialData: 'cached',
+      enabled: false,
+      queryFn: async (): Promise<string> => {
+        throw error
+      },
+    }
+    const query = TestBed.runInInjectionContext(() =>
+      injectQuery(() => options),
+    )
+    const cacheReport = vi.fn()
+    queryCache.config.onError = cacheReport
+    const second = TestBed.runInInjectionContext(() =>
+      injectQuery(() => options),
+    )
+    second.error()
+    query.data()
+    query.error()
+    await expect(query.refetch()).resolves.toMatchObject({
+      status: 'error',
+      error,
+    })
+    expect(query.error()).toBe(error)
+    expect(second.error()).toBe(error)
+    expect(cacheReport).toHaveBeenCalledTimes(1)
+    expect(query.data()).toBe('cached')
+    expect(query.isError()).toBe(true)
+    await expect(query.refetch({ throwOnError: true })).rejects.toBe(error)
+    expect(report).not.toHaveBeenCalled()
   })
 
   it('should return the correct types', () => {
@@ -279,6 +320,7 @@ describe('injectQuery', () => {
 
     const fixture = TestBed.createComponent(TestComponent)
     fixture.detectChanges()
+    fixture.autoDetectChanges()
     const query = fixture.componentInstance.query
 
     expect(query.status()).toBe('pending')
@@ -521,6 +563,150 @@ describe('injectQuery', () => {
     })
   })
 
+  it('allows cache listeners to read the result while options update', () => {
+    const key = signal('one')
+    const query = TestBed.runInInjectionContext(() =>
+      injectQuery(() => ({
+        queryKey: ['reentrant-options', key()],
+        queryFn: () => 'data',
+        enabled: false,
+      })),
+    )
+
+    TestBed.tick()
+    const readResult = vi.fn(() => query.status())
+    const unsubscribe = queryCache.subscribe((event) => {
+      // setOptions emits synchronously; this read must not re-enter the signal
+      // computation that caused the options update.
+      if (event.type === 'observerOptionsUpdated') readResult()
+    })
+
+    key.set('two')
+
+    expect(() => TestBed.tick()).not.toThrow()
+    expect(readResult).toHaveBeenCalled()
+
+    unsubscribe()
+  })
+
+  it('subscribes on the first result read before effects run', () => {
+    const query = TestBed.runInInjectionContext(() =>
+      injectQuery(() => ({
+        queryKey: ['reentrant-subscribe'],
+        queryFn: () => 'data',
+        enabled: false,
+      })),
+    )
+    const subscriptionEvents: Array<string> = []
+    const unsubscribe = queryCache.subscribe((event) => {
+      if (event.type === 'observerAdded') subscriptionEvents.push(event.type)
+    })
+
+    expect(query.status()).toBe('pending')
+    expect(subscriptionEvents).toEqual(['observerAdded'])
+    expect(() => TestBed.tick()).not.toThrow()
+    expect(subscriptionEvents).toEqual(['observerAdded'])
+
+    unsubscribe()
+  })
+
+  it('allows deferred cache-listener reads during restoration detach and reattach', async () => {
+    const isRestoring = signal(false)
+    TestBed.resetTestingModule()
+    TestBed.configureTestingModule({
+      providers: [
+        provideAngularQueryChangeDetection(),
+        provideTanStackQuery(() => queryClient),
+        provideIsRestoring(isRestoring.asReadonly()),
+      ],
+    })
+    const query = TestBed.runInInjectionContext(() =>
+      injectQuery(() => ({
+        queryKey: ['reentrant-restoration-subscription'],
+        queryFn: () => 'data',
+        enabled: false,
+      })),
+    )
+    expect(query.status()).toBe('pending')
+    TestBed.tick()
+
+    const nestedStatuses: Array<string> = []
+    const unsubscribe = queryCache.subscribe((event) => {
+      if (event.type === 'observerAdded' || event.type === 'observerRemoved') {
+        void Promise.resolve().then(() => nestedStatuses.push(query.status()))
+      }
+    })
+
+    isRestoring.set(true)
+    expect(() => TestBed.tick()).not.toThrow()
+    isRestoring.set(false)
+    expect(() => TestBed.tick()).not.toThrow()
+
+    await Promise.resolve()
+    expect(nestedStatuses).toEqual(['pending', 'pending'])
+    unsubscribe()
+  })
+
+  it('allows deferred cache-listener reads while an option change creates a query', async () => {
+    const key = signal('old')
+    const query = TestBed.runInInjectionContext(() =>
+      injectQuery(() => ({
+        queryKey: ['reentrant-query-added', key()],
+        queryFn: () => 'data',
+        enabled: false,
+      })),
+    )
+
+    expect(query.status()).toBe('pending')
+    TestBed.tick()
+    const nestedStatuses: Array<string> = []
+    const unsubscribe = queryCache.subscribe((event) => {
+      if (event.type === 'added')
+        void Promise.resolve().then(() => nestedStatuses.push(query.status()))
+    })
+
+    key.set('new')
+
+    expect(() => query.status()).not.toThrow()
+    expect(nestedStatuses).toEqual([])
+    expect(() => TestBed.tick()).not.toThrow()
+    await Promise.resolve()
+    expect(nestedStatuses).toEqual(['pending'])
+    unsubscribe()
+  })
+
+  it('keeps the external subscription when non-key options change', () => {
+    const staleTime = signal(0)
+    const query = TestBed.runInInjectionContext(() =>
+      injectQuery(() => ({
+        queryKey: ['stable-option-subscription'],
+        queryFn: () => 'data',
+        enabled: false,
+        staleTime: staleTime(),
+      })),
+    )
+
+    expect(query.status()).toBe('pending')
+    TestBed.tick()
+    const cachedQuery = queryCache.find({
+      queryKey: ['stable-option-subscription'],
+    })!
+    const subscriptionEvents: Array<string> = []
+    const unsubscribe = queryCache.subscribe((event) => {
+      if (event.type === 'observerAdded' || event.type === 'observerRemoved') {
+        subscriptionEvents.push(event.type)
+      }
+    })
+
+    staleTime.set(1)
+    expect(query.status()).toBe('pending')
+    TestBed.tick()
+
+    expect(cachedQuery.getObserversCount()).toBe(1)
+    expect(subscriptionEvents).toEqual([])
+    unsubscribe()
+  })
+
   it('should only run query once enabled signal is set to true', async () => {
     const spy = vi.fn(() => sleep(10).then(() => 'Some data'))
     const enabled = signal(false)
@@ -548,6 +734,7 @@ describe('injectQuery', () => {
     expect(query.status()).toBe('pending')
 
     enabled.set(true)
+    fixture.detectChanges()
 
     await vi.advanceTimersByTimeAsync(11)
     expect(spy).toHaveBeenCalledTimes(1)
@@ -581,6 +768,7 @@ describe('injectQuery', () => {
 
     const fixture = TestBed.createComponent(TestComponent)
     fixture.detectChanges()
+    fixture.autoDetectChanges()
     const { query1, query2 } = fixture.componentInstance
 
     expect(query1.data()).toStrictEqual(undefined)
@@ -639,8 +827,6 @@ describe('injectQuery', () => {
     await vi.advanceTimersByTimeAsync(11)
 
     keySignal.set('key12')
-    fixture.detectChanges()
-
     void query.refetch().then(() => {
       expect(fetchFn).toHaveBeenCalledTimes(2)
       expect(fetchFn).toHaveBeenCalledWith(
@@ -681,128 +867,6 @@ describe('injectQuery', () => {
 
     expect(query.status()).toBe('success')
     expect(query.data()).toEqual([1, 2])
-  })
-
-  describe('throwOnError', () => {
-    it('should evaluate throwOnError when query is expected to throw', async () => {
-      const boundaryFn = vi.fn()
-
-      @Component({
-        selector: 'app-test',
-        template: '',
-        changeDetection: ChangeDetectionStrategy.OnPush,
-      })
-      class TestComponent {
-        boundaryFn = boundaryFn
-        query = injectQuery(() => ({
-          queryKey: ['key12'],
-          queryFn: () =>
-            sleep(10).then(() => Promise.reject(new Error('Some error'))),
-          retry: false,
-          throwOnError: this.boundaryFn,
-        }))
-      }
-
-      const fixture = TestBed.createComponent(TestComponent)
-      fixture.detectChanges()
-
-      await vi.advanceTimersByTimeAsync(11)
-      expect(boundaryFn).toHaveBeenCalledTimes(1)
-      expect(boundaryFn).toHaveBeenCalledWith(
-        Error('Some error'),
-        expect.objectContaining({
-          state: expect.objectContaining({ status: 'error' }),
-        }),
-      )
-    })
-
-    it('should throw when throwOnError is true', async () => {
-      const zone = TestBed.inject(NgZone)
-      const zoneErrorPromise = new Promise<Error>((resolve) => {
-        const sub = zone.onError.subscribe((error) => {
-          sub.unsubscribe()
-          resolve(error as Error)
-        })
-      })
-      let handler: ((error: Error) => void) | null = null
-      const processErrorPromise = new Promise<Error>((resolve) => {
-        handler = (error: Error) => {
-          process.off('uncaughtException', handler!)
-          resolve(error)
-        }
-        process.on('uncaughtException', handler)
-      })
-
-      @Component({
-        selector: 'app-test',
-        template: '',
-        changeDetection: ChangeDetectionStrategy.OnPush,
-      })
-      class TestComponent {
-        query = injectQuery(() => ({
-          queryKey: ['key13'],
-          queryFn: () =>
-            sleep(0).then(() => Promise.reject(new Error('Some error'))),
-          throwOnError: true,
-        }))
-      }
-
-      TestBed.createComponent(TestComponent).detectChanges()
-
-      try {
-        await vi.runAllTimersAsync()
-        await expect(zoneErrorPromise).resolves.toEqual(Error('Some error'))
-        await expect(processErrorPromise).resolves.toEqual(Error('Some error'))
-      } finally {
-        if (handler) {
-          process.off('uncaughtException', handler)
-        }
-      }
-    })
-
-    it('should throw when throwOnError function returns true', async () => {
-      const zone = TestBed.inject(NgZone)
-      const zoneErrorPromise = new Promise<Error>((resolve) => {
-        const sub = zone.onError.subscribe((error) => {
-          sub.unsubscribe()
-          resolve(error as Error)
-        })
-      })
-      let handler: ((error: Error) => void) | null = null
-      const processErrorPromise = new Promise<Error>((resolve) => {
-        handler = (error: Error) => {
-          process.off('uncaughtException', handler!)
-          resolve(error)
-        }
-        process.on('uncaughtException', handler)
-      })
-
-      @Component({
-        selector: 'app-test',
-        template: '',
-        changeDetection: ChangeDetectionStrategy.OnPush,
-      })
-      class TestComponent {
-        query = injectQuery(() => ({
-          queryKey: ['key14'],
-          queryFn: () =>
-            sleep(0).then(() => Promise.reject(new Error('Some error'))),
-          throwOnError: () => true,
-        }))
-      }
-
-      TestBed.createComponent(TestComponent).detectChanges()
-
-      try {
-        await vi.runAllTimersAsync()
-        await expect(zoneErrorPromise).resolves.toEqual(Error('Some error'))
-        await expect(processErrorPromise).resolves.toEqual(Error('Some error'))
-      } finally {
-        if (handler) {
-          process.off('uncaughtException', handler)
-        }
-      }
-    })
   })
 
   it('should set state to error when queryFn returns reject promise', async () => {
@@ -852,6 +916,7 @@ describe('injectQuery', () => {
       detectChangesOnRender: false,
     })
     rendered.fixture.detectChanges()
+    rendered.fixture.autoDetectChanges()
     await vi.advanceTimersByTimeAsync(0)
 
     const result = rendered.fixture.nativeElement.textContent
@@ -881,6 +946,7 @@ describe('injectQuery', () => {
       detectChangesOnRender: false,
     })
     rendered.fixture.detectChanges()
+    rendered.fixture.autoDetectChanges()
     await vi.advanceTimersByTimeAsync(0)
 
     const result = rendered.fixture.nativeElement.textContent
@@ -1060,8 +1126,214 @@ describe('injectQuery', () => {
       .find({ queryKey: ['restoring'] })!
     expect(cachedQuery.getObserversCount()).toBe(1)
 
+    isRestoring.set(true)
+    fixture.detectChanges()
+    expect(cachedQuery.getObserversCount()).toBe(0)
+
+    isRestoring.set(false)
+    fixture.detectChanges()
+    expect(cachedQuery.getObserversCount()).toBe(1)
+
     fixture.destroy()
     expect(cachedQuery.getObserversCount()).toBe(0)
+  })
+
+  it.each(['options-first', 'restoring-first'] as const)(
+    'uses the latest options when leaving restoration in the same turn (%s)',
+    async (writeOrder) => {
+      const isRestoring = signal(true)
+      const key = signal('old')
+      const queriedKeys: Array<string> = []
+
+      TestBed.resetTestingModule()
+      TestBed.configureTestingModule({
+        providers: [
+          provideAngularQueryChangeDetection(),
+          provideTanStackQuery(() => queryClient),
+          provideIsRestoring(isRestoring.asReadonly()),
+        ],
+      })
+
+      const query = TestBed.runInInjectionContext(() =>
+        injectQuery(() => ({
+          queryKey: ['same-turn-restoration', key()],
+          queryFn: ({ queryKey: currentQueryKey }) => {
+            const currentKey = currentQueryKey[1] as string
+            queriedKeys.push(currentKey)
+            return Promise.resolve(currentKey)
+          },
+        })),
+      )
+
+      expect(query.status()).toBe('pending')
+      expect(queriedKeys).toEqual([])
+
+      if (writeOrder === 'options-first') {
+        key.set('new')
+        isRestoring.set(false)
+      } else {
+        isRestoring.set(false)
+        key.set('new')
+      }
+      TestBed.tick()
+      const stablePromise = TestBed.inject(ApplicationRef).whenStable()
+      await vi.advanceTimersByTimeAsync(0)
+      await stablePromise
+
+      expect(queriedKeys).toEqual(['new'])
+      expect(query.data()).toBe('new')
+      expect(
+        queryClient
+          .getQueryCache()
+          .find({ queryKey: ['same-turn-restoration', 'old'] })?.state
+          .fetchStatus,
+      ).toBe('idle')
+      expect(
+        queryClient
+          .getQueryCache()
+          .find({ queryKey: ['same-turn-restoration', 'new'] })
+          ?.getObserversCount(),
+      ).toBe(1)
+    },
+  )
+
+  it('allows a cache listener to read the result during restoration-boundary configuration', () => {
+    const isRestoring = signal(true)
+    const key = signal('old')
+
+    TestBed.resetTestingModule()
+    TestBed.configureTestingModule({
+      providers: [
+        provideAngularQueryChangeDetection(),
+        provideTanStackQuery(() => queryClient),
+        provideIsRestoring(isRestoring.asReadonly()),
+      ],
+    })
+
+    const query = TestBed.runInInjectionContext(() =>
+      injectQuery(() => ({
+        queryKey: ['restoration-reentrant', key()],
+        queryFn: () => 'data',
+        enabled: false,
+      })),
+    )
+
+    expect(query.status()).toBe('pending')
+    TestBed.tick()
+
+    const boundaryRead = vi.fn(() => query.status())
+    const unsubscribe = queryCache.subscribe((event) => {
+      if (
+        event.type === 'observerOptionsUpdated' &&
+        event.query.getObserversCount() === 0
+      ) {
+        boundaryRead()
+      }
+    })
+
+    key.set('new')
+    isRestoring.set(false)
+
+    expect(() => TestBed.tick()).not.toThrow()
+    expect(boundaryRead).toHaveBeenCalled()
+    expect(
+      queryCache
+        .find({ queryKey: ['restoration-reentrant', 'new'] })
+        ?.getObserversCount(),
+    ).toBe(1)
+
+    unsubscribe()
+  })
+
+  it('converges to the current query after an early restoration read', async () => {
+    const isRestoring = signal(true)
+    const key = signal('old')
+    const queriedKeys: Array<string> = []
+    const oldQueryKey = ['early-restoration-read', 'old'] as const
+    const newQueryKey = ['early-restoration-read', 'new'] as const
+
+    TestBed.resetTestingModule()
+    TestBed.configureTestingModule({
+      providers: [
+        provideAngularQueryChangeDetection(),
+        provideTanStackQuery(() => queryClient),
+        provideIsRestoring(isRestoring.asReadonly()),
+      ],
+    })
+
+    const query = TestBed.runInInjectionContext(() =>
+      injectQuery(() => ({
+        queryKey: ['early-restoration-read', key()],
+        queryFn: ({ queryKey: currentQueryKey }) => {
+          const currentKey = currentQueryKey[1] as string
+          queriedKeys.push(currentKey)
+          return Promise.resolve(currentKey)
+        },
+        staleTime: Infinity,
+      })),
+    )
+
+    expect(query.status()).toBe('pending')
+    TestBed.tick()
+    const oldQuery = queryCache.find({ queryKey: oldQueryKey })!
+    expect(oldQuery.getObserversCount()).toBe(0)
+
+    key.set('new')
+    isRestoring.set(false)
+
+    // Pull before the option-configuration effect gets a chance to run.
+    expect(query.status()).toBe('pending')
+    expect(oldQuery.getObserversCount()).toBe(1)
+    expect(queryCache.find({ queryKey: newQueryKey })).toBeDefined()
+
+    // A cache write to the optimistic query is adopted after configuration.
+    queryClient.setQueryData(newQueryKey, 'early data')
+    const newQuery = queryCache.find({ queryKey: newQueryKey })!
+    expect(newQuery.getObserversCount()).toBe(0)
+    TestBed.tick()
+    const stablePromise = TestBed.inject(ApplicationRef).whenStable()
+    await vi.advanceTimersByTimeAsync(0)
+    await stablePromise
+
+    expect(oldQuery.getObserversCount()).toBe(0)
+    expect(newQuery.getObserversCount()).toBe(1)
+    expect(queriedKeys).toEqual(['old'])
+    expect(query.data()).toBe('early data')
+  })
+
+  it('reads optimistic options before moving the subscription on the next tick', () => {
+    const key = signal('old')
+    const oldQueryKey = ['early-options-read', 'old'] as const
+    const newQueryKey = ['early-options-read', 'new'] as const
+    const query = TestBed.runInInjectionContext(() =>
+      injectQuery(() => ({
+        queryKey: ['early-options-read', key()],
+        queryFn: () => 'unused',
+        enabled: false,
+      })),
+    )
+
+    expect(query.status()).toBe('pending')
+    TestBed.tick()
+    const oldQuery = queryCache.find({ queryKey: oldQueryKey })!
+    expect(oldQuery.getObserversCount()).toBe(1)
+
+    key.set('new')
+
+    expect(query.status()).toBe('pending')
+    // An existing observer stays attached until the configuration effect can
+    // move it atomically.
+    expect(oldQuery.getObserversCount()).toBe(1)
+    expect(queryCache.find({ queryKey: newQueryKey })).toBeDefined()
+
+    queryClient.setQueryData(newQueryKey, 'early data')
+    const newQuery = queryCache.find({ queryKey: newQueryKey })!
+    expect(newQuery.getObserversCount()).toBe(0)
+    TestBed.tick()
+
+    expect(oldQuery.getObserversCount()).toBe(0)
+    expect(newQuery.getObserversCount()).toBe(1)
+    expect(query.data()).toBe('early data')
   })
 
   describe('injection context', () => {

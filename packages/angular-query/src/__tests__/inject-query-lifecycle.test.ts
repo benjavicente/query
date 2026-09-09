@@ -1,10 +1,9 @@
-import { DestroyRef, PendingTasks, runInInjectionContext } from '@angular/core'
+import { DestroyRef, NgZone, PendingTasks, runInInjectionContext } from '@angular/core'
 import { describe, expect, it, vi } from 'vitest'
-import { DestroyRefCompat } from '../utils/destroy-ref-compat'
 import { injectPendingTasksLifecycle } from '../utils/inject-pending-tasks-lifecycle'
 import type { Injector } from '@angular/core'
 
-function setupLifecycle(withNativeDestroyed = false) {
+function setupLifecycle() {
   const destroyCallbacks: Array<() => void> = []
   const taskCleanups: Array<ReturnType<typeof vi.fn>> = []
   const pendingTasks = {
@@ -15,9 +14,10 @@ function setupLifecycle(withNativeDestroyed = false) {
     }),
   }
   const destroyRef: {
-    destroyed?: boolean
+    destroyed: boolean
     onDestroy: ReturnType<typeof vi.fn>
   } = {
+    destroyed: false,
     onDestroy: vi.fn((callback: () => void) => {
       destroyCallbacks.push(callback)
       return () => {
@@ -26,10 +26,9 @@ function setupLifecycle(withNativeDestroyed = false) {
       }
     }),
   }
-  if (withNativeDestroyed) destroyRef.destroyed = false
   const injector = {
     get(token: unknown) {
-      if (token === DestroyRefCompat) return null
+      if (token === NgZone) return { run: (callback: () => void) => callback() }
       if (token === PendingTasks) return pendingTasks
       if (token === DestroyRef) return destroyRef
       throw new Error(`Unexpected token: ${String(token)}`)
@@ -43,7 +42,7 @@ function setupLifecycle(withNativeDestroyed = false) {
     pendingTasks,
     taskCleanups,
     destroy: () => {
-      if (withNativeDestroyed) destroyRef.destroyed = true
+      destroyRef.destroyed = true
       for (const callback of [...destroyCallbacks]) callback()
     },
   }
@@ -76,46 +75,5 @@ describe('QueryLifecycle', () => {
 
     lifecycle.setPending(true)
     expect(pendingTasks.add).toHaveBeenCalledOnce()
-  })
-
-  it('uses the native Angular 20.1 DestroyRef state when available', () => {
-    const { lifecycle, destroy } = setupLifecycle(true)
-
-    expect(lifecycle.destroyed).toBe(false)
-    destroy()
-    expect(lifecycle.destroyed).toBe(true)
-  })
-
-  it('uses a DestroyRefCompat override from the injection context', () => {
-    let destroyed = false
-    const destroyCallbacks: Array<() => void> = []
-    const taskCleanup = vi.fn()
-    const destroyRefCompat: DestroyRefCompat = {
-      get destroyed() {
-        return destroyed
-      },
-      onDestroy(callback) {
-        destroyCallbacks.push(callback)
-        return () => undefined
-      },
-    }
-    const pendingTasks = { add: vi.fn(() => taskCleanup) }
-    const injector = {
-      get(token: unknown) {
-        if (token === DestroyRefCompat) return destroyRefCompat
-        if (token === PendingTasks) return pendingTasks
-        throw new Error(`Unexpected token: ${String(token)}`)
-      },
-    } as Injector
-
-    const lifecycle = runInInjectionContext(injector, () =>
-      injectPendingTasksLifecycle(),
-    )
-    lifecycle.setPending(true)
-    destroyed = true
-    for (const callback of destroyCallbacks) callback()
-
-    expect(lifecycle.destroyed).toBe(true)
-    expect(taskCleanup).toHaveBeenCalledOnce()
   })
 })

@@ -3,8 +3,6 @@ id: QueryResource
 title: QueryResource
 ---
 
-# Interface: QueryResource\<TValue\>
-
 Defined in: [packages/angular-query/src/query-resource.ts:6](https://github.com/TanStack/query/blob/main/packages/angular-query/src/query-resource.ts#L6)
 
 ## Extends
@@ -143,7 +141,7 @@ This function is reactive.
 
 ###### this
 
-`QueryResource`\<`TValue`\> | `TValue` *extends* `undefined` ? `QueryResource`\<`TValue`\> : `never`
+`TValue` *extends* `undefined` ? `QueryResource`\<`TValue`\> : `never`
 
 ##### Returns
 

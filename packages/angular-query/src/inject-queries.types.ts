@@ -6,7 +6,7 @@ import type {
   QueryFunction,
   QueryKey,
   QueryObserverResult,
-  ThrowOnError,
+  dataTagErrorSymbol,
 } from '@tanstack/query-core'
 import type {
   CreateQueryOptions,
@@ -25,6 +25,16 @@ type QueryObserverOptionsForCreateQueries<
 > & {
   placeholderData?: TQueryFnData | QueriesPlaceholderDataFunction<TQueryFnData>
 }
+
+type QueryError<T> = T extends {
+  queryKey: { [dataTagErrorSymbol]: infer TError }
+}
+  ? TError
+  : T extends CreateQueryOptions<any, infer TError, any, any>
+    ? unknown extends TError
+      ? DefaultError
+      : TError
+    : DefaultError
 
 type MAXIMUM_DEPTH = 20
 type SkipTokenForCreateQueries = symbol
@@ -50,11 +60,10 @@ type GetCreateQueryOptionsForCreateQueries<T> = T extends {
                     | QueryFunction<infer TQueryFnData, infer TQueryKey>
                     | SkipTokenForCreateQueries
                   select?: (data: any) => infer TData
-                  throwOnError?: ThrowOnError<any, infer TError, any, any>
                 }
               ? QueryObserverOptionsForCreateQueries<
                   TQueryFnData,
-                  unknown extends TError ? DefaultError : TError,
+                  QueryError<T>,
                   unknown extends TData ? TQueryFnData : TData,
                   TQueryKey
                 >
@@ -96,11 +105,10 @@ type InferDataAndError<T> = T extends {
                     | QueryFunction<infer TQueryFnData, any>
                     | SkipTokenForCreateQueries
                   select?: (data: any) => infer TData
-                  throwOnError?: ThrowOnError<any, infer TError, any, any>
                 }
               ? {
                   data: unknown extends TData ? TQueryFnData : TData
-                  error: unknown extends TError ? DefaultError : TError
+                  error: QueryError<T>
                 }
               : { data: unknown; error: DefaultError }
 

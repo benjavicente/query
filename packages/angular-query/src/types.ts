@@ -27,7 +27,7 @@ export type CreateQueryOptions<
   TQueryKey extends QueryKey = QueryKey,
 > = OmitKeyof<
   QueryObserverOptions<TQueryFnData, TError, TData, TQueryFnData, TQueryKey>,
-  'notifyOnChangeProps' | 'suspense'
+  'notifyOnChangeProps' | 'suspense' | 'throwOnError'
 >
 
 type CreateStatusBasedQueryResult<
@@ -185,7 +185,7 @@ export interface CreateInfiniteQueryOptions<
     TQueryKey,
     TPageParam
   >,
-  'notifyOnChangeProps' | 'suspense'
+  'notifyOnChangeProps' | 'suspense' | 'throwOnError'
 > {}
 
 export type CreateBaseQueryResult<
@@ -245,7 +245,7 @@ export interface CreateMutationOptions<
   TOnMutateResult = unknown,
 > extends OmitKeyof<
   MutationObserverOptions<TData, TError, TVariables, TOnMutateResult>,
-  '_defaulted'
+  '_defaulted' | 'throwOnError'
 > {}
 
 export type CreateMutateFunction<

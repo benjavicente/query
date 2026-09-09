@@ -48,7 +48,6 @@ export { injectQuery } from './inject-query'
 
 export type { QueryFeature } from './providers'
 export {
-  provideQueryClient,
   provideTanStackQuery,
   withHydrationKey,
   withNoQueryHydration,

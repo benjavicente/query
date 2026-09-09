@@ -3,13 +3,11 @@ id: CreateInfiniteQueryOptions
 title: CreateInfiniteQueryOptions
 ---
 
-# Interface: CreateInfiniteQueryOptions\<TQueryFnData, TError, TData, TQueryKey, TPageParam\>
-
-Defined in: [packages/angular-query/src/types.ts:138](https://github.com/TanStack/query/blob/main/packages/angular-query/src/types.ts#L138)
+Defined in: [packages/angular-query/src/types.ts:174](https://github.com/TanStack/query/blob/main/packages/angular-query/src/types.ts#L174)
 
 ## Extends
 
-- `OmitKeyof`\<`InfiniteQueryObserverOptions`\<`TQueryFnData`, `TError`, `TData`, `TQueryKey`, `TPageParam`\>, `"suspense"`\>
+- `OmitKeyof`\<`InfiniteQueryObserverOptions`\<`TQueryFnData`, `TError`, `TData`, `TQueryKey`, `TPageParam`\>, `"notifyOnChangeProps"` \| `"suspense"` \| `"throwOnError"`\>
 
 ## Type Parameters
 

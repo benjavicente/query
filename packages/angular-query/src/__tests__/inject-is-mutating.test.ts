@@ -1,11 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TestBed } from '@angular/core/testing'
-import {
-  Component,
-  input,
-  inputBinding,
-  signal,
-} from '@angular/core'
+import { Component, input, inputBinding, signal } from '@angular/core'
 import { render } from '@testing-library/angular'
 import { queryKey, sleep } from '@tanstack/query-test-utils'
 import {
@@ -80,7 +75,7 @@ describe('injectIsMutating', () => {
         mutationKey: key2,
         mutationFn: () => sleep(100).then(() => 'data2'),
       }))
-      readonly isMutating = injectIsMutating({ mutationKey: key1 })
+      readonly isMutating = injectIsMutating(() => ({ mutationKey: key1 }))
     }
 
     const rendered = await render(Page)
@@ -108,11 +103,12 @@ describe('injectIsMutating', () => {
     })
     class Page {
       readonly includeMutation = input.required<boolean>()
-      readonly isMutating = injectIsMutating({
+      readonly isMutating = injectIsMutating(() => ({
         predicate: () => this.includeMutation(),
-      })
+      }))
     }
 
+    const subscribe = vi.spyOn(queryClient.getMutationCache(), 'subscribe')
     const includeMutation = signal(true)
     const rendered = await render(Page, {
       bindings: [inputBinding('includeMutation', includeMutation)],
@@ -122,6 +118,7 @@ describe('injectIsMutating', () => {
 
     includeMutation.set(false)
     rendered.fixture.detectChanges()
+    expect(subscribe).toHaveBeenCalledTimes(1)
     expect(rendered.getByText('mutating: 0')).toBeInTheDocument()
   })
 

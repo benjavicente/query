@@ -3,13 +3,11 @@ id: CreateQueryOptions
 title: CreateQueryOptions
 ---
 
-# Type Alias: CreateQueryOptions\<TQueryFnData, TError, TData, TQueryKey\>
-
 ```ts
-type CreateQueryOptions<TQueryFnData, TError, TData, TQueryKey> = OmitKeyof<CreateBaseQueryOptions<TQueryFnData, TError, TData, TQueryFnData, TQueryKey>, "suspense">;
+type CreateQueryOptions<TQueryFnData, TError, TData, TQueryKey> = OmitKeyof<QueryObserverOptions<TQueryFnData, TError, TData, TQueryFnData, TQueryKey>, "notifyOnChangeProps" | "suspense" | "throwOnError">;
 ```
 
-Defined in: [packages/angular-query/src/types.ts:30](https://github.com/TanStack/query/blob/main/packages/angular-query/src/types.ts#L30)
+Defined in: [packages/angular-query/src/types.ts:23](https://github.com/TanStack/query/blob/main/packages/angular-query/src/types.ts#L23)
 
 ## Type Parameters
 

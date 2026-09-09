@@ -3,13 +3,11 @@ id: DefinedCreateQueryResult
 title: DefinedCreateQueryResult
 ---
 
-# Type Alias: DefinedCreateQueryResult\<TData, TError, TState\>
-
 ```ts
-type DefinedCreateQueryResult<TData, TError, TState> = BaseQueryNarrowing<TData, TError> & MapToSignals<OmitKeyof<TState, keyof BaseQueryNarrowing, "safely">, MethodKeys<OmitKeyof<TState, keyof BaseQueryNarrowing, "safely">>>;
+type DefinedCreateQueryResult<TData, TError, TState> = DefinedQueryNarrowing<TData, TError> & MapToSignals<OmitKeyof<TState, keyof DefinedQueryNarrowing, "safely">, MethodKeys<OmitKeyof<TState, keyof DefinedQueryNarrowing, "safely">>>;
 ```
 
-Defined in: [packages/angular-query/src/types.ts:171](https://github.com/TanStack/query/blob/main/packages/angular-query/src/types.ts#L171)
+Defined in: [packages/angular-query/src/types.ts:209](https://github.com/TanStack/query/blob/main/packages/angular-query/src/types.ts#L209)
 
 ## Type Parameters
 
@@ -23,4 +21,4 @@ Defined in: [packages/angular-query/src/types.ts:171](https://github.com/TanStac
 
 ### TState
 
-`TState` = `DefinedQueryObserverResult`\<`TData`, `TError`\>
+`TState` *extends* `DefinedQueryObserverResult`\<`TData`, `TError`\> = `DefinedQueryObserverResult`\<`TData`, `TError`\>

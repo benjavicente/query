@@ -3,9 +3,7 @@ id: BaseInfiniteQueryNarrowing
 title: BaseInfiniteQueryNarrowing
 ---
 
-# Interface: BaseInfiniteQueryNarrowing\<TData, TError\>
-
-Defined in: [packages/angular-query/src/types.ts:88](https://github.com/TanStack/query/blob/main/packages/angular-query/src/types.ts#L88)
+Defined in: [packages/angular-query/src/types.ts:114](https://github.com/TanStack/query/blob/main/packages/angular-query/src/types.ts#L114)
 
 ## Type Parameters
 
@@ -19,60 +17,30 @@ Defined in: [packages/angular-query/src/types.ts:88](https://github.com/TanStack
 
 ## Properties
 
-### isError()
+### isError
 
 ```ts
-isError: (this) => this is CreateInfiniteQueryResult<TData, TError, CreateStatusBasedInfiniteQueryResult<"error", TData, TError>>;
+isError: SignalFunction<(this) => this is CreateInfiniteQueryResult<TData, TError, CreateStatusBasedInfiniteQueryResult<"error", TData, TError>>>;
 ```
 
-Defined in: [packages/angular-query/src/types.ts:99](https://github.com/TanStack/query/blob/main/packages/angular-query/src/types.ts#L99)
-
-#### Parameters
-
-##### this
-
-[`CreateInfiniteQueryResult`](../type-aliases/CreateInfiniteQueryResult.md)\<`TData`, `TError`\>
-
-#### Returns
-
-`this is CreateInfiniteQueryResult<TData, TError, CreateStatusBasedInfiniteQueryResult<"error", TData, TError>>`
+Defined in: [packages/angular-query/src/types.ts:127](https://github.com/TanStack/query/blob/main/packages/angular-query/src/types.ts#L127)
 
 ***
 
-### isPending()
+### isPending
 
 ```ts
-isPending: (this) => this is CreateInfiniteQueryResult<TData, TError, CreateStatusBasedInfiniteQueryResult<"pending", TData, TError>>;
+isPending: SignalFunction<(this) => this is CreateInfiniteQueryResult<TData, TError, CreateStatusBasedInfiniteQueryResult<"pending", TData, TError>>>;
 ```
 
-Defined in: [packages/angular-query/src/types.ts:106](https://github.com/TanStack/query/blob/main/packages/angular-query/src/types.ts#L106)
-
-#### Parameters
-
-##### this
-
-[`CreateInfiniteQueryResult`](../type-aliases/CreateInfiniteQueryResult.md)\<`TData`, `TError`\>
-
-#### Returns
-
-`this is CreateInfiniteQueryResult<TData, TError, CreateStatusBasedInfiniteQueryResult<"pending", TData, TError>>`
+Defined in: [packages/angular-query/src/types.ts:136](https://github.com/TanStack/query/blob/main/packages/angular-query/src/types.ts#L136)
 
 ***
 
-### isSuccess()
+### isSuccess
 
 ```ts
-isSuccess: (this) => this is CreateInfiniteQueryResult<TData, TError, CreateStatusBasedInfiniteQueryResult<"success", TData, TError>>;
+isSuccess: SignalFunction<(this) => this is CreateInfiniteQueryResult<TData, TError, CreateStatusBasedInfiniteQueryResult<"success", TData, TError>>>;
 ```
 
-Defined in: [packages/angular-query/src/types.ts:92](https://github.com/TanStack/query/blob/main/packages/angular-query/src/types.ts#L92)
-
-#### Parameters
-
-##### this
-
-[`CreateInfiniteQueryResult`](../type-aliases/CreateInfiniteQueryResult.md)\<`TData`, `TError`\>
-
-#### Returns
-
-`this is CreateInfiniteQueryResult<TData, TError, CreateStatusBasedInfiniteQueryResult<"success", TData, TError>>`
+Defined in: [packages/angular-query/src/types.ts:118](https://github.com/TanStack/query/blob/main/packages/angular-query/src/types.ts#L118)

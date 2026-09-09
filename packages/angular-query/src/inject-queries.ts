@@ -1,31 +1,25 @@
+import { QueriesObserver, QueryClient } from '@tanstack/query-core'
 import {
-  QueriesObserver,
-  QueryClient,
-  shouldThrowError,
-} from '@tanstack/query-core'
-import {
-  NgZone,
   assertInInjectionContext,
   computed,
+  effect,
   inject,
   untracked,
 } from '@angular/core'
 import { signalProxy } from './utils/signal-proxy'
+import { queryResultFields } from './utils/result-fields'
 import { injectIsRestoring } from './inject-is-restoring'
 import { injectPendingTasksLifecycle } from './utils/inject-pending-tasks-lifecycle'
-import { injectObserverSignal } from './utils/inject-observer-signal'
+import { injectExternalStore } from './utils/inject-external-store'
 import type {
   InjectQueriesOptions,
   QueriesResults,
 } from './inject-queries.types'
 import type {
-  QueriesObserverOptions,
   QueryObserverOptions,
   QueryObserverResult,
 } from '@tanstack/query-core'
 import type { Signal } from '@angular/core'
-
-const methodsToExclude = ['refetch'] as const
 
 /**
  * Injects multiple queries that run in parallel and react to Angular signals.
@@ -53,7 +47,6 @@ export function injectQueries<
   optionsFn: () => InjectQueriesOptions<T, TCombinedResult>,
 ): Signal<TCombinedResult> {
   assertInInjectionContext(injectQueries)
-  const ngZone = inject(NgZone)
   const queryClient = inject(QueryClient)
   const isRestoring = injectIsRestoring()
   const lifecycle = injectPendingTasksLifecycle()
@@ -74,10 +67,6 @@ export function injectQueries<
     })
   })
 
-  const observerOptionsSignal = computed(
-    () => optionsSignal() as QueriesObserverOptions<TCombinedResult>,
-  )
-
   const shouldBlockPendingTasks = (
     observer: QueriesObserver<TCombinedResult>,
     results: Array<QueryObserverResult>,
@@ -92,104 +81,91 @@ export function injectQueries<
     })
   }
 
+  // The observer is intentionally lazy so query factories may read required
+  // inputs. Its first construction and subscription can synchronously emit
+  // QueryCache events; a listener for either initial event must not re-enter this
+  // same, not-yet-initialized result. Subscription setup and cleanup must not synchronously
+  // read these results during reconciliation.
   const observerSignal = computed(
     () =>
       new QueriesObserver<TCombinedResult>(
         queryClient,
         untracked(defaultedQueries),
-        untracked(observerOptionsSignal),
       ),
   )
 
-  const getOptimisticResult = (observer: QueriesObserver<TCombinedResult>) => {
+  // Configure the observer outside the result computation. Cache listeners can
+  // synchronously read public results while setQueries notifies.
+  effect(() => {
     const queries = defaultedQueries()
-    const combine = observerOptionsSignal().combine
-    const [optimisticResult, getCombinedResult] = observer.getOptimisticResult(
-      queries,
-      combine,
-    )
+    untracked(() => observerSignal().setQueries(queries))
+  })
 
-    return {
-      optimisticResult,
-      combinedResult: getCombinedResult(optimisticResult),
-    }
-  }
-
-  const observerUpdateSignal = computed(() => ({
-    queries: defaultedQueries(),
-    options: observerOptionsSignal(),
-  }))
-
-  const resultSignal = injectObserverSignal({
-    updateSource: observerUpdateSignal,
-    update: ({ queries, options }) => {
-      observerSignal().setQueries(queries, options)
-    },
-    getSnapshot: () => {
-      const observer = observerSignal()
-      return getOptimisticResult(observer).combinedResult
-    },
-    subscribe: (onStoreChange) => {
-      if (isRestoring()) return undefined
-
-      const observer = observerSignal()
-      const { optimisticResult } = getOptimisticResult(observer)
-      lifecycle.setPending(shouldBlockPendingTasks(observer, optimisticResult))
-
-      const unsubscribe = observer.subscribe((state) => {
-        lifecycle.setPending(shouldBlockPendingTasks(observer, state))
-
-        if (lifecycle.destroyed) return
-
-        const observers = observer.getObservers()
-        const queries = observer.getQueries()
-        const resultWhichShouldThrow = state.find((result, index) => {
-          const queryObserver = observers[index]
-          const query = queries[index]
-
-          return (
-            result.isError &&
-            !result.isFetching &&
-            queryObserver !== undefined &&
-            query !== undefined &&
-            shouldThrowError(queryObserver.options.throwOnError, [
-              result.error,
-              query,
-            ])
+  // Methods address the current array slot, including methods handed to combine.
+  const refetches: Array<QueryObserverResult['refetch']> = []
+  const getRefetch = (index: number): QueryObserverResult['refetch'] =>
+    (refetches[index] ??= (options) =>
+      untracked(() => {
+        const observer = observerSignal()
+        observer.setQueries(defaultedQueries())
+        resultSignal()
+        const queryObserver = observer.getObservers()[index]
+        if (!queryObserver) {
+          return Promise.reject(
+            new Error(`Cannot refetch removed query at index ${index}`),
           )
-        })
-
-        if (resultWhichShouldThrow) {
-          queueMicrotask(() => {
-            if (lifecycle.destroyed) return
-            ngZone.run(() => {
-              ngZone.onError.emit(resultWhichShouldThrow.error)
-              throw resultWhichShouldThrow.error
-            })
-          })
-          return
         }
+        return queryObserver.refetch(options)
+      }))
 
-        onStoreChange()
-      })
-
-      return () => {
-        lifecycle.setPending(false)
-        unsubscribe()
-      }
-    },
+  const resultSignal = injectExternalStore(() => {
+    const observer = observerSignal()
+    const restoring = isRestoring()
+    return {
+      getSnapshot: () => {
+        const results = observer.getOptimisticResult(
+          defaultedQueries(),
+          undefined,
+        )[0]
+        refetches.length = results.length
+        return results.map((result, index) => ({
+          ...result,
+          refetch: getRefetch(index),
+        }))
+      },
+      subscribe: restoring
+        ? undefined
+        : (onStoreChange) => {
+            lifecycle.setPending(
+              shouldBlockPendingTasks(observer, observer.getCurrentResult()),
+            )
+            const unsubscribe = observer.subscribe((state) => {
+              if (lifecycle.destroyed) return
+              if (shouldBlockPendingTasks(observer, state))
+                lifecycle.setPending(true)
+              onStoreChange()
+              lifecycle.setPending(
+                shouldBlockPendingTasks(observer, observer.getCurrentResult()),
+              )
+            })
+            return () => {
+              lifecycle.setPending(false)
+              unsubscribe()
+            }
+          },
+    }
   })
 
   const createResultProxy = (index: number) => {
-    const resultAtIndexSignal = computed(
-      () => (resultSignal() as Array<QueryObserverResult>)[index]!,
-    )
-    return signalProxy(resultAtIndexSignal, methodsToExclude)
+    const resultAtIndexSignal = computed(() => resultSignal()[index]!)
+    return Object.assign(signalProxy(resultAtIndexSignal, queryResultFields), {
+      refetch: getRefetch(index),
+    })
   }
 
   const resultProxies: Array<ReturnType<typeof createResultProxy>> = []
   const proxiedResultsSignal = computed(() => {
-    const results = resultSignal() as Array<QueryObserverResult>
+    const results = resultSignal()
     resultProxies.length = results.length
 
     return results.map((_, index) => {
@@ -197,11 +173,14 @@ export function injectQueries<
     })
   })
 
+  // Combine in Angular's tracked computation. Core must notify for every raw
+  // result change, including changes a previous combine function ignored.
   return computed(() => {
     const result = resultSignal()
     const { combine } = optionsSignal()
 
-    if (combine) return result
+    if (combine)
+      return combine(result as Parameters<NonNullable<typeof combine>>[0])
 
     return proxiedResultsSignal() as unknown as TCombinedResult
   }) as unknown as Signal<TCombinedResult>

@@ -1,19 +1,15 @@
 import {
-  NgZone,
   assertInInjectionContext,
   computed,
+  effect,
   inject,
   untracked,
 } from '@angular/core'
-import {
-  MutationObserver,
-  QueryClient,
-  noop,
-  shouldThrowError,
-} from '@tanstack/query-core'
+import { MutationObserver, QueryClient, noop } from '@tanstack/query-core'
 import { signalProxy } from './utils/signal-proxy'
+import { mutationResultFields } from './utils/result-fields'
 import { injectPendingTasksLifecycle } from './utils/inject-pending-tasks-lifecycle'
-import { injectObserverSignal } from './utils/inject-observer-signal'
+import { injectExternalStore } from './utils/inject-external-store'
 import type { DefaultError } from '@tanstack/query-core'
 import type {
   CreateMutateAsyncFunction,
@@ -43,7 +39,6 @@ export function injectMutation<
   >,
 ): CreateMutationResult<TData, TError, TVariables, TOnMutateResult> {
   assertInInjectionContext(injectMutation)
-  const ngZone = inject(NgZone)
   const queryClient = inject(QueryClient)
   const lifecycle = injectPendingTasksLifecycle()
 
@@ -58,37 +53,24 @@ export function injectMutation<
     () => new MutationObserver(queryClient, untracked(optionsSignal)),
   )
 
-  const mutationStateSignal = injectObserverSignal({
-    updateSource: optionsSignal,
-    update: (options) => observerSignal().setOptions(options),
-    getSnapshot: () => observerSignal().getCurrentResult(),
-    subscribe: (onStoreChange) => {
-      const observer = observerSignal()
+  // Imperative methods construct the observer before initializing the result
+  // subscription, which makes mutations started in ngOnInit synchronous-safe.
+  // A cache listener must not re-enter this result during its very first direct
+  // read, while the lazy MutationObserver constructor is still running.
 
-      const unsubscribe = observer.subscribe((state) => {
-        if (lifecycle.destroyed) return
+  // Configure the observer outside the result computation. Mutation-cache
+  // listeners can synchronously read the public result while setOptions emits.
+  effect(() => {
+    const options = optionsSignal()
+    untracked(() => observerSignal().setOptions(options))
+  })
 
-        lifecycle.setPending(state.isPending)
-
-        if (
-          state.isError &&
-          shouldThrowError(observer.options.throwOnError, [state.error])
-        ) {
-          ngZone.run(() => {
-            ngZone.onError.emit(state.error)
-            throw state.error
-          })
-          return
-        }
-
-        onStoreChange()
-      })
-
-      return () => {
-        lifecycle.setPending(false)
-        unsubscribe()
-      }
-    },
+  const mutationStateSignal = injectExternalStore(() => {
+    const observer = observerSignal()
+    return {
+      getSnapshot: () => observer.getCurrentResult(),
+      subscribe: (onStoreChange) => observer.subscribe(onStoreChange),
+    }
   })
 
   const mutate: CreateMutateFunction<
@@ -100,6 +82,8 @@ export function injectMutation<
     mutateAsync(...args).catch(noop)
   }
 
+  let pendingInvocations = 0
+
   const mutateAsync: CreateMutateAsyncFunction<
     TData,
     TError,
@@ -107,19 +91,36 @@ export function injectMutation<
     TOnMutateResult
   > = (...args) => {
     return untracked(() => {
+      const observer = observerSignal()
+      observer.setOptions(optionsSignal())
       mutationStateSignal()
-      return observerSignal().mutate(args[0] as TVariables, args[1])
+      pendingInvocations++
+      lifecycle.setPending(true)
+      // Track invocations, not the observer's latest result: reset or a later
+      // mutation completing must not release work which is still running.
+      const settled = () => {
+        pendingInvocations--
+        lifecycle.setPending(pendingInvocations > 0)
+      }
+      try {
+        return observer.mutate(args[0] as TVariables, args[1]).finally(settled)
+      } catch (error) {
+        settled()
+        throw error
+      }
     })
   }
 
   const reset = () => {
     untracked(() => {
+      const observer = observerSignal()
+      observer.setOptions(optionsSignal())
       mutationStateSignal()
-      observerSignal().reset()
+      observer.reset()
     })
   }
 
-  return Object.assign(signalProxy(mutationStateSignal), {
+  return Object.assign(signalProxy(mutationStateSignal, mutationResultFields), {
     mutate,
     mutateAsync,
     reset,

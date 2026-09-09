@@ -56,27 +56,6 @@ function createQueryClientProvider(
 }
 
 /**
- * Provides a {@link https://tanstack.com/query/latest/docs/reference/QueryClient|QueryClient}
- * without additional TanStack Query features. Prefer {@link provideTanStackQuery}
- * for application setup; use this function to override the client in a child
- * injector or in tests.
- *
- * The factory is registered with Angular's `useFactory`, runs in an injection
- * context, and creates one client per injector.
- *
- * @param queryClientFactoryOrToken - A `QueryClient` factory or an `InjectionToken` that resolves one.
- * @returns A single {@link EnvironmentProviders} value to add to environment `providers` (do not spread).
- */
-export function provideQueryClient(
-  queryClientFactoryOrToken: InjectionToken<QueryClient> | (() => QueryClient),
-): EnvironmentProviders {
-  return makeEnvironmentProviders([
-    createQueryClientProvider(queryClientFactoryOrToken),
-    provideEnvironmentInitializer(configureQueryClient),
-  ])
-}
-
-/**
  * Provides a `QueryClient` and optional TanStack Query features.
  * The factory runs once per injector in Angular's injection context, so it can
  * call `inject()` and each SSR request can receive an independent cache.
@@ -138,8 +117,6 @@ export function provideTanStackQuery(
 
 const queryFeatureBrand: unique symbol = Symbol('QueryFeature')
 
-export type QueryFeatureKind = 'Devtools' | 'Hydration' | 'PersistQueryClient'
-
 /**
  * Helper type to represent a Query feature.
  */
@@ -148,23 +125,17 @@ export interface QueryFeature {
 }
 
 interface InternalQueryFeature extends QueryFeature {
-  readonly ɵkind: QueryFeatureKind
   readonly ɵproviders: EnvironmentProviders
 }
 
 /**
  * Helper function to create an object that represents a Query feature.
- * @param kind -
  * @param providers -
  * @returns A Query feature.
  */
-export function queryFeature(
-  kind: QueryFeatureKind,
-  providers: EnvironmentProviders,
-): QueryFeature {
+export function queryFeature(providers: EnvironmentProviders): QueryFeature {
   const feature: InternalQueryFeature = {
     [queryFeatureBrand]: true,
-    ɵkind: kind,
     ɵproviders: providers,
   }
 
@@ -195,7 +166,6 @@ export function getQueryFeatureProviders(
  */
 export function withHydrationKey(key: string): QueryFeature {
   return queryFeature(
-    'Hydration',
     makeEnvironmentProviders([
       {
         provide: INTERNAL_TANSTACK_QUERY_HYDRATION_TRANSFER_KEY,
@@ -210,7 +180,6 @@ export function withHydrationKey(key: string): QueryFeature {
  */
 export function withNoQueryHydration(): QueryFeature {
   return queryFeature(
-    'Hydration',
     makeEnvironmentProviders([
       {
         provide: INTERNAL_QUERY_CLIENT_SHOULD_HYDRATE,

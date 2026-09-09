@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { ChangeDetectionStrategy, Component } from '@angular/core'
+import { ChangeDetectionStrategy, Component, signal } from '@angular/core'
 import { sleep } from '@tanstack/query-test-utils'
 import { QueryClient, injectInfiniteQuery } from '..'
 import { expectSignals, setupTanStackQueryTestBed } from './test-utils'
@@ -17,6 +17,34 @@ describe('injectInfiniteQuery', () => {
   afterEach(() => {
     vi.useRealTimers()
   })
+
+  it.each(['refetch', 'fetchNextPage', 'fetchPreviousPage'] as const)(
+    'applies current infinite-query options before %s',
+    async (method) => {
+      vi.useRealTimers()
+      const version = signal('old')
+      const query = TestBed.runInInjectionContext(() =>
+        injectInfiniteQuery(() => {
+          const current = version()
+          return {
+            queryKey: ['infinite'],
+            enabled: false,
+            initialPageParam: 0,
+            initialData: { pages: ['initial'], pageParams: [0] },
+            getNextPageParam: () => 1,
+            getPreviousPageParam: () => -1,
+            queryFn: async () => current,
+          }
+        }),
+      )
+      query.data()
+      const execute = query[method]
+      version.set('new')
+      const result = await execute()
+      expect(result.data?.pages).toContain('new')
+      expect(result.data?.pages).not.toContain('old')
+    },
+  )
 
   it('should properly execute infinite query', async () => {
     @Component({
@@ -78,6 +106,5 @@ describe('injectInfiniteQuery', () => {
         }))
       }).toThrowError(/NG0203(.*?)injectInfiniteQuery/)
     })
-
   })
 })

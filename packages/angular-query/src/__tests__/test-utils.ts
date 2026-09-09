@@ -72,8 +72,8 @@ export function setupTanStackQueryTestBed(
 }
 
 /**
- * TanStack Query schedules notifyManager updates with setTimeout(0); when fake timers
- * are enabled, advance them so PendingTasks sees the queued work.
+ * Advances zero-delay timers and their promise continuations in fake-timer tests.
+ * Angular rendering may require a subsequent change-detection pass.
  */
 export async function flushQueryUpdates() {
   await vi.advanceTimersByTimeAsync(0)

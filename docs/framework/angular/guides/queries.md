@@ -101,3 +101,5 @@ the [Resource API](../resource-api.md) when an Angular API expects a
 [Resource](https://angular.dev/api/core/Resource).
 
 [//]: # 'Materials'
+
+See [Error handling](./error-handling.md) to connect cache failures to Angular’s `ErrorHandler`.

@@ -9,7 +9,7 @@ import type { Provider, Signal } from '@angular/core'
 /**
  * Internal token used to track isRestoring state, accessible in public API through `injectIsRestoring` and set via `provideIsRestoring`
  */
-const IS_RESTORING = new InjectionToken('', {
+export const IS_RESTORING = new InjectionToken('', {
   // Default value when not provided
   factory: () => signal(false).asReadonly(),
 })

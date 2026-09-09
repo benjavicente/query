@@ -3,13 +3,11 @@ id: CreateMutationOptions
 title: CreateMutationOptions
 ---
 
-# Interface: CreateMutationOptions\<TData, TError, TVariables, TOnMutateResult\>
-
-Defined in: [packages/angular-query/src/types.ts:204](https://github.com/TanStack/query/blob/main/packages/angular-query/src/types.ts#L204)
+Defined in: [packages/angular-query/src/types.ts:241](https://github.com/TanStack/query/blob/main/packages/angular-query/src/types.ts#L241)
 
 ## Extends
 
-- `OmitKeyof`\<`MutationObserverOptions`\<`TData`, `TError`, `TVariables`, `TOnMutateResult`\>, `"_defaulted"`\>
+- `OmitKeyof`\<`MutationObserverOptions`\<`TData`, `TError`, `TVariables`, `TOnMutateResult`\>, `"_defaulted"` \| `"throwOnError"`\>
 
 ## Type Parameters
 

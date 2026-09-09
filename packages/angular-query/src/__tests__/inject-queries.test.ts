@@ -4,7 +4,7 @@ import {
   ApplicationRef,
   ChangeDetectionStrategy,
   Component,
-  NgZone,
+  ErrorHandler,
   computed,
   effect,
   input,
@@ -26,6 +26,8 @@ import {
   setupTanStackQueryTestBed,
 } from './test-utils'
 
+// cspell:ignore ZONEFUL
+
 let queryClient: QueryClient
 
 beforeEach(() => {
@@ -41,6 +43,71 @@ afterEach(() => {
 })
 
 describe('injectQueries', () => {
+  it.each([false, true])(
+    'uses current options and slot identity for multi-query refetch (combine=%s)',
+    async (combine) => {
+      vi.useRealTimers()
+      const keys = signal(['a', 'b'])
+      const version = signal('old')
+      const queries = TestBed.runInInjectionContext(() =>
+        injectQueries(() => {
+          const current = version()
+          return {
+            queries: keys().map((key) => ({
+              queryKey: [key],
+              enabled: false,
+              queryFn: async () => `${key}:${current}`,
+            })),
+            combine: combine ? (results) => results : undefined,
+          }
+        }),
+      )
+      const refetch = queries()[0]!.refetch
+      version.set('new')
+      expect((await refetch()).data).toBe('a:new')
+      keys.set(['b', 'a'])
+      expect((await refetch()).data).toBe('b:new')
+      keys.set([])
+      expect(queries()).toHaveLength(0)
+      await expect(refetch()).rejects.toThrow('removed query at index 0')
+      keys.set(['a'])
+      const restoredRefetch = queries()[0]!.refetch
+      expect(restoredRefetch).not.toBe(refetch)
+      expect((await restoredRefetch()).data).toBe('a:new')
+    },
+  )
+
+  it('should keep failed refetch state and cached data readable without global reporting', async () => {
+    vi.useRealTimers()
+    queryClient.setDefaultOptions({
+      queries: { retry: false, throwOnError: true },
+    })
+    const report = vi.spyOn(TestBed.inject(ErrorHandler), 'handleError')
+    const error = new Error('query failed')
+    const options = {
+      queryKey: ['error'],
+      initialData: 'cached',
+      enabled: false,
+      queryFn: async (): Promise<string> => {
+        throw error
+      },
+    }
+    const query = TestBed.runInInjectionContext(
+      () => injectQueries(() => ({ queries: [options] }))()[0],
+    )
+    query.data()
+    query.error()
+    await expect(query.refetch()).resolves.toMatchObject({
+      status: 'error',
+      error,
+    })
+    expect(query.error()).toBe(error)
+    expect(query.data()).toBe('cached')
+    expect(query.isError()).toBe(true)
+    await expect(query.refetch({ throwOnError: true })).rejects.toBe(error)
+    expect(report).not.toHaveBeenCalled()
+  })
+
   it('throws NG0203 with descriptive error outside injection context', () => {
     expect(() => {
       injectQueries(() => ({
@@ -52,6 +119,140 @@ describe('injectQueries', () => {
         ],
       }))
     }).toThrowError(/NG0203(.*?)injectQueries/)
+  })
+
+  it('allows cache listeners to read a result while options update', () => {
+    const staleTime = signal(0)
+    const queries = TestBed.runInInjectionContext(() =>
+      injectQueries(() => ({
+        queries: [
+          {
+            queryKey: ['reentrant-options'],
+            queryFn: () => 'data',
+            enabled: false,
+            staleTime: staleTime(),
+          },
+        ],
+      })),
+    )
+
+    TestBed.tick()
+    const query = queries()[0]
+    const readResult = vi.fn(() => query.status())
+    const subscriptionEvents: Array<string> = []
+    const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
+      // setQueries emits synchronously; this read must not re-enter the signal
+      // computation that caused the options update.
+      if (event.type === 'observerOptionsUpdated') readResult()
+      if (event.type === 'observerAdded' || event.type === 'observerRemoved') {
+        subscriptionEvents.push(event.type)
+      }
+    })
+
+    staleTime.set(1)
+
+    expect(() => TestBed.tick()).not.toThrow()
+    expect(readResult).toHaveBeenCalled()
+    expect(subscriptionEvents).toEqual([])
+
+    unsubscribe()
+  })
+
+  it('subscribes on the first result read before effects run', () => {
+    const queries = TestBed.runInInjectionContext(() =>
+      injectQueries(() => ({
+        queries: [
+          {
+            queryKey: ['reentrant-subscribe'],
+            queryFn: () => 'data',
+            enabled: false,
+          },
+        ],
+      })),
+    )
+    const subscriptionEvents: Array<string> = []
+    const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
+      if (event.type === 'observerAdded') subscriptionEvents.push(event.type)
+    })
+
+    expect(queries()[0].status()).toBe('pending')
+    expect(subscriptionEvents).toEqual(['observerAdded'])
+    expect(() => TestBed.tick()).not.toThrow()
+    expect(subscriptionEvents).toEqual(['observerAdded'])
+
+    unsubscribe()
+  })
+
+  it('allows deferred cache-listener reads during restoration detach and reattach', async () => {
+    const isRestoring = signal(false)
+    setupTanStackQueryTestBed(queryClient, {
+      providers: [provideIsRestoring(isRestoring.asReadonly())],
+    })
+    const queries = TestBed.runInInjectionContext(() =>
+      injectQueries(() => ({
+        queries: [
+          {
+            queryKey: ['reentrant-restoration-subscription'],
+            queryFn: () => 'data',
+            enabled: false,
+          },
+        ],
+      })),
+    )
+    expect(queries()[0].status()).toBe('pending')
+    TestBed.tick()
+
+    const nestedStatuses: Array<string> = []
+    const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
+      if (event.type === 'observerAdded' || event.type === 'observerRemoved') {
+        void Promise.resolve().then(() =>
+          nestedStatuses.push(queries()[0].status()),
+        )
+      }
+    })
+
+    isRestoring.set(true)
+    expect(() => TestBed.tick()).not.toThrow()
+    isRestoring.set(false)
+    expect(() => TestBed.tick()).not.toThrow()
+
+    await Promise.resolve()
+    expect(nestedStatuses).toEqual(['pending', 'pending'])
+    unsubscribe()
+  })
+
+  it('allows deferred cache-listener reads while a list change creates a query', async () => {
+    const key = signal('old')
+    const queries = TestBed.runInInjectionContext(() =>
+      injectQueries(() => ({
+        queries: [
+          {
+            queryKey: ['reentrant-query-added', key()],
+            queryFn: () => 'data',
+            enabled: false,
+          },
+        ],
+      })),
+    )
+
+    expect(queries()[0].status()).toBe('pending')
+    TestBed.tick()
+    const nestedStatuses: Array<string> = []
+    const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
+      if (event.type === 'added')
+        void Promise.resolve().then(() =>
+          nestedStatuses.push(queries()[0].status()),
+        )
+    })
+
+    key.set('new')
+
+    expect(() => queries()[0].status()).not.toThrow()
+    expect(nestedStatuses).toEqual([])
+    expect(() => TestBed.tick()).not.toThrow()
+    await Promise.resolve()
+    expect(nestedStatuses).toEqual(['pending'])
+    unsubscribe()
   })
 
   it('should return the correct states', async () => {
@@ -100,15 +301,40 @@ describe('injectQueries', () => {
       ],
     })
 
-    await vi.advanceTimersByTimeAsync(101)
+    await vi.advanceTimersByTimeAsync(10)
+    rendered.fixture.detectChanges()
+
+    expect(results.some((snapshot) => snapshot[0]?.data === 1)).toBe(true)
+
+    await vi.advanceTimersByTimeAsync(91)
     rendered.fixture.detectChanges()
 
     expect(rendered.getByText('data1: 1, data2: 2')).toBeInTheDocument()
 
-    expect(results.length).toBe(3)
-    expect(results[0]).toMatchObject([{ data: undefined }, { data: undefined }])
-    expect(results[1]).toMatchObject([{ data: 1 }, { data: undefined }])
-    expect(results[2]).toMatchObject([{ data: 1 }, { data: 2 }])
+    expect(
+      results.some(
+        (snapshot) =>
+          snapshot.length === 2 &&
+          snapshot[0]?.data === undefined &&
+          snapshot[1]?.data === undefined,
+      ),
+    ).toBe(true)
+    expect(
+      results.some(
+        (snapshot) =>
+          snapshot.length === 2 &&
+          snapshot[0]?.data === 1 &&
+          snapshot[1]?.data === undefined,
+      ),
+    ).toBe(true)
+    expect(
+      results.some(
+        (snapshot) =>
+          snapshot.length === 2 &&
+          snapshot[0]?.data === 1 &&
+          snapshot[1]?.data === 2,
+      ),
+    ).toBe(true)
   })
 
   it('should update a result field first read after an earlier update', async () => {
@@ -133,6 +359,7 @@ describe('injectQueries', () => {
     }
 
     const rendered = await render(Page)
+    rendered.fixture.autoDetectChanges()
     const query = rendered.fixture.componentInstance.queries()[0]
 
     // Only status is read before the first observer update.
@@ -221,6 +448,75 @@ describe('injectQueries', () => {
     ).toBe(true)
   })
 
+  it('updates the result shape when combine configuration changes', () => {
+    const shouldCombine = signal(false)
+    const queries = TestBed.runInInjectionContext(() =>
+      injectQueries<any, any>(() => ({
+        queries: [
+          {
+            queryKey: ['committed-combine'],
+            enabled: false,
+          },
+        ],
+        combine: shouldCombine()
+          ? (results: Array<unknown>) => ({ count: results.length })
+          : undefined,
+      })),
+    )
+
+    expect(Array.isArray(queries())).toBe(true)
+    TestBed.tick()
+
+    shouldCombine.set(true)
+    expect(queries()).toEqual({ count: 1 })
+  })
+
+  it('removes a combined result when combine configuration changes', () => {
+    const shouldCombine = signal(true)
+    const queries = TestBed.runInInjectionContext(() =>
+      injectQueries<any, any>(() => ({
+        queries: [
+          {
+            queryKey: ['committed-combine-removal'],
+            enabled: false,
+          },
+        ],
+        combine: shouldCombine()
+          ? (results: Array<unknown>) => ({ count: results.length })
+          : undefined,
+      })),
+    )
+
+    expect(queries()).toEqual({ count: 1 })
+    TestBed.tick()
+
+    shouldCombine.set(false)
+    expect(Array.isArray(queries())).toBe(true)
+    expect(queries()).toHaveLength(1)
+  })
+
+  it('combines fresh raw results when a signal changes what combine selects', () => {
+    const showData = signal(false)
+    const key = ['reactive-combine-selection']
+    queryClient.setQueryData(key, 1)
+    const queries = TestBed.runInInjectionContext(() =>
+      injectQueries(() => ({
+        queries: [{ queryKey: key, enabled: false }],
+        combine: (results) => ({ value: showData() ? results[0].data : 0 }),
+      })),
+    )
+
+    expect(queries()).toEqual({ value: 0 })
+    TestBed.tick()
+    queryClient.setQueryData(key, 2)
+    const previous = queries()
+    queryClient.setQueryData(key, 3)
+    expect(queries()).toEqual(previous)
+    expect(queries()).not.toBe(previous)
+    showData.set(true)
+    expect(queries()).toEqual({ value: 3 })
+  })
+
   it('should handle mixed success and error query states', async () => {
     @Component({
       template: '',
@@ -258,150 +554,6 @@ describe('injectQueries', () => {
     expect(errorQuery.error()?.message).toBe('mixed-error')
     expect(successQuery.status()).toBe('success')
     expect(successQuery.data()).toBe('mixed-success')
-  })
-
-  describe('throwOnError', () => {
-    it('should evaluate throwOnError for the failed query', async () => {
-      const boundaryFn = vi.fn(() => false)
-
-      @Component({
-        template: '',
-        changeDetection: ChangeDetectionStrategy.OnPush,
-      })
-      class Page {
-        queries = injectQueries(() => ({
-          queries: [
-            {
-              queryKey: ['queries-throw-predicate'],
-              queryFn: () =>
-                sleep(10).then(() =>
-                  Promise.reject(new Error('queries predicate error')),
-                ),
-              retry: false,
-              throwOnError: boundaryFn,
-            },
-          ],
-        }))
-      }
-
-      TestBed.createComponent(Page).detectChanges()
-
-      await vi.advanceTimersByTimeAsync(11)
-
-      expect(boundaryFn).toHaveBeenCalledTimes(1)
-      expect(boundaryFn).toHaveBeenCalledWith(
-        Error('queries predicate error'),
-        expect.objectContaining({
-          state: expect.objectContaining({ status: 'error' }),
-        }),
-      )
-    })
-
-    it('should throw when throwOnError is true', async () => {
-      const zone = TestBed.inject(NgZone)
-      const zoneErrorPromise = new Promise<Error>((resolve) => {
-        const sub = zone.onError.subscribe((error) => {
-          sub.unsubscribe()
-          resolve(error as Error)
-        })
-      })
-      let resolveProcessError!: (error: Error) => void
-      const handler = (error: Error) => {
-        process.off('uncaughtException', handler)
-        resolveProcessError(error)
-      }
-      const processErrorPromise = new Promise<Error>((resolve) => {
-        resolveProcessError = resolve
-      })
-      process.on('uncaughtException', handler)
-
-      @Component({
-        template: '',
-        changeDetection: ChangeDetectionStrategy.OnPush,
-      })
-      class Page {
-        queries = injectQueries(() => ({
-          queries: [
-            {
-              queryKey: ['queries-throw-true'],
-              queryFn: () =>
-                sleep(0).then(() =>
-                  Promise.reject(new Error('queries throw error')),
-                ),
-              retry: false,
-              throwOnError: true,
-            },
-          ],
-        }))
-      }
-
-      TestBed.createComponent(Page).detectChanges()
-
-      try {
-        await vi.runAllTimersAsync()
-        await expect(zoneErrorPromise).resolves.toEqual(
-          Error('queries throw error'),
-        )
-        await expect(processErrorPromise).resolves.toEqual(
-          Error('queries throw error'),
-        )
-      } finally {
-        process.off('uncaughtException', handler)
-      }
-    })
-
-    it('should throw when throwOnError function returns true', async () => {
-      const zone = TestBed.inject(NgZone)
-      const zoneErrorPromise = new Promise<Error>((resolve) => {
-        const sub = zone.onError.subscribe((error) => {
-          sub.unsubscribe()
-          resolve(error as Error)
-        })
-      })
-      let resolveProcessError!: (error: Error) => void
-      const handler = (error: Error) => {
-        process.off('uncaughtException', handler)
-        resolveProcessError(error)
-      }
-      const processErrorPromise = new Promise<Error>((resolve) => {
-        resolveProcessError = resolve
-      })
-      process.on('uncaughtException', handler)
-
-      @Component({
-        template: '',
-        changeDetection: ChangeDetectionStrategy.OnPush,
-      })
-      class Page {
-        queries = injectQueries(() => ({
-          queries: [
-            {
-              queryKey: ['queries-throw-function'],
-              queryFn: () =>
-                sleep(0).then(() =>
-                  Promise.reject(new Error('queries function error')),
-                ),
-              retry: false,
-              throwOnError: () => true,
-            },
-          ],
-        }))
-      }
-
-      TestBed.createComponent(Page).detectChanges()
-
-      try {
-        await vi.runAllTimersAsync()
-        await expect(zoneErrorPromise).resolves.toEqual(
-          Error('queries function error'),
-        )
-        await expect(processErrorPromise).resolves.toEqual(
-          Error('queries function error'),
-        )
-      } finally {
-        process.off('uncaughtException', handler)
-      }
-    })
   })
 
   it('should cleanup pending tasks when component with active queries is destroyed', async () => {
@@ -715,40 +867,37 @@ describe('injectQueries', () => {
     const queries = signal([1, 2, 4])
 
     const rendered = await render(Page)
+    rendered.fixture.autoDetectChanges()
     const instance = rendered.fixture.componentInstance
 
+    await vi.advanceTimersByTimeAsync(20)
+    rendered.fixture.detectChanges()
+    await vi.advanceTimersByTimeAsync(20)
+    rendered.fixture.detectChanges()
+    await vi.advanceTimersByTimeAsync(40)
+    rendered.fixture.detectChanges()
     await rendered.findByText('data: 1,2,4')
     expect(instance.mapped()).toBe('1,2,4')
 
-    expect(results.length).toBe(4)
-    expect(results[0]).toMatchObject([
-      { data: undefined },
-      { data: undefined },
-      { data: undefined },
-    ])
-    expect(results[1]).toMatchObject([
-      { data: 1 },
-      { data: undefined },
-      { data: undefined },
-    ])
-    expect(results[2]).toMatchObject([
-      { data: 1 },
-      { data: 2 },
-      { data: undefined },
-    ])
-    expect(results[3]).toMatchObject([{ data: 1 }, { data: 2 }, { data: 4 }])
+    const hasSnapshot = (expected: Array<number | undefined>): boolean =>
+      results.some(
+        (snapshot) =>
+          snapshot.length === expected.length &&
+          expected.every((data, index) => snapshot[index]?.data === data),
+      )
+    expect(hasSnapshot([undefined, undefined, undefined])).toBe(true)
+    expect(hasSnapshot([1, undefined, undefined])).toBe(true)
+    expect(hasSnapshot([1, 2, undefined])).toBe(true)
+    expect(hasSnapshot([1, 2, 4])).toBe(true)
 
     queries.set([3, 4])
+    rendered.fixture.detectChanges()
+    expect(instance.queries()[0]!.data()).toBeUndefined()
+    expect(instance.queries()[1]!.data()).toBe(4)
+    expect(instance.mapped()).toBe(',4')
     await rendered.findByText('data: 3,4')
     expect(instance.mapped()).toBe('3,4')
 
-    const hasOptimisticTransition = results.some(
-      (snapshot) =>
-        snapshot.length === 2 &&
-        snapshot[0]?.data === undefined &&
-        snapshot[1]?.data === 4,
-    )
-    expect(hasOptimisticTransition).toBe(true)
     expect(results[results.length - 1]).toMatchObject([
       { data: 3 },
       { data: 4 },
@@ -827,6 +976,7 @@ describe('injectQueries', () => {
       bindings: [inputBinding('name', name.asReadonly())],
       detectChangesOnRender: false,
     })
+    rendered.fixture.autoDetectChanges()
     rendered.fixture.detectChanges()
     await vi.advanceTimersByTimeAsync(0)
 
@@ -915,6 +1065,46 @@ describe('injectQueries', () => {
       expect(successQuery.data()).toBe('instant-data')
       expect(errorQuery.status()).toBe('error')
       expect(errorQuery.error()).toEqual(new Error('instant-error'))
+    })
+
+    it('tracks invalidation even when combine returns an unchanged value', async () => {
+      vi.useRealTimers()
+      const key = ['combined-pending-invalidation']
+      let complete!: (value: number) => void
+      let calls = 0
+      const queries = TestBed.runInInjectionContext(() =>
+        injectQueries(() => ({
+          queries: [
+            {
+              queryKey: key,
+              queryFn: () =>
+                ++calls === 1
+                  ? 1
+                  : new Promise<number>((resolve) => {
+                      complete = resolve
+                    }),
+            },
+          ],
+          combine: () => 'unchanged',
+        })),
+      )
+      const app = TestBed.inject(ApplicationRef)
+      await app.whenStable()
+      expect(queries()).toBe('unchanged')
+      let isStable = false
+      const subscription = app.isStable.subscribe((value) => {
+        isStable = value
+      })
+      expect(isStable).toBe(true)
+
+      const invalidation = queryClient.invalidateQueries({ queryKey: key })
+      expect(isStable).toBe(false)
+      complete(2)
+      await invalidation
+      await app.whenStable()
+      expect(isStable).toBe(true)
+      expect(queries()).toBe('unchanged')
+      subscription.unsubscribe()
     })
 
     it('should not register pending tasks for disabled queries', async () => {
@@ -1151,8 +1341,213 @@ describe('injectQueries', () => {
       .find({ queryKey: ['restoring'] })!
     expect(cachedQuery.getObserversCount()).toBe(1)
 
+    isRestoring.set(true)
+    fixture.detectChanges()
+    expect(cachedQuery.getObserversCount()).toBe(0)
+
+    isRestoring.set(false)
+    fixture.detectChanges()
+    expect(cachedQuery.getObserversCount()).toBe(1)
+
     fixture.destroy()
     expect(cachedQuery.getObserversCount()).toBe(0)
+  })
+
+  it.each(['options-first', 'restoring-first'] as const)(
+    'uses the latest query list when leaving restoration in the same turn (%s)',
+    async (writeOrder) => {
+      const isRestoring = signal(true)
+      const key = signal('old')
+      const queriedKeys: Array<string> = []
+      setupTanStackQueryTestBed(queryClient, {
+        providers: [provideIsRestoring(isRestoring.asReadonly())],
+      })
+
+      const queries = TestBed.runInInjectionContext(() =>
+        injectQueries(() => ({
+          queries: [
+            {
+              queryKey: ['same-turn-restoration', key()],
+              queryFn: ({ queryKey: currentQueryKey }) => {
+                const currentKey = currentQueryKey[1] as string
+                queriedKeys.push(currentKey)
+                return Promise.resolve(currentKey)
+              },
+            },
+          ],
+        })),
+      )
+
+      expect(queries()[0].status()).toBe('pending')
+      expect(queriedKeys).toEqual([])
+
+      if (writeOrder === 'options-first') {
+        key.set('new')
+        isRestoring.set(false)
+      } else {
+        isRestoring.set(false)
+        key.set('new')
+      }
+      TestBed.tick()
+      await TestBed.inject(ApplicationRef).whenStable()
+
+      expect(queriedKeys).toEqual(['new'])
+      expect(queries()[0].data()).toBe('new')
+      expect(
+        queryClient
+          .getQueryCache()
+          .find({ queryKey: ['same-turn-restoration', 'old'] })?.state
+          .fetchStatus,
+      ).toBe('idle')
+      expect(
+        queryClient
+          .getQueryCache()
+          .find({ queryKey: ['same-turn-restoration', 'new'] })
+          ?.getObserversCount(),
+      ).toBe(1)
+    },
+  )
+
+  it('allows a cache listener to read a result during restoration-boundary configuration', () => {
+    const isRestoring = signal(true)
+    const staleTime = signal(0)
+    setupTanStackQueryTestBed(queryClient, {
+      providers: [provideIsRestoring(isRestoring.asReadonly())],
+    })
+
+    const queries = TestBed.runInInjectionContext(() =>
+      injectQueries(() => ({
+        queries: [
+          {
+            queryKey: ['restoration-reentrant'],
+            queryFn: () => 'data',
+            enabled: false,
+            staleTime: staleTime(),
+          },
+        ],
+      })),
+    )
+
+    expect(queries()[0].status()).toBe('pending')
+    TestBed.tick()
+
+    const boundaryRead = vi.fn(() => queries()[0].status())
+    let appliedStaleTime: number | undefined
+    const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
+      if (event.type === 'observerOptionsUpdated') {
+        appliedStaleTime = event.observer.options.staleTime as number
+        boundaryRead()
+      }
+    })
+
+    staleTime.set(1)
+    isRestoring.set(false)
+
+    expect(() => TestBed.tick()).not.toThrow()
+    expect(boundaryRead).toHaveBeenCalled()
+    expect(appliedStaleTime).toBe(1)
+    expect(
+      queryClient
+        .getQueryCache()
+        .find({ queryKey: ['restoration-reentrant'] })
+        ?.getObserversCount(),
+    ).toBe(1)
+
+    unsubscribe()
+  })
+
+  it('converges to the current query list after an early restoration read', () => {
+    const isRestoring = signal(true)
+    const key = signal('old')
+    const oldQueryKey = ['early-restoration-read', 'old'] as const
+    const newQueryKey = ['early-restoration-read', 'new'] as const
+    setupTanStackQueryTestBed(queryClient, {
+      providers: [provideIsRestoring(isRestoring.asReadonly())],
+    })
+
+    const queries = TestBed.runInInjectionContext(() =>
+      injectQueries(() => ({
+        queries: [
+          {
+            queryKey: ['early-restoration-read', key()],
+            queryFn: () => 'unused',
+            enabled: false,
+          },
+        ],
+      })),
+    )
+
+    expect(queries()[0].status()).toBe('pending')
+    TestBed.tick()
+    const oldQuery = queryClient
+      .getQueryCache()
+      .find({ queryKey: oldQueryKey })!
+    expect(oldQuery.getObserversCount()).toBe(0)
+
+    key.set('new')
+    isRestoring.set(false)
+
+    expect(queries()[0].status()).toBe('pending')
+    expect(oldQuery.getObserversCount()).toBe(1)
+    expect(
+      queryClient.getQueryCache().find({ queryKey: newQueryKey }),
+    ).toBeDefined()
+
+    queryClient.setQueryData(newQueryKey, 'early data')
+    const newQuery = queryClient
+      .getQueryCache()
+      .find({ queryKey: newQueryKey })!
+    expect(newQuery.getObserversCount()).toBe(0)
+    TestBed.tick()
+
+    expect(oldQuery.getObserversCount()).toBe(0)
+    expect(newQuery.getObserversCount()).toBe(1)
+    expect(queries()[0].data()).toBe('early data')
+  })
+
+  it('reads the optimistic query list before moving subscriptions on the next tick', () => {
+    const key = signal('old')
+    const oldQueryKey = ['early-options-read', 'old'] as const
+    const newQueryKey = ['early-options-read', 'new'] as const
+    const queries = TestBed.runInInjectionContext(() =>
+      injectQueries(() => ({
+        queries: [
+          {
+            queryKey: ['early-options-read', key()],
+            queryFn: () => 'unused',
+            enabled: false,
+          },
+        ],
+      })),
+    )
+
+    expect(queries()[0].status()).toBe('pending')
+    TestBed.tick()
+    const oldQuery = queryClient
+      .getQueryCache()
+      .find({ queryKey: oldQueryKey })!
+    expect(oldQuery.getObserversCount()).toBe(1)
+
+    key.set('new')
+
+    expect(queries()[0].status()).toBe('pending')
+    // The existing observer list stays attached until the configuration effect
+    // can move it atomically.
+    expect(oldQuery.getObserversCount()).toBe(1)
+    expect(
+      queryClient.getQueryCache().find({ queryKey: newQueryKey }),
+    ).toBeDefined()
+
+    queryClient.setQueryData(newQueryKey, 'early data')
+    const newQuery = queryClient
+      .getQueryCache()
+      .find({ queryKey: newQueryKey })!
+    expect(newQuery.getObserversCount()).toBe(0)
+    TestBed.tick()
+
+    expect(oldQuery.getObserversCount()).toBe(0)
+    expect(newQuery.getObserversCount()).toBe(1)
+    expect(queries()[0].data()).toBe('early data')
   })
 
   it('should complete queries before whenStable resolves', async () => {

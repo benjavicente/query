@@ -3,9 +3,7 @@ id: queryOptions
 title: queryOptions
 ---
 
-# Function: queryOptions()
-
-Allows to share and re-use query options in a type-safe way.
+Allows sharing and re-using query options in a type-safe way.
 
 The `queryKey` will be tagged with the type from `queryFn`.
 
@@ -30,7 +28,7 @@ The query options to tag with the type from `queryFn`.
 ## Call Signature
 
 ```ts
-function queryOptions<TQueryFnData, TError, TData, TQueryKey>(options): CreateQueryOptions<TQueryFnData, TError, TData, TQueryKey> & object & object;
+function queryOptions<TQueryFnData, TError, TData, TQueryKey>(options): CreateQueryOptions<TQueryFnData, TError, TData, TQueryKey> & object & QueryKeyWithDataTag<TQueryKey, TQueryFnData, TError>;
 ```
 
 Defined in: [packages/angular-query/src/query-options.ts:50](https://github.com/TanStack/query/blob/main/packages/angular-query/src/query-options.ts#L50)
@@ -61,15 +59,15 @@ Defined in: [packages/angular-query/src/query-options.ts:50](https://github.com/
 
 ### Returns
 
-[`CreateQueryOptions`](../type-aliases/CreateQueryOptions.md)\<`TQueryFnData`, `TError`, `TData`, `TQueryKey`\> & `object` & `object`
+[`CreateQueryOptions`](../type-aliases/CreateQueryOptions.md)\<`TQueryFnData`, `TError`, `TData`, `TQueryKey`\> & `object` & `QueryKeyWithDataTag`\<`TQueryKey`, `TQueryFnData`, `TError`\>
 
 ## Call Signature
 
 ```ts
-function queryOptions<TQueryFnData, TError, TData, TQueryKey>(options): OmitKeyof<CreateQueryOptions<TQueryFnData, TError, TData, TQueryKey>, "queryFn"> & object & object;
+function queryOptions<TQueryFnData, TError, TData, TQueryKey>(options): OmitKeyof<CreateQueryOptions<TQueryFnData, TError, TData, TQueryKey>, "queryFn"> & object & QueryKeyWithDataTag<TQueryKey, TQueryFnData, TError>;
 ```
 
-Defined in: [packages/angular-query/src/query-options.ts:61](https://github.com/TanStack/query/blob/main/packages/angular-query/src/query-options.ts#L61)
+Defined in: [packages/angular-query/src/query-options.ts:60](https://github.com/TanStack/query/blob/main/packages/angular-query/src/query-options.ts#L60)
 
 ### Type Parameters
 
@@ -97,15 +95,15 @@ Defined in: [packages/angular-query/src/query-options.ts:61](https://github.com/
 
 ### Returns
 
-`OmitKeyof`\<[`CreateQueryOptions`](../type-aliases/CreateQueryOptions.md)\<`TQueryFnData`, `TError`, `TData`, `TQueryKey`\>, `"queryFn"`\> & `object` & `object`
+`OmitKeyof`\<[`CreateQueryOptions`](../type-aliases/CreateQueryOptions.md)\<`TQueryFnData`, `TError`, `TData`, `TQueryKey`\>, `"queryFn"`\> & `object` & `QueryKeyWithDataTag`\<`TQueryKey`, `TQueryFnData`, `TError`\>
 
 ## Call Signature
 
 ```ts
-function queryOptions<TQueryFnData, TError, TData, TQueryKey>(options): CreateQueryOptions<TQueryFnData, TError, TData, TQueryKey> & object & object;
+function queryOptions<TQueryFnData, TError, TData, TQueryKey>(options): CreateQueryOptions<TQueryFnData, TError, TData, TQueryKey> & object & QueryKeyWithDataTag<TQueryKey, TQueryFnData, TError>;
 ```
 
-Defined in: [packages/angular-query/src/query-options.ts:72](https://github.com/TanStack/query/blob/main/packages/angular-query/src/query-options.ts#L72)
+Defined in: [packages/angular-query/src/query-options.ts:70](https://github.com/TanStack/query/blob/main/packages/angular-query/src/query-options.ts#L70)
 
 ### Type Parameters
 
@@ -133,4 +131,4 @@ Defined in: [packages/angular-query/src/query-options.ts:72](https://github.com/
 
 ### Returns
 
-[`CreateQueryOptions`](../type-aliases/CreateQueryOptions.md)\<`TQueryFnData`, `TError`, `TData`, `TQueryKey`\> & `object` & `object`
+[`CreateQueryOptions`](../type-aliases/CreateQueryOptions.md)\<`TQueryFnData`, `TError`, `TData`, `TQueryKey`\> & `object` & `QueryKeyWithDataTag`\<`TQueryKey`, `TQueryFnData`, `TError`\>

@@ -3,13 +3,11 @@ id: CreateInfiniteQueryResult
 title: CreateInfiniteQueryResult
 ---
 
-# Type Alias: CreateInfiniteQueryResult\<TData, TError, TState\>
-
 ```ts
 type CreateInfiniteQueryResult<TData, TError, TState> = BaseInfiniteQueryNarrowing<TData, TError> & MapToSignals<TState, MethodKeys<TState>>;
 ```
 
-Defined in: [packages/angular-query/src/types.ts:182](https://github.com/TanStack/query/blob/main/packages/angular-query/src/types.ts#L182)
+Defined in: [packages/angular-query/src/types.ts:220](https://github.com/TanStack/query/blob/main/packages/angular-query/src/types.ts#L220)
 
 ## Type Parameters
 
@@ -23,4 +21,4 @@ Defined in: [packages/angular-query/src/types.ts:182](https://github.com/TanStac
 
 ### TState
 
-`TState` = `InfiniteQueryObserverResult`\<`TData`, `TError`\>
+`TState` *extends* `InfiniteQueryObserverResult`\<`TData`, `TError`\> = `InfiniteQueryObserverResult`\<`TData`, `TError`\>

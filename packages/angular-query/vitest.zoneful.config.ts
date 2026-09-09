@@ -21,7 +21,10 @@ if (config.test) {
   // Replace, rather than merge with, the base setup so Zone.js is installed
   // before Angular initializes its browser testing environment.
   config.test.setupFiles = ['./test-setup.zoneful.ts']
-  config.test.include = ['**/zoneful-integration.test.ts']
+  config.test.include = [
+    '**/zoneful-integration.test.ts',
+    '**/pending-tasks.test.ts',
+  ]
   config.test.exclude = []
 }
 

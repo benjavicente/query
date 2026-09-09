@@ -47,6 +47,39 @@ describe('PendingTasks Integration', () => {
     vi.useRealTimers()
   })
 
+  it.each([false, true])(
+    'keeps all mutation invocations pending (reset=%s)',
+    async (reset) => {
+      vi.useRealTimers()
+      const resolve = new Map<string, (value: string) => void>()
+      const mutation = TestBed.runInInjectionContext(() =>
+        injectMutation(() => ({
+          mutationFn: (id: string) =>
+            new Promise<string>((done) => resolve.set(id, done)),
+        })),
+      )
+      const first = mutation.mutateAsync('first')
+      const second = mutation.mutateAsync('second')
+      await Promise.resolve()
+      if (reset) mutation.reset()
+      let stable = false
+      const stability = TestBed.inject(ApplicationRef)
+        .whenStable()
+        .then(() => {
+          stable = true
+        })
+      resolve.get('second')!('second')
+      await second
+      await Promise.resolve()
+      expect(stable).toBe(false)
+      expect(queryClient.isMutating()).toBe(1)
+      resolve.get('first')!('first')
+      await first
+      await stability
+      expect(stable).toBe(true)
+    },
+  )
+
   describe('Synchronous Resolution', () => {
     it('should handle synchronous queryFn with whenStable()', async () => {
       const app = TestBed.inject(ApplicationRef)
@@ -423,64 +456,58 @@ describe('PendingTasks Integration', () => {
   })
 
   describe('Component Destruction', () => {
-    @Component({
-      template: '',
-      changeDetection: ChangeDetectionStrategy.OnPush,
-    })
-    class TestComponent {
-      query = injectQuery(() => ({
-        queryKey: ['component-query'],
-        queryFn: async () => {
-          await sleep(100)
-          return 'component-data'
-        },
-      }))
+    it('becomes stable after destruction before an unresolved query completes', async () => {
+      vi.useRealTimers()
+      let resolveQuery!: (value: string) => void
+      const queryPromise = new Promise<string>((resolve) => {
+        resolveQuery = resolve
+      })
 
-      mutation = injectMutation(() => ({
-        mutationFn: async (data: string) => {
-          await sleep(100)
-          return `processed: ${data}`
-        },
-      }))
-    }
+      @Component({ template: '' })
+      class UnresolvedQueryComponent {
+        query = injectQuery(() => ({
+          queryKey: ['unresolved-component-query'],
+          queryFn: () => queryPromise,
+        }))
+      }
 
-    it('should cleanup pending tasks when component with active query is destroyed', async () => {
-      const fixture = TestBed.createComponent(TestComponent)
-      fixture.detectChanges()
-
-      // Start the query
-      expect(fixture.componentInstance.query.status()).toBe('pending')
-      expect(fixture.isStable()).toBe(false)
-
-      // Destroy component while query is running
-      fixture.destroy()
-
-      // Angular should become stable even though component was destroyed
-      const stablePromise = fixture.whenStable()
-      await vi.advanceTimersByTimeAsync(150)
-      await stablePromise
-      expect(fixture.isStable()).toBe(true)
-    })
-
-    it('should cleanup pending tasks when component with active mutation is destroyed', async () => {
-      const fixture = TestBed.createComponent(TestComponent)
-      fixture.detectChanges()
-
-      fixture.componentInstance.mutation.mutate('test')
+      const fixture = TestBed.createComponent(UnresolvedQueryComponent)
       fixture.detectChanges()
       expect(fixture.isStable()).toBe(false)
 
-      // Destroy component while mutation is running
       fixture.destroy()
+      await fixture.whenStable()
+      expect(fixture.isStable()).toBe(true)
+
+      resolveQuery('eventual data')
+      await Promise.resolve()
+    })
+
+    it('becomes stable after destruction before an unresolved mutation completes', async () => {
+      vi.useRealTimers()
+      let resolveMutation!: (value: string) => void
+      const mutationPromise = new Promise<string>((resolve) => {
+        resolveMutation = resolve
+      })
+
+      @Component({ template: '' })
+      class UnresolvedMutationComponent {
+        mutation = injectMutation(() => ({
+          mutationFn: () => mutationPromise,
+        }))
+      }
+
+      const fixture = TestBed.createComponent(UnresolvedMutationComponent)
       fixture.detectChanges()
+      fixture.componentInstance.mutation.mutate()
+      expect(fixture.isStable()).toBe(false)
+
+      fixture.destroy()
+      await fixture.whenStable()
       expect(fixture.isStable()).toBe(true)
 
-      // Angular should become stable even though component was destroyed
-      const stablePromise = fixture.whenStable()
-      await vi.advanceTimersByTimeAsync(200)
-      await stablePromise
-
-      expect(fixture.isStable()).toBe(true)
+      resolveMutation('eventual data')
+      await Promise.resolve()
     })
   })
 

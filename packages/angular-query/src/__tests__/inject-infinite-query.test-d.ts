@@ -1,5 +1,6 @@
 import { describe, expectTypeOf, it } from 'vitest'
 import { injectInfiniteQuery, toResource } from '..'
+import type { CreateInfiniteQueryOptions } from '..'
 import type { Signal } from '@angular/core'
 import type { InfiniteData } from '@tanstack/query-core'
 
@@ -7,8 +8,7 @@ describe('injectInfiniteQuery', () => {
   it('should expose status predicates as Angular signals', () => {
     const query = injectInfiniteQuery(() => ({
       queryKey: ['infiniteQuery'],
-      queryFn: ({ pageParam }) =>
-        Promise.resolve('data on page ' + pageParam),
+      queryFn: ({ pageParam }) => Promise.resolve('data on page ' + pageParam),
       initialPageParam: 0,
       getNextPageParam: () => 12,
     }))
@@ -149,5 +149,13 @@ describe('injectInfiniteQuery', () => {
     expectTypeOf(query.data).toEqualTypeOf<
       Signal<undefined> | Signal<InfiniteData<string, number>>
     >()
+  })
+})
+
+describe('injectInfiniteQuery options', () => {
+  it('omits observer error reporting options', () => {
+    expectTypeOf<CreateInfiniteQueryOptions>().not.toHaveProperty(
+      'throwOnError',
+    )
   })
 })

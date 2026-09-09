@@ -3,13 +3,11 @@ id: CreateMutateFunction
 title: CreateMutateFunction
 ---
 
-# Type Alias: CreateMutateFunction()\<TData, TError, TVariables, TOnMutateResult\>
-
 ```ts
 type CreateMutateFunction<TData, TError, TVariables, TOnMutateResult> = (...args) => void;
 ```
 
-Defined in: [packages/angular-query/src/types.ts:214](https://github.com/TanStack/query/blob/main/packages/angular-query/src/types.ts#L214)
+Defined in: [packages/angular-query/src/types.ts:251](https://github.com/TanStack/query/blob/main/packages/angular-query/src/types.ts#L251)
 
 ## Type Parameters
 

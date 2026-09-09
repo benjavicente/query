@@ -10,6 +10,41 @@ import type {
 import type { Resource, Signal } from '@angular/core'
 
 describe('InjectQueries config object overload', () => {
+  it('infers tagged custom errors in parallel queries and combine', () => {
+    class CustomError extends Error {
+      detail = 'detail'
+    }
+    const options = queryOptions<number, CustomError>({
+      queryKey: ['tagged'],
+      queryFn: () => 1,
+    })
+    const queries = injectQueries(() => ({ queries: [options] }))
+    expectTypeOf(queries()[0].error()).toEqualTypeOf<CustomError | null>()
+    expectTypeOf(queries()[0].data()).toEqualTypeOf<number | undefined>()
+    const combined = injectQueries(() => ({
+      queries: [options],
+      combine: (results) => results[0].error,
+    }))
+    expectTypeOf(combined()).toEqualTypeOf<CustomError | null>()
+  })
+  it('preserves custom errors from annotated options without a query-key tag', () => {
+    class CustomError extends Error {
+      detail = 'detail'
+    }
+    const options: CreateQueryOptions<number, CustomError> = {
+      queryKey: ['annotated'],
+      queryFn: () => 1,
+    }
+    const queries = injectQueries(() => ({ queries: [options] }))
+    expectTypeOf(queries()[0].error()).toEqualTypeOf<CustomError | null>()
+    expectTypeOf(queries()[0].data()).toEqualTypeOf<number | undefined>()
+    const combined = injectQueries(() => ({
+      queries: [options],
+      combine: (results) => results[0].error,
+    }))
+    expectTypeOf(combined()).toEqualTypeOf<CustomError | null>()
+  })
+
   it('should expose Angular resource views', () => {
     const queryResults = injectQueries(() => ({
       queries: [

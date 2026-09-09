@@ -1,4 +1,4 @@
-import { computed, untracked } from '@angular/core'
+import { computed } from '@angular/core'
 import type { Signal } from '@angular/core'
 
 export type MethodKeys<T> = {
@@ -10,67 +10,20 @@ export type MapToSignals<T, TExcludeFields extends MethodKeys<T> = never> = {
 }
 
 /**
- * Exposes fields of an object passed via an Angular `Signal` as `Computed` signals.
- * Functions on the object are passed through as-is.
- * @param inputSignal - `Signal` that must return an object.
- * @param excludeFields - Array of function property names that should NOT be converted to signals.
- * @returns A proxy object with the same fields as the input object, but with each field wrapped in a `Computed` signal.
+ * Maps known result fields to lazy computed signals on an ordinary object.
+ * Creating or enumerating the fields never evaluates the source. Imperative
+ * methods are defined by each adapter, outside this mapping.
+ * @param inputSignal - The source snapshot.
+ * @param fields - The fields exposed as signals.
+ * @returns An object containing one stable signal per field.
  */
-export function signalProxy<
-  TInput extends Record<string | symbol, any>,
-  const TExcludeFields extends ReadonlyArray<MethodKeys<TInput>> = [],
->(
-  inputSignal: Signal<TInput>,
-  excludeFields: TExcludeFields = [] as unknown as TExcludeFields,
-) {
-  const internalState = {} as MapToSignals<TInput, TExcludeFields[number]>
-  const excludeFieldsArray = excludeFields as ReadonlyArray<string>
-
-  return new Proxy<MapToSignals<TInput, TExcludeFields[number]>>(
-    internalState,
-    {
-      get(target, prop) {
-        // first check if we have it in our internal state and return it
-        const computedField = target[prop]
-        if (computedField) return computedField
-
-        // if it is an excluded function, return it without tracking
-        if (excludeFieldsArray.includes(prop as string)) {
-          const fn = (...args: Parameters<TInput[typeof prop]>) =>
-            untracked(inputSignal)[prop](...args)
-          // @ts-expect-error
-          target[prop] = fn
-          return fn
-        }
-
-        // otherwise, make a computed field
-        // @ts-expect-error
-        return (target[prop] = computed(() => inputSignal()[prop]))
-      },
-      has(_, prop) {
-        return prop in untracked(inputSignal)
-      },
-      ownKeys() {
-        return Array.from(
-          new Set([
-            ...Reflect.ownKeys(untracked(inputSignal)),
-            ...Reflect.ownKeys(internalState),
-          ]),
-        )
-      },
-      getOwnPropertyDescriptor(_, prop) {
-        const targetDescriptor = Reflect.getOwnPropertyDescriptor(
-          internalState,
-          prop,
-        )
-        if (targetDescriptor) return targetDescriptor
-
-        return {
-          enumerable: true,
-          configurable: true,
-          writable: true,
-        }
-      },
-    },
-  )
+export function signalProxy<T, TField extends keyof T>(
+  inputSignal: Signal<T>,
+  fields: ReadonlyArray<TField>,
+): { [P in TField]: Signal<T[P]> } {
+  const result = {} as { [P in TField]: Signal<T[P]> }
+  for (const field of fields) {
+    result[field] = computed(() => inputSignal()[field])
+  }
+  return result
 }

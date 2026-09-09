@@ -10,9 +10,6 @@ Infinite queries can additively "load more" data onto an existing set of data or
 
 A function that returns infinite query options.
 
-## Param
-
-
 ## See
 
 https://tanstack.com/query/latest/docs/framework/angular/guides/infinite-queries
@@ -23,7 +20,7 @@ https://tanstack.com/query/latest/docs/framework/angular/guides/infinite-queries
 function injectInfiniteQuery<TQueryFnData, TError, TData, TQueryKey, TPageParam>(optionsFn): DefinedCreateInfiniteQueryResult<TData, TError>;
 ```
 
-Defined in: [packages/angular-query/src/inject-infinite-query.ts:34](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-infinite-query.ts#L34)
+Defined in: [packages/angular-query/src/inject-infinite-query.ts:27](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-infinite-query.ts#L27)
 
 ### Type Parameters
 
@@ -63,7 +60,7 @@ Defined in: [packages/angular-query/src/inject-infinite-query.ts:34](https://git
 function injectInfiniteQuery<TQueryFnData, TError, TData, TQueryKey, TPageParam>(optionsFn): CreateInfiniteQueryResult<TData, TError>;
 ```
 
-Defined in: [packages/angular-query/src/inject-infinite-query.ts:51](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-infinite-query.ts#L51)
+Defined in: [packages/angular-query/src/inject-infinite-query.ts:43](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-infinite-query.ts#L43)
 
 ### Type Parameters
 
@@ -103,7 +100,7 @@ Defined in: [packages/angular-query/src/inject-infinite-query.ts:51](https://git
 function injectInfiniteQuery<TQueryFnData, TError, TData, TQueryKey, TPageParam>(optionsFn): CreateInfiniteQueryResult<TData, TError>;
 ```
 
-Defined in: [packages/angular-query/src/inject-infinite-query.ts:68](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-infinite-query.ts#L68)
+Defined in: [packages/angular-query/src/inject-infinite-query.ts:59](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-infinite-query.ts#L59)
 
 ### Type Parameters
 

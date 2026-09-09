@@ -3,10 +3,8 @@ id: MutationStateOptions
 title: MutationStateOptions
 ---
 
-# Type Alias: MutationStateOptions\<TResult\>
-
 ```ts
-type MutationStateOptions<TResult> = object;
+type MutationStateOptions<TResult, TMutation> = object;
 ```
 
 Defined in: [packages/angular-query/src/inject-mutation-state.ts:23](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-mutation-state.ts#L23)
@@ -17,6 +15,10 @@ Defined in: [packages/angular-query/src/inject-mutation-state.ts:23](https://git
 
 `TResult` = `MutationState`
 
+### TMutation
+
+`TMutation` *extends* `Mutation`\<`any`, `any`, `any`, `any`\> = `MutationTypeFromResult`\<`TResult`\>
+
 ## Properties
 
 ### filters?
@@ -25,7 +27,7 @@ Defined in: [packages/angular-query/src/inject-mutation-state.ts:23](https://git
 optional filters: MutationFilters;
 ```
 
-Defined in: [packages/angular-query/src/inject-mutation-state.ts:24](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-mutation-state.ts#L24)
+Defined in: [packages/angular-query/src/inject-mutation-state.ts:28](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-mutation-state.ts#L28)
 
 ***
 
@@ -35,13 +37,13 @@ Defined in: [packages/angular-query/src/inject-mutation-state.ts:24](https://git
 optional select: (mutation) => TResult;
 ```
 
-Defined in: [packages/angular-query/src/inject-mutation-state.ts:25](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-mutation-state.ts#L25)
+Defined in: [packages/angular-query/src/inject-mutation-state.ts:29](https://github.com/TanStack/query/blob/main/packages/angular-query/src/inject-mutation-state.ts#L29)
 
 #### Parameters
 
 ##### mutation
 
-`Mutation`
+`TMutation`
 
 #### Returns
 

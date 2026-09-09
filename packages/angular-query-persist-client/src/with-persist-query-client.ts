@@ -1,5 +1,7 @@
-import { QueryClient, provideIsRestoring } from '@benjavicente/angular-query'
+import { QueryClient } from '@benjavicente/angular-query'
 import {
+  DestroyRef,
+  InjectionToken,
   PLATFORM_ID,
   inject,
   makeEnvironmentProviders,
@@ -7,7 +9,7 @@ import {
   signal,
 } from '@angular/core'
 import {
-  injectDestroyRefCompat,
+  IS_RESTORING,
   queryFeature,
 } from '@benjavicente/angular-query/internal'
 import { isPlatformBrowser } from '@angular/common'
@@ -15,11 +17,16 @@ import {
   persistQueryClientRestore,
   persistQueryClientSubscribe,
 } from '@tanstack/query-persist-client-core'
+import type { WritableSignal } from '@angular/core'
 import type { QueryFeature } from '@benjavicente/angular-query'
 import type {
   PersistQueryClientUserOptions,
   WithPersistQueryClientFn,
 } from './with-persist-query-client.types'
+
+const RESTORING_STATE = new InjectionToken<WritableSignal<boolean>>(
+  'Query restoration state',
+)
 
 export type {
   PersistQueryClientUserOptions,
@@ -101,17 +108,20 @@ export function withPersistQueryClient(
 export function withPersistQueryClient(
   factoryOrOptions: PersistQueryClientUserOptions | WithPersistQueryClientFn,
 ): QueryFeature {
-  const isRestoring = signal(true)
   return queryFeature(
-    'PersistQueryClient',
     makeEnvironmentProviders([
-      provideIsRestoring(isRestoring.asReadonly()),
+      { provide: RESTORING_STATE, useFactory: () => signal(true) },
+      {
+        provide: IS_RESTORING,
+        useFactory: () => inject(RESTORING_STATE).asReadonly(),
+      },
       provideEnvironmentInitializer(() => {
+        const isRestoring = inject(RESTORING_STATE)
         if (!isPlatformBrowser(inject(PLATFORM_ID))) {
           isRestoring.set(false)
           return
         }
-        const destroyRef = injectDestroyRefCompat()
+        const destroyRef = inject(DestroyRef)
         const queryClient = inject(QueryClient)
 
         const { onSuccess, onError, persistOptions } =

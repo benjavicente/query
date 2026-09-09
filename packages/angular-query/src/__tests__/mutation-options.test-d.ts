@@ -176,7 +176,7 @@ describe('mutationOptions', () => {
 
   it('should infer types when used with injectIsMutating', () => {
     const key = queryKey()
-    const isMutating = injectIsMutating(
+    const isMutating = injectIsMutating(() =>
       mutationOptions({
         mutationKey: key,
         mutationFn: () => Promise.resolve(5),
@@ -184,8 +184,8 @@ describe('mutationOptions', () => {
     )
     expectTypeOf(isMutating()).toEqualTypeOf<number>()
 
-    injectIsMutating(
-      // @ts-expect-error filters should have mutationKey
+    // @ts-expect-error filters should have mutationKey
+    injectIsMutating(() =>
       mutationOptions({
         mutationFn: () => Promise.resolve(5),
       }),
