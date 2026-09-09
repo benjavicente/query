@@ -2,6 +2,7 @@ import {
   InjectionToken,
   assertInInjectionContext,
   inject,
+  isSignal,
   signal,
 } from '@angular/core'
 import type { Provider, Signal } from '@angular/core'
@@ -9,7 +10,7 @@ import type { Provider, Signal } from '@angular/core'
 /**
  * Internal token used to track isRestoring state, accessible in public API through `injectIsRestoring` and set via `provideIsRestoring`
  */
-export const IS_RESTORING = new InjectionToken('', {
+const IS_RESTORING = new InjectionToken('', {
   // Default value when not provided
   factory: () => signal(false).asReadonly(),
 })
@@ -24,13 +25,18 @@ export function injectIsRestoring() {
 }
 
 /**
- * Used by TanStack Query Angular persist client plugin to provide the signal that tracks the restore state
- * @param isRestoring - a readonly signal that returns a boolean
+ * Provides the signal that tracks restoration for persistence or custom integrations.
+ * A factory runs once per injector in an Angular injection context.
+ * @param isRestoring - A restoration signal or a factory that creates it.
  * @returns Provider for the `isRestoring` signal
  */
-export function provideIsRestoring(isRestoring: Signal<boolean>): Provider {
+export function provideIsRestoring(
+  isRestoring: Signal<boolean> | (() => Signal<boolean>),
+): Provider {
   return {
     provide: IS_RESTORING,
-    useValue: isRestoring,
+    ...(isSignal(isRestoring)
+      ? { useValue: isRestoring }
+      : { useFactory: isRestoring }),
   }
 }

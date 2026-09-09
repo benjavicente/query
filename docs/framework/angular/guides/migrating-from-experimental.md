@@ -240,3 +240,18 @@ Each mutation invocation blocks stability until its promise settles, including a
 callbacks. A later invocation completing, or calling `reset()`, does not release an earlier mutation's
 work. Destroying the owning component or injector releases its pending tasks. Queries that are
 paused offline continue to block stability until resumed, cancelled, or unobserved.
+
+## Persistence configuration
+
+Pass a factory to `withPersistQueryClient`:
+
+```ts
+withPersistQueryClient(() => ({
+  persistOptions: { persister },
+}))
+```
+
+The factory runs once per injector, in an injection context, only in the browser.
+Create persisters that access `localStorage` inside this factory.
+For custom restoration integrations, use `provideIsRestoring(restoringSignal)`
+or `provideIsRestoring(() => inject(StorageService).isRestoring)`.

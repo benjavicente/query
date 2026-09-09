@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing'
 import { describe, expect, it } from 'vitest'
-import { signal } from '@angular/core'
+import { InjectionToken, inject, signal } from '@angular/core'
 import {
   QueryClient,
   injectIsRestoring,
@@ -46,6 +46,24 @@ describe('injectIsRestoring', () => {
     })
 
     expect(isRestoring()).toBe(true)
+  })
+
+  it('resolves a restoration signal factory in the injection context', () => {
+    const state = signal(true)
+    const token = new InjectionToken<typeof state>('restoration state')
+    TestBed.configureTestingModule({
+      providers: [
+        provideAngularQueryChangeDetection(),
+        { provide: token, useValue: state },
+        provideIsRestoring(() => inject(token).asReadonly()),
+      ],
+    })
+
+    const isRestoring = TestBed.runInInjectionContext(injectIsRestoring)
+    expect(isRestoring()).toBe(true)
+    state.set(false)
+    expect(isRestoring()).toBe(false)
+    expect(TestBed.runInInjectionContext(injectIsRestoring)).toBe(isRestoring)
   })
 
   it('throws NG0203 with descriptive error outside injection context', () => {

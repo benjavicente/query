@@ -129,7 +129,7 @@ describe('injectDevtoolsPanel', () => {
   })
 
   it('should destroy TanstackQueryDevtoolsPanel when hostElement is removed', async () => {
-    const hostElement = signal<ElementRef>(mockElementRef)
+    const hostElement = signal<ElementRef | null>(mockElementRef)
 
     TestBed.runInInjectionContext(() => {
       return injectDevtoolsPanel(() => ({
@@ -143,7 +143,7 @@ describe('injectDevtoolsPanel', () => {
 
     expect(mockDevtoolsPanelInstance.unmount).toHaveBeenCalledTimes(0)
 
-    hostElement.set(null as unknown as ElementRef)
+    hostElement.set(null)
 
     await TestBed.inject(ApplicationRef).whenStable()
 

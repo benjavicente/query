@@ -120,7 +120,7 @@ describe('withPersistQueryClient', () => {
         provideZonelessChangeDetection(),
         provideTanStackQuery(
           () => queryClient,
-          withPersistQueryClient({ persistOptions: { persister } }),
+          withPersistQueryClient(() => ({ persistOptions: { persister } })),
         ),
       ],
     })
@@ -232,7 +232,7 @@ describe('withPersistQueryClient', () => {
         provideZonelessChangeDetection(),
         provideTanStackQuery(
           () => queryClient,
-          withPersistQueryClient({ persistOptions: { persister } }),
+          withPersistQueryClient(() => ({ persistOptions: { persister } })),
         ),
       ],
     })
@@ -318,7 +318,7 @@ describe('withPersistQueryClient', () => {
         provideZonelessChangeDetection(),
         provideTanStackQuery(
           () => queryClient,
-          withPersistQueryClient({ persistOptions: { persister } }),
+          withPersistQueryClient(() => ({ persistOptions: { persister } })),
         ),
       ],
     })
@@ -409,7 +409,7 @@ describe('withPersistQueryClient', () => {
         provideZonelessChangeDetection(),
         provideTanStackQuery(
           () => queryClient,
-          withPersistQueryClient({ persistOptions: { persister } }),
+          withPersistQueryClient(() => ({ persistOptions: { persister } })),
         ),
       ],
     })
@@ -473,10 +473,10 @@ describe('withPersistQueryClient', () => {
         provideZonelessChangeDetection(),
         provideTanStackQuery(
           () => queryClient,
-          withPersistQueryClient({
+          withPersistQueryClient(() => ({
             persistOptions: { persister },
             onSuccess,
-          }),
+          })),
         ),
       ],
     })
@@ -532,10 +532,10 @@ describe('withPersistQueryClient', () => {
         provideZonelessChangeDetection(),
         provideTanStackQuery(
           () => queryClient,
-          withPersistQueryClient({
+          withPersistQueryClient(() => ({
             persistOptions: { persister },
             onSuccess,
-          }),
+          })),
         ),
       ],
     })
@@ -592,11 +592,11 @@ describe('withPersistQueryClient', () => {
         provideZonelessChangeDetection(),
         provideTanStackQuery(
           () => queryClient,
-          withPersistQueryClient({
+          withPersistQueryClient(() => ({
             persistOptions: { persister },
             onSuccess,
             onError,
-          }),
+          })),
         ),
       ],
     })
@@ -649,10 +649,10 @@ describe('withPersistQueryClient', () => {
         provideZonelessChangeDetection(),
         provideTanStackQuery(
           () => queryClient,
-          withPersistQueryClient({
+          withPersistQueryClient(() => ({
             persistOptions: { persister },
             onError,
-          }),
+          })),
         ),
       ],
     })
@@ -786,7 +786,7 @@ describe('withPersistQueryClient', () => {
       [
         provideTanStackQuery(
           () => queryClient,
-          withPersistQueryClient({ persistOptions: { persister } }),
+          withPersistQueryClient(() => ({ persistOptions: { persister } })),
         ),
       ],
       TestBed.inject(EnvironmentInjector),
@@ -813,9 +813,9 @@ describe('withPersistQueryClient', () => {
       [
         provideTanStackQuery(
           () => new QueryClient(),
-          withPersistQueryClient({
+          withPersistQueryClient(() => ({
             persistOptions: { persister: createMockPersister() },
-          }),
+          })),
         ),
       ],
       TestBed.inject(EnvironmentInjector),
