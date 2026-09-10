@@ -18,7 +18,7 @@ Convert the Observable with RxJS's `firstValueFrom` or `lastValueFrom`.
 class ExampleComponent {
   private readonly http = inject(HttpClient)
 
-  readonly query = injectQuery(() => ({
+  readonly repoDataQuery = injectQuery(() => ({
     queryKey: ['repoData'],
     queryFn: () =>
       firstValueFrom(

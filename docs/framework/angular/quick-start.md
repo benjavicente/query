@@ -42,7 +42,7 @@ import {
       <button (click)="onAddTodo()">Add Todo</button>
 
       <ul>
-        @for (todo of query.data(); track todo.title) {
+        @for (todo of todosQuery.data(); track todo.title) {
           <li>{{ todo.title }}</li>
         }
       </ul>
@@ -50,15 +50,15 @@ import {
   `,
 })
 export class TodosComponent {
-  todoService = inject(TodoService)
-  queryClient = inject(QueryClient)
+  readonly todoService = inject(TodoService)
+  readonly queryClient = inject(QueryClient)
 
-  query = injectQuery(() => ({
+  readonly todosQuery = injectQuery(() => ({
     queryKey: ['todos'],
     queryFn: () => this.todoService.getTodos(),
   }))
 
-  mutation = injectMutation(() => ({
+  readonly addTodoMutation = injectMutation(() => ({
     mutationFn: (todo: Todo) => this.todoService.addTodo(todo),
     onSuccess: () => {
       this.queryClient.invalidateQueries({ queryKey: ['todos'] })
@@ -66,7 +66,7 @@ export class TodosComponent {
   }))
 
   onAddTodo() {
-    this.mutation.mutate({
+    this.addTodoMutation.mutate({
       id: Date.now().toString(),
       title: 'Do Laundry',
     })
@@ -75,7 +75,7 @@ export class TodosComponent {
 
 @Injectable({ providedIn: 'root' })
 export class TodoService {
-  private http = inject(HttpClient)
+  private readonly http = inject(HttpClient)
 
   getTodos(): Promise<Todo[]> {
     return lastValueFrom(
