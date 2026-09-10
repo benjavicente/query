@@ -22,9 +22,15 @@ replace:
 })
 export class AppComponent {
   // The following queries will execute in parallel
-  usersQuery = injectQuery(() => ({ queryKey: ['users'], queryFn: fetchUsers }))
-  teamsQuery = injectQuery(() => ({ queryKey: ['teams'], queryFn: fetchTeams }))
-  projectsQuery = injectQuery(() => ({
+  readonly usersQuery = injectQuery(() => ({
+    queryKey: ['users'],
+    queryFn: fetchUsers,
+  }))
+  readonly teamsQuery = injectQuery(() => ({
+    queryKey: ['teams'],
+    queryFn: fetchTeams,
+  }))
+  readonly projectsQuery = injectQuery(() => ({
     queryKey: ['projects'],
     queryFn: fetchProjects,
   }))

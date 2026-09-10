@@ -16,8 +16,11 @@ const IS_RESTORING = new InjectionToken('', {
 })
 
 /**
- * Injects a signal that tracks whether a restore is currently in progress. {@link injectQuery} and friends also check this internally to avoid race conditions between the restore and initializing queries.
- * @returns readonly signal with boolean that indicates whether a restore is in progress.
+ * Injects a signal that tracks whether a restore (e.g. from a persisted client, wired up via
+ * `provideIsRestoring`) is currently in progress. {@link injectQuery} and friends also check this internally to
+ * avoid race conditions between the restore and initializing queries.
+ * @returns A readonly `Signal<boolean>` — `true` while a restore is in progress, `false` otherwise (the
+ * default when no `provideIsRestoring` provider is registered).
  */
 export function injectIsRestoring() {
   assertInInjectionContext(injectIsRestoring)
@@ -25,10 +28,12 @@ export function injectIsRestoring() {
 }
 
 /**
- * Provides the signal that tracks restoration for persistence or custom integrations.
+ * Registers a provider for the restore state read by `injectIsRestoring`. Wire this up wherever you drive a
+ * restore yourself — e.g. a persist-client integration — so `injectQuery` and friends can defer subscribing
+ * to their observer (avoiding a race with the restore) until the restore signal flips back to `false`.
  * A factory runs once per injector in an Angular injection context.
  * @param isRestoring - A restoration signal or a factory that creates it.
- * @returns Provider for the `isRestoring` signal
+ * @returns A provider for the `isRestoring` signal.
  */
 export function provideIsRestoring(
   isRestoring: Signal<boolean> | (() => Signal<boolean>),
