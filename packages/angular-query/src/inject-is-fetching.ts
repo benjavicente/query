@@ -15,7 +15,9 @@ import type { Signal } from '@angular/core'
 export function injectIsFetching(
   filters: () => QueryFilters = () => ({}),
 ): Signal<number> {
-  assertInInjectionContext(injectIsFetching)
+  if (typeof ngDevMode === 'undefined' || ngDevMode) {
+    assertInInjectionContext(injectIsFetching)
+  }
   const queryClient = inject(QueryClient)
   const cache = queryClient.getQueryCache()
 

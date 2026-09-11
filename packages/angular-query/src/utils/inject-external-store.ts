@@ -77,7 +77,9 @@ export function injectExternalStore<T>(
   binding: () => ExternalBinding<T>,
   options?: ExternalStoreOptions<T>,
 ): Signal<T> {
-  assertInInjectionContext(injectExternalStore)
+  if (typeof ngDevMode === 'undefined' || ngDevMode) {
+    assertInInjectionContext(injectExternalStore)
+  }
   const owner = inject(DestroyRef)
   const revision = signal(0)
   const destroyed = signal(false)

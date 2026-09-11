@@ -115,5 +115,5 @@ export function injectBaseQuery<
       return observer
     })
 
-  return { resultSignal, getObserver }
+  return [resultSignal, getObserver] as const
 }

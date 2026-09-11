@@ -60,7 +60,9 @@ export function injectMutation<
     TOnMutateResult
   >,
 ): CreateMutationResult<TData, TError, TVariables, TOnMutateResult> {
-  assertInInjectionContext(injectMutation)
+  if (typeof ngDevMode === 'undefined' || ngDevMode) {
+    assertInInjectionContext(injectMutation)
+  }
   const queryClient = inject(QueryClient)
   const lifecycle = injectPendingTasksLifecycle()
 
