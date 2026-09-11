@@ -815,28 +815,58 @@ describe('injectQuery', () => {
 
     expect(fetchFn).not.toHaveBeenCalled()
 
-    void query.refetch().then(() => {
-      expect(fetchFn).toHaveBeenCalledTimes(1)
-      expect(fetchFn).toHaveBeenCalledWith(
-        expect.objectContaining({
-          queryKey: ['key10', 'key11'],
-        }),
-      )
-    })
-
-    await vi.advanceTimersByTimeAsync(11)
+    const first = query.refetch()
+    await vi.advanceTimersByTimeAsync(10)
+    await first
+    expect(fetchFn).toHaveBeenCalledTimes(1)
+    expect(fetchFn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: ['key10', 'key11'],
+      }),
+    )
 
     keySignal.set('key12')
-    void query.refetch().then(() => {
-      expect(fetchFn).toHaveBeenCalledTimes(2)
-      expect(fetchFn).toHaveBeenCalledWith(
-        expect.objectContaining({
-          queryKey: ['key10', 'key12'],
-        }),
-      )
+    const second = query.refetch()
+    await vi.advanceTimersByTimeAsync(10)
+    await second
+    expect(fetchFn).toHaveBeenCalledTimes(2)
+    expect(fetchFn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: ['key10', 'key12'],
+      }),
+    )
+  })
+
+  it('should keep initialData visible alongside the error when a refetch fails', async () => {
+    @Component({
+      selector: 'app-test',
+      template: '',
+      changeDetection: ChangeDetectionStrategy.OnPush,
     })
+    class TestComponent {
+      query = injectQuery(() => ({
+        queryKey: ['initialDataError'],
+        queryFn: () =>
+          sleep(10).then(() => Promise.reject(new Error('Some error'))),
+        initialData: 'initial',
+        retry: false,
+      }))
+    }
+
+    const fixture = TestBed.createComponent(TestComponent)
+    fixture.detectChanges()
+    const query = fixture.componentInstance.query
+
+    expect(query.data()).toBe('initial')
+    expect(query.isError()).toBe(false)
+    expect(query.status()).toBe('success')
 
     await vi.advanceTimersByTimeAsync(11)
+    fixture.detectChanges()
+
+    expect(query.data()).toBe('initial')
+    expect(query.isError()).toBe(true)
+    expect(query.status()).toBe('error')
   })
 
   it('should support selection function with select', async () => {

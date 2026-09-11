@@ -20,10 +20,32 @@ import type {
 
 /**
  * Injects a mutation: an imperative function that can be invoked which typically performs server side effects.
- *
  * Unlike queries, mutations are not run automatically.
- * @param optionsFn - A function that returns mutation options.
- * @returns The mutation.
+ *
+ * @see https://tanstack.com/query/latest/docs/framework/angular/guides/mutations
+ * @see {@link mutationOptions} to share these options between `injectMutation` and `injectMutationState`.
+ * @param optionsFn - A function that returns mutation options. Similar to `computed` from Angular, this
+ * function runs in the reactive context, so signals read inside it drive the mutation.
+ * @returns The mutation result, including `mutate` and `mutateAsync`.
+ *
+ * @example
+ * ```angular-ts
+ * @Component({
+ *   template: `
+ *     @if (mutation.isPending()) {
+ *       Saving...
+ *     } @else if (mutation.isError()) {
+ *       <span>Error: {{ mutation.error()?.message }}</span>
+ *     }
+ *     <button (click)="mutation.mutate({ title: 'New post' })">Create</button>
+ *   `,
+ * })
+ * export class CreatePost {
+ *   readonly mutation = injectMutation(() => ({
+ *     mutationFn: createPost,
+ *   }))
+ * }
+ * ```
  */
 export function injectMutation<
   TData = unknown,

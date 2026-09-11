@@ -3,7 +3,7 @@ id: installation
 title: Installation
 ---
 
-_Angular Query is compatible with Angular v20 and higher._
+_Angular Query is compatible with Angular v20.1 and higher._
 
 ### Angular CLI
 

@@ -9,7 +9,7 @@ If you have any feedback, please contact us at the [TanStack Discord](https://tl
 
 ## Supported Angular Versions
 
-TanStack Query is compatible with Angular v20 and higher.
+TanStack Query is compatible with Angular v20.1 and higher.
 
 TanStack Query (FKA React Query) is often described as the missing data-fetching library for web applications, but in more technical terms, it makes **fetching, caching, synchronizing and updating server state** in your web applications a breeze.
 

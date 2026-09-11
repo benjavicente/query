@@ -41,10 +41,11 @@ export default defineConfig({
     include: ['**/*.{test,spec}.{ts,mts,cts,tsx,js,mjs,cjs,jsx}'],
     // The focused Zone.js project opts this file back in. The default project
     // must not load provideZoneChangeDetection without the Zone.js setup file.
-    exclude: ['**/zoneful-integration.test.ts'],
+    exclude: ['**/zoneful-integration.test.ts', '**/*.tmp.test.ts'],
     typecheck: {
       enabled: true,
       include: ['**/*.test-d.ts'],
+      exclude: ['**/*.tmp.test.ts'],
     },
     globals: true,
     restoreMocks: true,
