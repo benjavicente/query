@@ -11,5 +11,5 @@
   },
   "files": ["test-setup.ts"],
   "include": ["src/**/*.test.ts", "../query-test-utils/src/**/*.ts"],
-  "exclude": ["src/**/*.test-d.ts"]
+  "exclude": ["src/**/*.test-d.ts", "src/**/*.tmp.test.ts"]
 }

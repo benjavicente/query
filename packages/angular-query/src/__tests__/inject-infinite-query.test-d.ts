@@ -1,5 +1,5 @@
 import { describe, expectTypeOf, it } from 'vitest'
-import { injectInfiniteQuery, toResource } from '..'
+import { injectInfiniteQuery, skipToken, toResource } from '..'
 import type { CreateInfiniteQueryOptions } from '..'
 import type { Signal } from '@angular/core'
 import type { InfiniteData } from '@tanstack/query-core'
@@ -148,6 +148,21 @@ describe('injectInfiniteQuery', () => {
 
     expectTypeOf(query.data).toEqualTypeOf<
       Signal<undefined> | Signal<InfiniteData<string, number>>
+    >()
+  })
+
+  it('should work when queryFn is skipToken', () => {
+    const query = injectInfiniteQuery(() => ({
+      queryKey: ['infiniteQuery'],
+      queryFn: skipToken,
+      initialPageParam: 0,
+      getNextPageParam: () => 1,
+    }))
+
+    // TPageParam falls back to `unknown` here (unlike `infiniteQueryOptions`, which infers
+    // `number` for the same options) because there's no skipToken-specific overload to carry it.
+    expectTypeOf(query.data()).toEqualTypeOf<
+      InfiniteData<unknown, unknown> | undefined
     >()
   })
 })

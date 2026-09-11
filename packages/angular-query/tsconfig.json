@@ -23,5 +23,6 @@
     "*.config.*",
     "package.json"
   ],
+  "exclude": ["src/**/*.tmp.test.ts"],
   "references": [{ "path": "../query-core" }]
 }

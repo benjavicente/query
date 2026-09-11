@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core'
 import { sleep } from '@tanstack/query-test-utils'
-import { QueryClient, injectInfiniteQuery } from '..'
+import { QueryClient, injectInfiniteQuery, skipToken } from '..'
 import { expectSignals, setupTanStackQueryTestBed } from './test-utils'
 
 describe('injectInfiniteQuery', () => {
@@ -92,6 +92,84 @@ describe('injectInfiniteQuery', () => {
       },
       status: 'success',
     })
+  })
+
+  it('should keep initialData visible alongside the error when a refetch fails', async () => {
+    @Component({
+      selector: 'app-test',
+      template: '',
+      changeDetection: ChangeDetectionStrategy.OnPush,
+    })
+    class TestComponent {
+      query = injectInfiniteQuery(() => ({
+        queryKey: ['infiniteInitialDataError'],
+        queryFn: () =>
+          sleep(10).then(() => Promise.reject(new Error('Some error'))),
+        initialData: { pages: [1], pageParams: [1] },
+        getNextPageParam: (lastPage: number) => lastPage + 1,
+        initialPageParam: 0,
+        retry: false,
+      }))
+    }
+
+    const fixture = TestBed.createComponent(TestComponent)
+    fixture.detectChanges()
+    const query = fixture.componentInstance.query
+
+    expect(query.data()?.pages).toEqual([1])
+    expect(query.isError()).toBe(false)
+    expect(query.status()).toBe('success')
+
+    await vi.advanceTimersByTimeAsync(11)
+    fixture.detectChanges()
+
+    expect(query.data()?.pages).toEqual([1])
+    expect(query.isError()).toBe(true)
+    expect(query.status()).toBe('error')
+  })
+
+  it('should not fetch when queryFn is skipToken, and fetch once it is replaced', async () => {
+    const queryFn = vi.fn(({ pageParam }: { pageParam: number }) =>
+      sleep(10).then(() => `comments for 1 page ${pageParam}`),
+    )
+    const postId = signal<string | undefined>(undefined)
+
+    @Component({
+      selector: 'app-test',
+      template: '',
+      changeDetection: ChangeDetectionStrategy.OnPush,
+    })
+    class TestComponent {
+      query = injectInfiniteQuery(() => ({
+        queryKey: ['skipTokenInfinite'],
+        queryFn: postId() != null ? queryFn : skipToken,
+        initialPageParam: 0,
+        getNextPageParam: () => 12,
+      }))
+    }
+
+    const fixture = TestBed.createComponent(TestComponent)
+    fixture.detectChanges()
+    const query = fixture.componentInstance.query
+
+    expect(query.status()).toBe('pending')
+    expect(query.isFetching()).toBe(false)
+
+    await vi.advanceTimersByTimeAsync(11)
+    fixture.detectChanges()
+    expect(queryFn).not.toHaveBeenCalled()
+    expect(query.status()).toBe('pending')
+    expect(query.isFetching()).toBe(false)
+
+    postId.set('1')
+    fixture.detectChanges()
+    expect(query.isFetching()).toBe(true)
+
+    await vi.advanceTimersByTimeAsync(11)
+    fixture.detectChanges()
+    expect(queryFn).toHaveBeenCalledTimes(1)
+    expect(query.status()).toBe('success')
+    expect(query.data()?.pages).toEqual(['comments for 1 page 0'])
   })
 
   describe('injection context', () => {

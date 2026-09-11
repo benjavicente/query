@@ -24,6 +24,17 @@ import type {
   UndefinedInitialDataInfiniteOptions,
 } from './infinite-query-options'
 
+/**
+ * This overload is selected when `initialData` is set, so the resulting `data` signal is never `undefined`
+ * (unless a `select` changes `TData` to include `undefined`).
+ *
+ * @see https://tanstack.com/query/latest/docs/framework/angular/guides/infinite-queries
+ * @see {@link infiniteQueryOptions} to share these options between `injectInfiniteQuery` and
+ * `queryClient.infiniteQuery`.
+ * @param optionsFn - A function returning infinite-query options with `initialData` set. Similar to
+ * `computed` from Angular, this function runs in the reactive context.
+ * @returns The infinite query result, typed so that `data` is never `undefined`.
+ */
 export function injectInfiniteQuery<
   TQueryFnData,
   TError = DefaultError,
@@ -40,6 +51,46 @@ export function injectInfiniteQuery<
   >,
 ): DefinedCreateInfiniteQueryResult<TData, TError>
 
+/**
+ * Injects an infinite query: a declarative dependency on an asynchronous source of data that is tied to a unique key.
+ * Infinite queries can additively "load more" data onto an existing set of data or support infinite scroll.
+ *
+ * @see https://tanstack.com/query/latest/docs/framework/angular/guides/infinite-queries
+ * @see {@link infiniteQueryOptions} to share these options between `injectInfiniteQuery` and
+ * `queryClient.infiniteQuery`.
+ * @param optionsFn - A function that returns infinite query options. Similar to `computed` from Angular,
+ * this function runs in the reactive context, so signals read inside it drive the query.
+ * @returns The infinite query result.
+ *
+ * @example
+ * ```angular-ts
+ * @Component({
+ *   selector: 'projects',
+ *   template: `
+ *     @if (query.isPending()) {
+ *       Loading...
+ *     } @else if (query.isError()) {
+ *       <span>Error: {{ query.error()?.message }}</span>
+ *     } @else {
+ *       @for (page of query.data().pages; track $index) {
+ *         @for (project of page; track project.id) {
+ *           <p>{{ project.name }}</p>
+ *         }
+ *       }
+ *       <button (click)="query.fetchNextPage()">Load more</button>
+ *     }
+ *   `,
+ * })
+ * export class Projects {
+ *   readonly query = injectInfiniteQuery(() => ({
+ *     queryKey: ['projects'],
+ *     queryFn: ({ pageParam }) => fetchProjects(pageParam),
+ *     initialPageParam: 0,
+ *     getNextPageParam: (lastPage) => lastPage.nextCursor,
+ *   }))
+ * }
+ * ```
+ */
 export function injectInfiniteQuery<
   TQueryFnData,
   TError = DefaultError,
@@ -56,6 +107,16 @@ export function injectInfiniteQuery<
   >,
 ): CreateInfiniteQueryResult<TData, TError>
 
+/**
+ * This overload accepts the general {@link CreateInfiniteQueryOptions} shape rather than the
+ * `initialData`-aware overloads above, so whether `data` is defined can't be inferred from the call
+ * site — useful when wrapping `injectInfiniteQuery` in your own helper.
+ *
+ * @see https://tanstack.com/query/latest/docs/framework/angular/guides/infinite-queries
+ * @param optionsFn - A function that returns infinite query options. Similar to `computed` from Angular,
+ * this function runs in the reactive context, so signals read inside it drive the query.
+ * @returns The infinite query result.
+ */
 export function injectInfiniteQuery<
   TQueryFnData,
   TError = DefaultError,
@@ -72,14 +133,6 @@ export function injectInfiniteQuery<
   >,
 ): CreateInfiniteQueryResult<TData, TError>
 
-/**
- * Injects an infinite query: a declarative dependency on an asynchronous source of data that is tied to a unique key.
- * Infinite queries can additively "load more" data onto an existing set of data or support infinite scroll.
- *
- * @param optionsFn - A function that returns infinite query options.
- * @returns The infinite query result.
- * @see https://tanstack.com/query/latest/docs/framework/angular/guides/infinite-queries
- */
 export function injectInfiniteQuery<
   TQueryFnData,
   TError = DefaultError,

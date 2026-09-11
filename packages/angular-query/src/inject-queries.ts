@@ -24,8 +24,24 @@ import type { Signal } from '@angular/core'
 /**
  * Injects multiple queries that run in parallel and react to Angular signals.
  *
- * ```ts
- * class UsersComponent {
+ * @see https://tanstack.com/query/latest/docs/framework/angular/guides/parallel-queries
+ * @param optionsFn - A function that returns the queries' options. Similar to `computed` from Angular,
+ * this function runs in the reactive context, so signals read inside it drive the queries.
+ * @returns A signal containing the query results in the same order as the input queries.
+ *
+ * @example
+ * ```angular-ts
+ * @Component({
+ *   selector: 'users',
+ *   template: `
+ *     @for (query of userQueries(); track $index) {
+ *       @if (query.isSuccess()) {
+ *         <p>{{ query.data().name }}</p>
+ *       }
+ *     }
+ *   `,
+ * })
+ * export class UsersComponent {
  *   readonly users = input.required<Array<User>>()
  *
  *   readonly userQueries = injectQueries(() => ({
@@ -36,9 +52,6 @@ import type { Signal } from '@angular/core'
  *   }))
  * }
  * ```
- *
- * @param optionsFn - A function that returns queries' options.
- * @returns A signal containing the query results in the same order as the input queries.
  */
 export function injectQueries<
   T extends Array<any>,
