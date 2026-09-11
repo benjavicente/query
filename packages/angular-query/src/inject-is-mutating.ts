@@ -14,7 +14,9 @@ import type { Signal } from '@angular/core'
 export function injectIsMutating(
   filters: () => MutationFilters = () => ({}),
 ): Signal<number> {
-  assertInInjectionContext(injectIsMutating)
+  if (typeof ngDevMode === 'undefined' || ngDevMode) {
+    assertInInjectionContext(injectIsMutating)
+  }
   const queryClient = inject(QueryClient)
   const cache = queryClient.getMutationCache()
 

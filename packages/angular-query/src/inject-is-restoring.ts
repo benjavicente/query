@@ -23,7 +23,9 @@ const IS_RESTORING = new InjectionToken('', {
  * default when no `provideIsRestoring` provider is registered).
  */
 export function injectIsRestoring() {
-  assertInInjectionContext(injectIsRestoring)
+  if (typeof ngDevMode === 'undefined' || ngDevMode) {
+    assertInInjectionContext(injectIsRestoring)
+  }
   return inject(IS_RESTORING)
 }
 

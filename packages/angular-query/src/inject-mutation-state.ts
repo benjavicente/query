@@ -59,7 +59,9 @@ export function injectMutationState<
 >(
   options: () => MutationStateOptions<TResult, TMutation> = () => ({}),
 ): Signal<Array<TResult>> {
-  assertInInjectionContext(injectMutationState)
+  if (typeof ngDevMode === 'undefined' || ngDevMode) {
+    assertInInjectionContext(injectMutationState)
+  }
   const queryClient = inject(QueryClient)
   const mutationCache = queryClient.getMutationCache()
 

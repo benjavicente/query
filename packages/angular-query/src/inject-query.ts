@@ -175,8 +175,10 @@ export function injectQuery<
 export function injectQuery(
   optionsFn: () => CreateQueryOptions,
 ): DefinedCreateQueryResult | CreateQueryResult {
-  assertInInjectionContext(injectQuery)
-  const { resultSignal, getObserver } = injectBaseQuery(
+  if (typeof ngDevMode === 'undefined' || ngDevMode) {
+    assertInInjectionContext(injectQuery)
+  }
+  const [resultSignal, getObserver] = injectBaseQuery(
     optionsFn,
     QueryObserver,
   )

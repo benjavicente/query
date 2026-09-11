@@ -158,8 +158,10 @@ export function injectInfiniteQuery<
 ):
   | DefinedCreateInfiniteQueryResult<TData, TError>
   | CreateInfiniteQueryResult<TData, TError> {
-  assertInInjectionContext(injectInfiniteQuery)
-  const { resultSignal, getObserver } = injectBaseQuery(
+  if (typeof ngDevMode === 'undefined' || ngDevMode) {
+    assertInInjectionContext(injectInfiniteQuery)
+  }
+  const [resultSignal, getObserver] = injectBaseQuery(
     optionsFn,
     InfiniteQueryObserver as typeof QueryObserver,
   )

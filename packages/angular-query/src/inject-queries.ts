@@ -59,7 +59,9 @@ export function injectQueries<
 >(
   optionsFn: () => InjectQueriesOptions<T, TCombinedResult>,
 ): Signal<TCombinedResult> {
-  assertInInjectionContext(injectQueries)
+  if (typeof ngDevMode === 'undefined' || ngDevMode) {
+    assertInInjectionContext(injectQueries)
+  }
   const queryClient = inject(QueryClient)
   const isRestoring = injectIsRestoring()
   const lifecycle = injectPendingTasksLifecycle()

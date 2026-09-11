@@ -61,13 +61,13 @@ const mutationFields = {
   isSuccess: true,
 } satisfies Fields<MutationObserverResult>
 
-export const queryResultFields = Object.keys(queryFields) as Array<
-  keyof typeof queryFields
->
-export const infiniteQueryResultFields = Object.keys(
+export const queryResultFields = /* @__PURE__ */ Object.keys(
+  queryFields,
+) as Array<keyof typeof queryFields>
+export const infiniteQueryResultFields = /* @__PURE__ */ Object.keys(
   infiniteQueryFields,
 ) as Array<keyof typeof infiniteQueryFields>
 
-export const mutationResultFields = Object.keys(mutationFields) as Array<
-  keyof typeof mutationFields
->
+export const mutationResultFields = /* @__PURE__ */ Object.keys(
+  mutationFields,
+) as Array<keyof typeof mutationFields>
