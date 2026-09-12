@@ -1,6 +1,6 @@
 import { computed, untracked } from '@angular/core'
 import type { QueryObserverResult } from '@tanstack/query-core'
-import type { ResourceSnapshot } from './resource-types'
+import type { ResourceSnapshot } from './utils/resource-types'
 import type { Resource, ResourceStatus, Signal } from '@angular/core'
 
 export interface QueryResource<TValue> extends Resource<TValue> {
