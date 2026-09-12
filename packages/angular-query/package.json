@@ -20,7 +20,6 @@
     "cache",
     "performance",
     "reactive",
-    "rxjs",
     "signals",
     "state management",
     "state",
