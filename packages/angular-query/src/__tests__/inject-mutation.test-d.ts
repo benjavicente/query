@@ -1,6 +1,7 @@
 import { describe, expectTypeOf, it } from 'vitest'
 import { sleep } from '@tanstack/query-test-utils'
 import { injectMutation } from '..'
+import type { CreateMutationOptions } from '..'
 import type { Signal } from '@angular/core'
 import type {
   MutationFunctionContext,
@@ -154,5 +155,11 @@ describe('injectMutation', () => {
         >()
       },
     }))
+  })
+})
+
+describe('injectMutation options', () => {
+  it('omits observer error reporting options', () => {
+    expectTypeOf<CreateMutationOptions>().not.toHaveProperty('throwOnError')
   })
 })

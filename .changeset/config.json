@@ -2,7 +2,10 @@
   "$schema": "https://unpkg.com/@changesets/config@3.1.2/schema.json",
   "changelog": [
     "@changesets/changelog-github",
-    { "repo": "TanStack/query", "disableThanks": true }
+    {
+      "repo": "TanStack/query",
+      "disableThanks": true
+    }
   ],
   "commit": false,
   "access": "public",
@@ -11,7 +14,6 @@
   "fixed": [
     [
       "@tanstack/angular-query-experimental",
-      "@tanstack/angular-query-persist-client",
       "@tanstack/eslint-plugin-query",
       "@tanstack/preact-query",
       "@tanstack/preact-query-devtools",

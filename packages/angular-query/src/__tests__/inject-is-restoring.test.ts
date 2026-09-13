@@ -1,27 +1,23 @@
 import { TestBed } from '@angular/core/testing'
-import { beforeEach, describe, expect, it } from 'vitest'
-import { Injector, provideZonelessChangeDetection, signal } from '@angular/core'
-import {
-  QueryClient,
-  injectIsRestoring,
-  provideIsRestoring,
-  provideTanStackQuery,
-} from '..'
+import { describe, expect, it } from 'vitest'
+import { InjectionToken, inject, signal } from '@angular/core'
+import { provideIsRestoring } from '../internal'
+import { QueryClient, injectIsRestoring, provideTanStackQuery } from '..'
+import { provideAngularQueryChangeDetection } from './test-utils'
 
 describe('injectIsRestoring', () => {
   let queryClient: QueryClient
 
-  beforeEach(() => {
+  it('returns false by default when provideIsRestoring is not used', () => {
     queryClient = new QueryClient()
+
     TestBed.configureTestingModule({
       providers: [
-        provideZonelessChangeDetection(),
-        provideTanStackQuery(queryClient),
+        provideAngularQueryChangeDetection(),
+        provideTanStackQuery(() => queryClient),
       ],
     })
-  })
 
-  it('should return false by default when provideIsRestoring is not used', () => {
     const isRestoring = TestBed.runInInjectionContext(() => {
       return injectIsRestoring()
     })
@@ -29,63 +25,25 @@ describe('injectIsRestoring', () => {
     expect(isRestoring()).toBe(false)
   })
 
-  it('should return the provided signal value when provideIsRestoring is used', () => {
-    const restoringSignal = signal(true)
-
+  it('resolves a restoration signal factory in the injection context', () => {
+    const state = signal(true)
+    const token = new InjectionToken<typeof state>('restoration state')
     TestBed.configureTestingModule({
-      providers: [provideIsRestoring(restoringSignal.asReadonly())],
+      providers: [
+        provideAngularQueryChangeDetection(),
+        { provide: token, useValue: state },
+        provideIsRestoring(() => inject(token).asReadonly()),
+      ],
     })
 
-    const isRestoring = TestBed.runInInjectionContext(() => {
-      return injectIsRestoring()
-    })
-
+    const isRestoring = TestBed.runInInjectionContext(injectIsRestoring)
     expect(isRestoring()).toBe(true)
-  })
-
-  it('should reactively reflect changes to the provided signal', () => {
-    const restoringSignal = signal(true)
-
-    TestBed.configureTestingModule({
-      providers: [provideIsRestoring(restoringSignal.asReadonly())],
-    })
-
-    const isRestoring = TestBed.runInInjectionContext(() => {
-      return injectIsRestoring()
-    })
-
-    expect(isRestoring()).toBe(true)
-
-    restoringSignal.set(false)
+    state.set(false)
     expect(isRestoring()).toBe(false)
-
-    restoringSignal.set(true)
-    expect(isRestoring()).toBe(true)
+    expect(TestBed.runInInjectionContext(injectIsRestoring)).toBe(isRestoring)
   })
 
-  it('should be usable outside injection context when passing an injector', () => {
-    const isRestoring = injectIsRestoring({
-      injector: TestBed.inject(Injector),
-    })
-
-    expect(isRestoring()).toBe(false)
-  })
-
-  it('should return the provided signal value when using injector option', () => {
-    const restoringSignal = signal(true)
-
-    TestBed.configureTestingModule({
-      providers: [provideIsRestoring(restoringSignal.asReadonly())],
-    })
-
-    const isRestoring = injectIsRestoring({
-      injector: TestBed.inject(Injector),
-    })
-
-    expect(isRestoring()).toBe(true)
-  })
-
-  it('should throw NG0203 with descriptive error outside injection context', () => {
+  it('throws NG0203 with descriptive error outside injection context', () => {
     expect(() => {
       injectIsRestoring()
     }).toThrow(/NG0203(.*?)injectIsRestoring/)

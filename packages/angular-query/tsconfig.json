@@ -16,11 +16,13 @@
   },
   "include": [
     "src",
+    "schematics",
+    "schematics-build",
     "scripts",
     "test-setup.ts",
-    "*.config.ts",
-    "*.config.js",
+    "*.config.*",
     "package.json"
   ],
-  "references": [{ "path": "../query-devtools" }]
+  "exclude": ["src/**/*.tmp.test.ts"],
+  "references": [{ "path": "../query-core" }]
 }

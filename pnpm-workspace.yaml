@@ -24,6 +24,14 @@ packages:
   - '!examples/vue/2*'
   - '!examples/vue/nuxt*'
 
+# The Angular test plugin imports these peers directly. Keep both resolved from
+# the consuming package when the stable and experimental adapters coexist.
+packageExtensions:
+  '@analogjs/vite-plugin-angular@2.5.2':
+    peerDependencies:
+      '@angular/compiler-cli': '*'
+      typescript: '*'
+
 overrides:
   'chokidar': '5.0.0'
   '@types/react': '^19.2.7'
@@ -42,6 +50,7 @@ overrides:
   '@typescript-eslint/visitor-keys': '8.58.1'
   typescript-eslint: '8.58.1'
   vite: '^6.4.1'
+  '@angular/build@20.3.22>vite': '7.1.11'
   esbuild: '^0.27.2'
 
 allowBuilds:

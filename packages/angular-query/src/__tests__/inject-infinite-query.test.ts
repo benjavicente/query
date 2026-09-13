@@ -1,19 +1,9 @@
 import { TestBed } from '@angular/core/testing'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import {
-  Component,
-  Injector,
-  provideZonelessChangeDetection,
-  signal,
-} from '@angular/core'
-import { render } from '@testing-library/angular'
-import { queryKey, sleep } from '@tanstack/query-test-utils'
-import {
-  QueryClient,
-  injectInfiniteQuery,
-  provideTanStackQuery,
-  skipToken,
-} from '..'
+import { ChangeDetectionStrategy, Component, signal } from '@angular/core'
+import { sleep } from '@tanstack/query-test-utils'
+import { QueryClient, injectInfiniteQuery, skipToken } from '..'
+import { expectSignals, setupTanStackQueryTestBed } from './test-utils'
 
 describe('injectInfiniteQuery', () => {
   let queryClient: QueryClient
@@ -21,30 +11,50 @@ describe('injectInfiniteQuery', () => {
   beforeEach(() => {
     queryClient = new QueryClient()
     vi.useFakeTimers()
-    TestBed.configureTestingModule({
-      providers: [
-        provideZonelessChangeDetection(),
-        provideTanStackQuery(queryClient),
-      ],
-    })
+    setupTanStackQueryTestBed(queryClient)
   })
 
   afterEach(() => {
     vi.useRealTimers()
   })
 
-  it('should properly execute infinite query', async () => {
-    const key = queryKey()
+  it.each(['refetch', 'fetchNextPage', 'fetchPreviousPage'] as const)(
+    'applies current infinite-query options before %s',
+    async (method) => {
+      vi.useRealTimers()
+      const version = signal('old')
+      const query = TestBed.runInInjectionContext(() =>
+        injectInfiniteQuery(() => {
+          const current = version()
+          return {
+            queryKey: ['infinite'],
+            enabled: false,
+            initialPageParam: 0,
+            initialData: { pages: ['initial'], pageParams: [0] },
+            getNextPageParam: () => 1,
+            getPreviousPageParam: () => -1,
+            queryFn: async () => current,
+          }
+        }),
+      )
+      query.data()
+      const execute = query[method]
+      version.set('new')
+      const result = await execute()
+      expect(result.data?.pages).toContain('new')
+      expect(result.data?.pages).not.toContain('old')
+    },
+  )
 
+  it('should properly execute infinite query', async () => {
     @Component({
-      template: `
-        <div>status: {{ query.status() }}</div>
-        <div>pages: {{ query.data()?.pages?.join(', ') ?? 'none' }}</div>
-      `,
+      selector: 'app-test',
+      template: '',
+      changeDetection: ChangeDetectionStrategy.OnPush,
     })
-    class Page {
-      readonly query = injectInfiniteQuery(() => ({
-        queryKey: key,
+    class TestComponent {
+      query = injectInfiniteQuery(() => ({
+        queryKey: ['infiniteQuery'],
         queryFn: ({ pageParam }) =>
           sleep(10).then(() => 'data on page ' + pageParam),
         initialPageParam: 0,
@@ -52,76 +62,47 @@ describe('injectInfiniteQuery', () => {
       }))
     }
 
-    const rendered = await render(Page)
+    const fixture = TestBed.createComponent(TestComponent)
+    fixture.detectChanges()
+    const query = fixture.componentInstance.query
 
-    expect(rendered.getByText('status: pending')).toBeInTheDocument()
-    expect(rendered.getByText('pages: none')).toBeInTheDocument()
-
-    await vi.advanceTimersByTimeAsync(11)
-    rendered.fixture.detectChanges()
-    expect(rendered.getByText('status: success')).toBeInTheDocument()
-    expect(rendered.getByText('pages: data on page 0')).toBeInTheDocument()
-
-    rendered.fixture.componentInstance.query.fetchNextPage()
-
-    await vi.advanceTimersByTimeAsync(11)
-    rendered.fixture.detectChanges()
-    expect(rendered.getByText('status: success')).toBeInTheDocument()
-    expect(
-      rendered.getByText('pages: data on page 0, data on page 12'),
-    ).toBeInTheDocument()
-  })
-
-  it('should reject and update signal', async () => {
-    const key = queryKey()
-
-    @Component({
-      template: `
-        <div>status: {{ query.status() }}</div>
-        <div>pages: {{ query.data()?.pages?.join(', ') ?? 'none' }}</div>
-        <div>error: {{ query.error()?.message ?? 'none' }}</div>
-        <div>isError: {{ query.isError() }}</div>
-        <div>failureCount: {{ query.failureCount() }}</div>
-      `,
+    expectSignals(query, {
+      data: undefined,
+      status: 'pending',
     })
-    class Page {
-      readonly query = injectInfiniteQuery(() => ({
-        retry: false,
-        queryKey: key,
-        queryFn: () =>
-          sleep(10).then(() => Promise.reject(new Error('Some error'))),
-        initialPageParam: 0,
-        getNextPageParam: () => 12,
-      }))
-    }
-
-    const rendered = await render(Page)
-
-    expect(rendered.getByText('status: pending')).toBeInTheDocument()
-    expect(rendered.getByText('pages: none')).toBeInTheDocument()
 
     await vi.advanceTimersByTimeAsync(11)
-    rendered.fixture.detectChanges()
 
-    expect(rendered.getByText('status: error')).toBeInTheDocument()
-    expect(rendered.getByText('pages: none')).toBeInTheDocument()
-    expect(rendered.getByText('error: Some error')).toBeInTheDocument()
-    expect(rendered.getByText('isError: true')).toBeInTheDocument()
-    expect(rendered.getByText('failureCount: 1')).toBeInTheDocument()
+    expectSignals(query, {
+      data: {
+        pageParams: [0],
+        pages: ['data on page 0'],
+      },
+      status: 'success',
+    })
+
+    void query.fetchNextPage()
+
+    await vi.advanceTimersByTimeAsync(11)
+
+    expectSignals(query, {
+      data: {
+        pageParams: [0, 12],
+        pages: ['data on page 0', 'data on page 12'],
+      },
+      status: 'success',
+    })
   })
 
   it('should keep initialData visible alongside the error when a refetch fails', async () => {
-    const key = queryKey()
-
     @Component({
-      template: `
-        <div>pages: {{ query.data().pages.join(', ') }}</div>
-        <div>isError: {{ query.isError() }}</div>
-      `,
+      selector: 'app-test',
+      template: '',
+      changeDetection: ChangeDetectionStrategy.OnPush,
     })
-    class Page {
-      readonly query = injectInfiniteQuery(() => ({
-        queryKey: key,
+    class TestComponent {
+      query = injectInfiniteQuery(() => ({
+        queryKey: ['infiniteInitialDataError'],
         queryFn: () =>
           sleep(10).then(() => Promise.reject(new Error('Some error'))),
         initialData: { pages: [1], pageParams: [1] },
@@ -131,97 +112,77 @@ describe('injectInfiniteQuery', () => {
       }))
     }
 
-    const rendered = await render(Page)
+    const fixture = TestBed.createComponent(TestComponent)
+    fixture.detectChanges()
+    const query = fixture.componentInstance.query
 
-    expect(rendered.getByText('pages: 1')).toBeInTheDocument()
-    expect(rendered.getByText('isError: false')).toBeInTheDocument()
+    expect(query.data()?.pages).toEqual([1])
+    expect(query.isError()).toBe(false)
+    expect(query.status()).toBe('success')
 
     await vi.advanceTimersByTimeAsync(11)
-    rendered.fixture.detectChanges()
-    expect(rendered.getByText('pages: 1')).toBeInTheDocument()
-    expect(rendered.getByText('isError: true')).toBeInTheDocument()
+    fixture.detectChanges()
+
+    expect(query.data()?.pages).toEqual([1])
+    expect(query.isError()).toBe(true)
+    expect(query.status()).toBe('error')
   })
 
-  describe('skipToken', () => {
-    it('should not fetch when queryFn is skipToken, and fetch once it is replaced', async () => {
-      const key = queryKey()
-      const queryFn = vi.fn(({ pageParam }: { pageParam: number }) =>
-        sleep(10).then(() => `comments for 1 page ${pageParam}`),
-      )
+  it('should not fetch when queryFn is skipToken, and fetch once it is replaced', async () => {
+    const queryFn = vi.fn(({ pageParam }: { pageParam: number }) =>
+      sleep(10).then(() => `comments for 1 page ${pageParam}`),
+    )
+    const postId = signal<string | undefined>(undefined)
 
-      @Component({
-        template: `
-          <div>status: {{ query.status() }}</div>
-          <div>isFetching: {{ query.isFetching() }}</div>
-          <div>pages: {{ query.data()?.pages?.join(', ') ?? 'none' }}</div>
-        `,
-      })
-      class Page {
-        postId = signal<string | undefined>(undefined)
-
-        readonly query = injectInfiniteQuery(() => ({
-          queryKey: key,
-          queryFn: this.postId() != null ? queryFn : skipToken,
-          initialPageParam: 0,
-          getNextPageParam: () => 12,
-        }))
-      }
-
-      const rendered = await render(Page)
-
-      expect(rendered.getByText('status: pending')).toBeInTheDocument()
-      expect(rendered.getByText('isFetching: false')).toBeInTheDocument()
-
-      await vi.advanceTimersByTimeAsync(11)
-      rendered.fixture.detectChanges()
-      expect(queryFn).not.toHaveBeenCalled()
-      expect(rendered.getByText('status: pending')).toBeInTheDocument()
-      expect(rendered.getByText('isFetching: false')).toBeInTheDocument()
-
-      rendered.fixture.componentInstance.postId.set('1')
-      rendered.fixture.detectChanges()
-      expect(rendered.getByText('isFetching: true')).toBeInTheDocument()
-
-      await vi.advanceTimersByTimeAsync(11)
-      rendered.fixture.detectChanges()
-      expect(queryFn).toHaveBeenCalledTimes(1)
-      expect(rendered.getByText('status: success')).toBeInTheDocument()
-      expect(
-        rendered.getByText('pages: comments for 1 page 0'),
-      ).toBeInTheDocument()
+    @Component({
+      selector: 'app-test',
+      template: '',
+      changeDetection: ChangeDetectionStrategy.OnPush,
     })
+    class TestComponent {
+      query = injectInfiniteQuery(() => ({
+        queryKey: ['skipTokenInfinite'],
+        queryFn: postId() != null ? queryFn : skipToken,
+        initialPageParam: 0,
+        getNextPageParam: () => 12,
+      }))
+    }
+
+    const fixture = TestBed.createComponent(TestComponent)
+    fixture.detectChanges()
+    const query = fixture.componentInstance.query
+
+    expect(query.status()).toBe('pending')
+    expect(query.isFetching()).toBe(false)
+
+    await vi.advanceTimersByTimeAsync(11)
+    fixture.detectChanges()
+    expect(queryFn).not.toHaveBeenCalled()
+    expect(query.status()).toBe('pending')
+    expect(query.isFetching()).toBe(false)
+
+    postId.set('1')
+    fixture.detectChanges()
+    expect(query.isFetching()).toBe(true)
+
+    await vi.advanceTimersByTimeAsync(11)
+    fixture.detectChanges()
+    expect(queryFn).toHaveBeenCalledTimes(1)
+    expect(query.status()).toBe('success')
+    expect(query.data()?.pages).toEqual(['comments for 1 page 0'])
   })
 
   describe('injection context', () => {
-    it('should throw NG0203 with descriptive error outside injection context', () => {
-      const key = queryKey()
+    it('throws NG0203 with descriptive error outside injection context', () => {
       expect(() => {
         injectInfiniteQuery(() => ({
-          queryKey: key,
+          queryKey: ['injectionContextError'],
           queryFn: ({ pageParam }) =>
             sleep(0).then(() => 'data on page ' + pageParam),
           initialPageParam: 0,
           getNextPageParam: () => 12,
         }))
-      }).toThrow(/NG0203(.*?)injectInfiniteQuery/)
-    })
-
-    it('should be usable outside injection context when passing an injector', () => {
-      const key = queryKey()
-      const query = injectInfiniteQuery(
-        () => ({
-          queryKey: key,
-          queryFn: ({ pageParam }) =>
-            sleep(0).then(() => 'data on page ' + pageParam),
-          initialPageParam: 0,
-          getNextPageParam: () => 12,
-        }),
-        {
-          injector: TestBed.inject(Injector),
-        },
-      )
-
-      expect(query.status()).toBe('pending')
+      }).toThrowError(/NG0203(.*?)injectInfiniteQuery/)
     })
   })
 })

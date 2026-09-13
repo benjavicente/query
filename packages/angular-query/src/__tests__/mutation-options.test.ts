@@ -1,5 +1,5 @@
+import { Component } from '@angular/core'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { provideZonelessChangeDetection } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
 import { QueryClient } from '@tanstack/query-core'
 import { queryKey, sleep } from '@tanstack/query-test-utils'
@@ -10,6 +10,7 @@ import {
   mutationOptions,
   provideTanStackQuery,
 } from '..'
+import { provideAngularQueryChangeDetection } from './test-utils'
 import type { CreateMutationOptions } from '../types'
 
 describe('mutationOptions', () => {
@@ -20,8 +21,8 @@ describe('mutationOptions', () => {
     queryClient = new QueryClient()
     TestBed.configureTestingModule({
       providers: [
-        provideZonelessChangeDetection(),
-        provideTanStackQuery(queryClient),
+        provideAngularQueryChangeDetection(),
+        provideTanStackQuery(() => queryClient),
       ],
     })
   })
@@ -55,15 +56,19 @@ describe('mutationOptions', () => {
       mutationFn: () => sleep(50).then(() => 'data'),
     })
 
-    const [mutation, isMutating] = TestBed.runInInjectionContext(() => [
-      injectMutation(() => mutationOpts),
-      injectIsMutating(),
-    ])
+    @Component({ template: '' })
+    class Host {
+      readonly mutation = injectMutation(() => mutationOpts)
+      readonly isMutating = injectIsMutating()
+    }
+    const fixture = TestBed.createComponent(Host)
+    fixture.detectChanges()
+    const { mutation, isMutating } = fixture.componentInstance
 
     expect(isMutating()).toBe(0)
 
     mutation.mutate()
-    expect(isMutating()).toBe(0)
+    expect(isMutating()).toBe(1)
     await vi.advanceTimersByTimeAsync(0)
     expect(isMutating()).toBe(1)
     await vi.advanceTimersByTimeAsync(51)
@@ -75,15 +80,19 @@ describe('mutationOptions', () => {
       mutationFn: () => sleep(50).then(() => 'data'),
     })
 
-    const [mutation, isMutating] = TestBed.runInInjectionContext(() => [
-      injectMutation(() => mutationOpts),
-      injectIsMutating(),
-    ])
+    @Component({ template: '' })
+    class Host {
+      readonly mutation = injectMutation(() => mutationOpts)
+      readonly isMutating = injectIsMutating()
+    }
+    const fixture = TestBed.createComponent(Host)
+    fixture.detectChanges()
+    const { mutation, isMutating } = fixture.componentInstance
 
     expect(isMutating()).toBe(0)
 
     mutation.mutate()
-    expect(isMutating()).toBe(0)
+    expect(isMutating()).toBe(1)
     await vi.advanceTimersByTimeAsync(0)
     expect(isMutating()).toBe(1)
     await vi.advanceTimersByTimeAsync(51)
@@ -100,19 +109,21 @@ describe('mutationOptions', () => {
       mutationFn: () => sleep(50).then(() => 'data2'),
     })
 
-    const [mutation1, mutation2, isMutating] = TestBed.runInInjectionContext(
-      () => [
-        injectMutation(() => mutationOpts1),
-        injectMutation(() => mutationOpts2),
-        injectIsMutating(),
-      ],
-    )
+    @Component({ template: '' })
+    class Host {
+      readonly mutation1 = injectMutation(() => mutationOpts1)
+      readonly mutation2 = injectMutation(() => mutationOpts2)
+      readonly isMutating = injectIsMutating()
+    }
+    const fixture = TestBed.createComponent(Host)
+    fixture.detectChanges()
+    const { mutation1, mutation2, isMutating } = fixture.componentInstance
 
     expect(isMutating()).toBe(0)
 
     mutation1.mutate()
     mutation2.mutate()
-    expect(isMutating()).toBe(0)
+    expect(isMutating()).toBe(2)
     await vi.advanceTimersByTimeAsync(0)
     expect(isMutating()).toBe(2)
     await vi.advanceTimersByTimeAsync(51)
@@ -129,19 +140,23 @@ describe('mutationOptions', () => {
       mutationFn: () => sleep(50).then(() => 'data2'),
     })
 
-    const [mutation1, mutation2, isMutating] = TestBed.runInInjectionContext(
-      () => [
-        injectMutation(() => mutationOpts1),
-        injectMutation(() => mutationOpts2),
-        injectIsMutating({ mutationKey: mutationOpts1.mutationKey }),
-      ],
-    )
+    @Component({ template: '' })
+    class Host {
+      readonly mutation1 = injectMutation(() => mutationOpts1)
+      readonly mutation2 = injectMutation(() => mutationOpts2)
+      readonly isMutating = injectIsMutating(() => ({
+        mutationKey: mutationOpts1.mutationKey,
+      }))
+    }
+    const fixture = TestBed.createComponent(Host)
+    fixture.detectChanges()
+    const { mutation1, mutation2, isMutating } = fixture.componentInstance
 
     expect(isMutating()).toBe(0)
 
     mutation1.mutate()
     mutation2.mutate()
-    expect(isMutating()).toBe(0)
+    expect(isMutating()).toBe(1)
     await vi.advanceTimersByTimeAsync(0)
     expect(isMutating()).toBe(1)
     await vi.advanceTimersByTimeAsync(51)

@@ -14,7 +14,7 @@ import type { CreateMutationOptions } from './types'
  * @example
  * Looking the mutation up elsewhere via its `mutationKey`, e.g. for a global "saving…" indicator:
  * ```angular-ts
- * import { mutationOptions, injectMutationState } from '@tanstack/angular-query-experimental'
+ * import { mutationOptions, injectMutationState } from '@tanstack/angular-query'
  *
  * const createPostOptions = mutationOptions({
  *   mutationKey: ['posts', 'create'],
@@ -66,7 +66,7 @@ export function mutationOptions<
  * @example
  * Sharing options across services, so `QueriesService` stays the single place a mutation is defined:
  * ```angular-ts
- * import { mutationOptions, injectMutation } from '@tanstack/angular-query-experimental'
+ * import { mutationOptions, injectMutation } from '@tanstack/angular-query'
  *
  * @Injectable({ providedIn: 'root' })
  * export class QueriesService {

@@ -3,7 +3,6 @@ import type {
   InitialDataFunction,
   NonUndefinedGuard,
   OmitKeyof,
-  QueryFunction,
   QueryKey,
   QueryKeyWithDataTag,
   SkipToken,
@@ -82,10 +81,7 @@ export type DefinedInitialDataOptions<
   TError = DefaultError,
   TData = TQueryFnData,
   TQueryKey extends QueryKey = QueryKey,
-> = Omit<
-  CreateQueryOptions<TQueryFnData, TError, TData, TQueryKey>,
-  'queryFn'
-> & {
+> = CreateQueryOptions<TQueryFnData, TError, TData, TQueryKey> & {
   /**
    * If set, this value will be used as the initial data for the query cache (as long as the query hasn't been
    * created or cached yet). If set to a function, the function will be called **once** during the shared/root
@@ -96,17 +92,11 @@ export type DefinedInitialDataOptions<
   initialData:
     | NonUndefinedGuard<TQueryFnData>
     | (() => NonUndefinedGuard<TQueryFnData>)
-  /**
-   * Optional here, but omitting it is only safe when no fetch will be attempted — for example with
-   * `enabled: false`, or when a default query function has been defined. Otherwise, an enabled query with no
-   * `queryFn` still tries to fetch and fails with a "Missing queryFn" error; `initialData` does not prevent this.
-   */
-  queryFn?: QueryFunction<TQueryFnData, TQueryKey>
 }
 
 /**
  * You can generally pass everything to `queryOptions` that you can also pass to `injectQuery`. These options
- * can be shared across functions and imperative APIs such as `queryClient.fetchQuery`. `options.queryKey` is
+ * can be shared across functions and imperative APIs such as `queryClient.query`. `options.queryKey` is
  * required and is the query key to generate options for.
  *
  * This overload is selected when `initialData` is set, so the resulting `data` is never `undefined` (unless
@@ -120,7 +110,7 @@ export type DefinedInitialDataOptions<
  *
  * @example
  * ```angular-ts
- * import { queryOptions, injectQuery } from '@tanstack/angular-query-experimental'
+ * import { queryOptions, injectQuery } from '@tanstack/angular-query'
  *
  * export const postsOptions = queryOptions({
  *   queryKey: ['posts'],
@@ -160,7 +150,7 @@ export function queryOptions<
 
 /**
  * You can generally pass everything to `queryOptions` that you can also pass to `injectQuery`. These options
- * can be shared across functions and imperative APIs such as `queryClient.fetchQuery`. `options.queryKey` is
+ * can be shared across functions and imperative APIs such as `queryClient.query`. `options.queryKey` is
  * required and is the query key to generate options for.
  *
  * @see {@link injectQuery} to run a query with these options.
@@ -171,7 +161,7 @@ export function queryOptions<
  * @example
  * A parameterized factory, so the same options object can be reused per `id`:
  * ```angular-ts
- * import { queryOptions, injectQuery } from '@tanstack/angular-query-experimental'
+ * import { queryOptions, injectQuery } from '@tanstack/angular-query'
  *
  * export const postOptions = (id: string) =>
  *   queryOptions({
@@ -209,7 +199,7 @@ export function queryOptions<
 
 /**
  * You can generally pass everything to `queryOptions` that you can also pass to `injectQuery`. These options
- * can be shared across functions and imperative APIs such as `queryClient.fetchQuery`. `options.queryKey` is
+ * can be shared across functions and imperative APIs such as `queryClient.query`. `options.queryKey` is
  * required and is the query key to generate options for.
  *
  * @see {@link injectQuery} to run a query with these options.
@@ -221,7 +211,7 @@ export function queryOptions<
  * @example
  * A parameterized factory, so the same options object can be reused per `id`:
  * ```angular-ts
- * import { queryOptions, injectQuery } from '@tanstack/angular-query-experimental'
+ * import { queryOptions, injectQuery } from '@tanstack/angular-query'
  *
  * export const postOptions = (id: string) =>
  *   queryOptions({
@@ -250,7 +240,7 @@ export function queryOptions<
  * @example
  * A factory that disables the query, type safe, until `postId` is set:
  * ```angular-ts
- * import { queryOptions, skipToken, injectQuery } from '@tanstack/angular-query-experimental'
+ * import { queryOptions, skipToken, injectQuery } from '@tanstack/angular-query'
  *
  * export const postOptions = (postId: number | undefined) =>
  *   queryOptions({

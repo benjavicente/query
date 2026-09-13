@@ -1,10 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TestBed } from '@angular/core/testing'
-import {
-  Component,
-  Injector,
-  provideZonelessChangeDetection,
-} from '@angular/core'
+import { Component, input, inputBinding, signal } from '@angular/core'
 import { render } from '@testing-library/angular'
 import { queryKey, sleep } from '@tanstack/query-test-utils'
 import {
@@ -13,6 +9,7 @@ import {
   injectMutation,
   provideTanStackQuery,
 } from '..'
+import { provideAngularQueryChangeDetection } from './test-utils'
 
 describe('injectIsMutating', () => {
   let queryClient: QueryClient
@@ -23,8 +20,8 @@ describe('injectIsMutating', () => {
 
     TestBed.configureTestingModule({
       providers: [
-        provideZonelessChangeDetection(),
-        provideTanStackQuery(queryClient),
+        provideAngularQueryChangeDetection(),
+        provideTanStackQuery(() => queryClient),
       ],
     })
   })
@@ -78,7 +75,7 @@ describe('injectIsMutating', () => {
         mutationKey: key2,
         mutationFn: () => sleep(100).then(() => 'data2'),
       }))
-      readonly isMutating = injectIsMutating({ mutationKey: key1 })
+      readonly isMutating = injectIsMutating(() => ({ mutationKey: key1 }))
     }
 
     const rendered = await render(Page)
@@ -95,19 +92,41 @@ describe('injectIsMutating', () => {
     expect(rendered.getByText('mutating: 0')).toBeInTheDocument()
   })
 
+  it('should support signal reads in filter predicates', async () => {
+    const mutation = queryClient.getMutationCache().build(queryClient, {
+      mutationFn: () => sleep(100).then(() => 'data'),
+    })
+    void mutation.execute(undefined)
+
+    @Component({
+      template: `<div>mutating: {{ isMutating() }}</div>`,
+    })
+    class Page {
+      readonly includeMutation = input.required<boolean>()
+      readonly isMutating = injectIsMutating(() => ({
+        predicate: () => this.includeMutation(),
+      }))
+    }
+
+    const subscribe = vi.spyOn(queryClient.getMutationCache(), 'subscribe')
+    const includeMutation = signal(true)
+    const rendered = await render(Page, {
+      bindings: [inputBinding('includeMutation', includeMutation)],
+    })
+
+    expect(rendered.getByText('mutating: 1')).toBeInTheDocument()
+
+    includeMutation.set(false)
+    rendered.fixture.detectChanges()
+    expect(subscribe).toHaveBeenCalledTimes(1)
+    expect(rendered.getByText('mutating: 0')).toBeInTheDocument()
+  })
+
   describe('injection context', () => {
     it('should throw NG0203 with descriptive error outside injection context', () => {
       expect(() => {
         injectIsMutating()
       }).toThrow(/NG0203(.*?)injectIsMutating/)
-    })
-
-    it('should be usable outside injection context when passing an injector', () => {
-      expect(
-        injectIsMutating(undefined, {
-          injector: TestBed.inject(Injector),
-        }),
-      ).not.toThrow()
     })
   })
 })

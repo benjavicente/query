@@ -173,19 +173,6 @@ it('should return the proper type when passed to getQueryData', () => {
   expectTypeOf(data).toEqualTypeOf<number | undefined>()
 })
 
-it('should return the proper type when passed to getQueryState', () => {
-  const key = queryKey()
-  const { queryKey: tagged } = queryOptions({
-    queryKey: key,
-    queryFn: () => Promise.resolve(5),
-  })
-
-  const queryClient = new QueryClient()
-  const state = queryClient.getQueryState(tagged)
-
-  expectTypeOf(state?.data).toEqualTypeOf<number | undefined>()
-})
-
 it('should properly type updaterFn when passed to setQueryData', () => {
   const key = queryKey()
   const { queryKey: tagged } = queryOptions({
@@ -219,6 +206,19 @@ it('should properly type value when passed to setQueryData', () => {
   const data = queryClient.setQueryData(tagged, 5)
 
   expectTypeOf(data).toEqualTypeOf<number | undefined>()
+})
+
+it('should return the proper type when passed to getQueryState', () => {
+  const key = queryKey()
+  const { queryKey: tagged } = queryOptions({
+    queryKey: key,
+    queryFn: () => Promise.resolve(5),
+  })
+
+  const queryClient = new QueryClient()
+  const state = queryClient.getQueryState(tagged)
+
+  expectTypeOf(state?.data).toEqualTypeOf<number | undefined>()
 })
 
 it('should infer even if there is a conditional skipToken', () => {

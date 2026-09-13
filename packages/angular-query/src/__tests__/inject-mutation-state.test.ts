@@ -1,21 +1,21 @@
 import {
+  ChangeDetectionStrategy,
   Component,
-  Injector,
   input,
-  provideZonelessChangeDetection,
+  inputBinding,
   signal,
 } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
+import { render } from '@testing-library/angular'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { By } from '@angular/platform-browser'
-import { queryKey, sleep } from '@tanstack/query-test-utils'
+import { sleep } from '@tanstack/query-test-utils'
 import {
   QueryClient,
   injectMutation,
   injectMutationState,
   provideTanStackQuery,
 } from '..'
-import { setFixtureSignalInputs } from './test-utils'
+import { provideAngularQueryChangeDetection } from './test-utils'
 
 describe('injectMutationState', () => {
   let queryClient: QueryClient
@@ -25,8 +25,8 @@ describe('injectMutationState', () => {
     vi.useFakeTimers()
     TestBed.configureTestingModule({
       providers: [
-        provideZonelessChangeDetection(),
-        provideTanStackQuery(queryClient),
+        provideAngularQueryChangeDetection(),
+        provideTanStackQuery(() => queryClient),
       ],
     })
   })
@@ -35,9 +35,50 @@ describe('injectMutationState', () => {
     vi.useRealTimers()
   })
 
+  it('publishes selected mutation values unchanged and compares snapshot entries by identity', () => {
+    const version = signal('before')
+    queryClient.getMutationCache().build(queryClient, { mutationKey: ['a'] })
+    queryClient.getMutationCache().build(queryClient, { mutationKey: ['b'] })
+    let selected: Array<{ value: string }> = []
+    const states = TestBed.runInInjectionContext(() =>
+      injectMutationState(() => {
+        selected = []
+        return {
+          select: (m) => {
+            const value = {
+              value:
+                m.options.mutationKey![0] === 'a' ? version() : 'unchanged',
+            }
+            selected.push(value)
+            return value
+          },
+        }
+      }),
+    )
+    const before = states()
+    version.set('after')
+    const after = states()
+    expect(after[0]).toBe(selected[0])
+    expect(after[1]).toBe(selected[1])
+    expect(after[1]).not.toBe(before[1])
+    // Stable entries avoid array-only updates, without deep comparison.
+    const filter = signal('a')
+    const selectedValue = { value: 'same' }
+    const filtered = TestBed.runInInjectionContext(() =>
+      injectMutationState(() => ({
+        filters: { mutationKey: [filter()] },
+        select: () => selectedValue,
+      })),
+    )
+    const initial = filtered()
+    filter.set('b')
+    expect(filtered()).toBe(initial)
+    expect(filtered()[0]).toBe(selectedValue)
+  })
+
   describe('injectMutationState', () => {
     it('should return variables after calling mutate 1', () => {
-      const mutationKey = queryKey()
+      const mutationKey = ['mutation']
       const variables = 'foo123'
 
       const mutation = TestBed.runInInjectionContext(() => {
@@ -59,9 +100,9 @@ describe('injectMutationState', () => {
       expect(mutationState()).toEqual([variables])
     })
 
-    it('should update injectMutationState when reactive options change', () => {
-      const mutationKey1 = queryKey()
-      const mutationKey2 = queryKey()
+    it('reactive options should update injectMutationState', () => {
+      const mutationKey1 = ['mutation1']
+      const mutationKey2 = ['mutation2']
       const variables1 = 'foo123'
       const variables2 = 'bar234'
 
@@ -96,9 +137,28 @@ describe('injectMutationState', () => {
       expect(mutationState()).toEqual([variables2])
     })
 
+    it('preserves result identity when an unrelated mutation changes', () => {
+      const mutationState = TestBed.runInInjectionContext(() =>
+        injectMutationState(() => ({
+          filters: { mutationKey: ['matching'] },
+        })),
+      )
+      const unrelatedMutation = TestBed.runInInjectionContext(() =>
+        injectMutation(() => ({
+          mutationKey: ['unrelated'],
+          mutationFn: () => Promise.resolve(),
+        })),
+      )
+      const initialResult = mutationState()
+
+      unrelatedMutation.mutate()
+
+      expect(mutationState()).toBe(initialResult)
+    })
+
     it('should return variables after calling mutate 2', () => {
       queryClient.clear()
-      const mutationKey = queryKey()
+      const mutationKey = ['mutation']
       const variables = 'bar234'
 
       const mutation = TestBed.runInInjectionContext(() => {
@@ -145,6 +205,7 @@ describe('injectMutationState', () => {
             <span>{{ mutation.status }}</span>
           }
         `,
+        changeDetection: ChangeDetectionStrategy.OnPush,
       })
       class FakeComponent {
         name = input.required<string>()
@@ -157,41 +218,34 @@ describe('injectMutationState', () => {
         }))
       }
 
-      const fixture = TestBed.createComponent(FakeComponent)
-      const { debugElement } = fixture
-      setFixtureSignalInputs(fixture, { name: fakeName })
+      TestBed.resetTestingModule()
+      const name = signal(fakeName)
+      const rendered = await render(FakeComponent, {
+        providers: [
+          provideAngularQueryChangeDetection(),
+          provideTanStackQuery(() => queryClient),
+        ],
+        bindings: [inputBinding('name', name.asReadonly())],
+        detectChangesOnRender: false,
+      })
+      rendered.fixture.detectChanges()
+
       await vi.advanceTimersByTimeAsync(0)
 
-      let spans = debugElement
-        .queryAll(By.css('span'))
-        .map((span) => span.nativeNode.textContent)
-
-      expect(spans).toEqual(['pending', 'pending'])
+      expect(rendered.getAllByText('pending')).toHaveLength(2)
 
       await vi.advanceTimersByTimeAsync(11)
-      fixture.detectChanges()
+      rendered.fixture.detectChanges()
 
-      spans = debugElement
-        .queryAll(By.css('span'))
-        .map((span) => span.nativeNode.textContent)
-
-      expect(spans).toEqual(['success', 'error'])
+      expect(rendered.getByText('success')).toBeInTheDocument()
+      expect(rendered.getByText('error')).toBeInTheDocument()
     })
 
     describe('injection context', () => {
-      it('should throw NG0203 with descriptive error outside injection context', () => {
+      it('throws NG0203 with descriptive error outside injection context', () => {
         expect(() => {
           injectMutationState()
-        }).toThrow(/NG0203(.*?)injectMutationState/)
-      })
-
-      it('should be usable outside injection context when passing an injector', () => {
-        const injector = TestBed.inject(Injector)
-        expect(
-          injectMutationState(undefined, {
-            injector,
-          }),
-        ).not.toThrow()
+        }).toThrowError(/NG0203(.*?)injectMutationState/)
       })
     })
   })

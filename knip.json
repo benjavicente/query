@@ -23,6 +23,13 @@
     },
     "packages/vue-query": {
       "ignoreDependencies": ["vue2", "vue2.7"]
+    },
+    "packages/angular-query": {
+      "ignore": ["src/__tests__/**/*.test-d.ts"],
+      "entry": ["schematics/ng-add/*.ts"]
+    },
+    ".": {
+      "ignoreDependencies": ["@angular/compiler-cli"]
     }
   }
 }

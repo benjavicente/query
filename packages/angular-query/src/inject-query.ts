@@ -1,12 +1,14 @@
 import { QueryObserver } from '@tanstack/query-core'
-import {
-  Injector,
-  assertInInjectionContext,
-  inject,
-  runInInjectionContext,
-} from '@angular/core'
-import { createBaseQuery } from './create-base-query'
-import type { DefaultError, QueryKey } from '@tanstack/query-core'
+import { assertInInjectionContext, untracked } from '@angular/core'
+import { injectQueryZone } from './utils/inject-query-zone'
+import { injectBaseQuery } from './inject-base-query'
+import { signalProxy } from './utils/signal-proxy'
+import { queryResultFields } from './utils/result-fields'
+import type {
+  DefaultError,
+  QueryKey,
+  RefetchOptions,
+} from '@tanstack/query-core'
 import type {
   CreateQueryOptions,
   CreateQueryResult,
@@ -17,26 +19,16 @@ import type {
   UndefinedInitialDataOptions,
 } from './query-options'
 
-export interface InjectQueryOptions {
-  /**
-   * The `Injector` in which to create the query.
-   *
-   * If this is not provided, the current injection context will be used instead (via `inject`).
-   */
-  injector?: Injector
-}
-
 /**
- * This overload is selected when `initialData` is set on the options returned by `injectQueryFn`, so the
+ * This overload is selected when `initialData` is set on the options returned by `optionsFn`, so the
  * resulting `data` signal is never `undefined` (unless a `select` changes `TData` to include `undefined`).
  *
  * @see https://tanstack.com/query/latest/docs/framework/angular/guides/queries
  * @see {@link queryOptions} to share these options between `injectQuery` and imperative APIs like
- * `queryClient.fetchQuery`.
- * @param injectQueryFn - A function returning the {@link DefinedInitialDataOptions} to use — everything you
+ * `queryClient.query`.
+ * @param optionsFn - A function returning the {@link DefinedInitialDataOptions} to use — everything you
  * can pass to `injectQuery`, with `initialData` set. Similar to `computed` from Angular, this function runs
  * in the reactive context, so signals read inside it (in `queryKey`, `enabled`, etc.) drive the query.
- * @param options - Additional configuration
  * @returns The query result, typed so that `data` is never `undefined` (unless a `select` changes `TData` to
  * include `undefined`).
  *
@@ -72,13 +64,12 @@ export function injectQuery<
   TData = TQueryFnData,
   TQueryKey extends QueryKey = QueryKey,
 >(
-  injectQueryFn: () => DefinedInitialDataOptions<
+  optionsFn: () => DefinedInitialDataOptions<
     TQueryFnData,
     TError,
     TData,
     TQueryKey
   >,
-  options?: InjectQueryOptions,
 ): DefinedCreateQueryResult<TData, TError>
 
 /**
@@ -86,11 +77,10 @@ export function injectQuery<
  *
  * @see https://tanstack.com/query/latest/docs/framework/angular/guides/queries
  * @see {@link queryOptions} to share these options between `injectQuery` and imperative APIs like
- * `queryClient.fetchQuery`.
- * @param injectQueryFn - A function returning the {@link UndefinedInitialDataOptions} to use — everything
+ * `queryClient.query`.
+ * @param optionsFn - A function returning the {@link UndefinedInitialDataOptions} to use — everything
  * you can pass to `injectQuery`. Similar to `computed` from Angular, this function runs in the reactive
  * context, so signals read inside it (in `queryKey`, `enabled`, etc.) drive the query.
- * @param options - Additional configuration
  * @returns The query result. `status()` is `'pending'` if there is no cached data to display, `'error'` if
  * the last fetch attempt failed, or `'success'` if the query has data to display. `isPending`/`isSuccess`/
  * `isError` are type-guard methods for convenience.
@@ -149,7 +139,6 @@ export function injectQuery<
  *   readonly postsQuery = injectQuery(() => ({
  *     queryKey: ['posts', this.filter()],
  *     queryFn: () => fetchPosts(this.filter()),
- *     // Signals can be combined with expressions
  *     enabled: !!this.filter(),
  *   }))
  * }
@@ -161,13 +150,12 @@ export function injectQuery<
   TData = TQueryFnData,
   TQueryKey extends QueryKey = QueryKey,
 >(
-  injectQueryFn: () => UndefinedInitialDataOptions<
+  optionsFn: () => UndefinedInitialDataOptions<
     TQueryFnData,
     TError,
     TData,
     TQueryKey
   >,
-  options?: InjectQueryOptions,
 ): CreateQueryResult<TData, TError>
 
 /**
@@ -176,10 +164,8 @@ export function injectQuery<
  * `injectQuery` in your own helper function that forwards caller-provided options.
  *
  * @see https://tanstack.com/query/latest/docs/framework/angular/guides/queries
- * @param injectQueryFn - A function that returns query options. Similar to `computed` from Angular, this
- * function runs in the reactive context, so signals read inside it (in `queryKey`, `enabled`, etc.) drive
- * the query.
- * @param options - Additional configuration
+ * @param optionsFn - A function that returns query options. Similar to `computed` from Angular, this
+ * function runs in the reactive context, so signals read inside it drive the query.
  * @returns The query result.
  */
 export function injectQuery<
@@ -188,21 +174,19 @@ export function injectQuery<
   TData = TQueryFnData,
   TQueryKey extends QueryKey = QueryKey,
 >(
-  injectQueryFn: () => CreateQueryOptions<
-    TQueryFnData,
-    TError,
-    TData,
-    TQueryKey
-  >,
-  options?: InjectQueryOptions,
+  optionsFn: () => CreateQueryOptions<TQueryFnData, TError, TData, TQueryKey>,
 ): CreateQueryResult<TData, TError>
 
 export function injectQuery(
-  injectQueryFn: () => CreateQueryOptions,
-  options?: InjectQueryOptions,
-) {
-  !options?.injector && assertInInjectionContext(injectQuery)
-  return runInInjectionContext(options?.injector ?? inject(Injector), () =>
-    createBaseQuery(injectQueryFn, QueryObserver),
-  ) as unknown as CreateQueryResult
+  optionsFn: () => CreateQueryOptions,
+): DefinedCreateQueryResult | CreateQueryResult {
+  if (typeof ngDevMode === 'undefined' || ngDevMode) {
+    assertInInjectionContext(injectQuery)
+  }
+  const outsideZone = injectQueryZone()
+  const [resultSignal, getObserver] = injectBaseQuery(optionsFn, QueryObserver)
+  return Object.assign(signalProxy(resultSignal, queryResultFields), {
+    refetch: (options?: RefetchOptions) =>
+      outsideZone(() => untracked(() => getObserver().refetch(options))),
+  }) as unknown as DefinedCreateQueryResult | CreateQueryResult
 }

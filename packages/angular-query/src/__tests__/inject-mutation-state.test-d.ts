@@ -1,6 +1,6 @@
 import { describe, expectTypeOf, it } from 'vitest'
 import { injectMutationState } from '..'
-import type { MutationState, MutationStatus } from '..'
+import type { Mutation, MutationState, MutationStatus } from '..'
 
 describe('injectMutationState', () => {
   it('should default to QueryState', () => {
@@ -18,5 +18,23 @@ describe('injectMutationState', () => {
     }))
 
     expectTypeOf(result()).toEqualTypeOf<Array<MutationStatus>>()
+  })
+
+  it('should infer the mutation type from a mutation-state result', () => {
+    type Result = MutationState<
+      string,
+      Error,
+      { id: number },
+      { previous: string }
+    >
+
+    injectMutationState<Result>(() => ({
+      select: (mutation) => {
+        expectTypeOf(mutation).toEqualTypeOf<
+          Mutation<string, Error, { id: number }, { previous: string }>
+        >()
+        return mutation.state
+      },
+    }))
   })
 })
