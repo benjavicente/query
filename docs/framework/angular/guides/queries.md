@@ -17,7 +17,7 @@ replace:
 [//]: # 'Example'
 
 ```ts
-import { injectQuery } from '@tanstack/angular-query-experimental'
+import { injectQuery } from '@tanstack/angular-query'
 
 export class TodosComponent {
   readonly todosQuery = injectQuery(() => ({
@@ -101,4 +101,11 @@ class TodosComponent {}
 
 [//]: # 'Example4'
 [//]: # 'Materials'
+
+Angular Query can convert each query result into a Resource-compatible view with `toResource`. See
+the [Resource API](../resource-api.md) when an Angular API expects a
+[Resource](https://angular.dev/api/core/Resource).
+
 [//]: # 'Materials'
+
+See [Error handling](./error-handling.md) to connect cache failures to Angular’s `ErrorHandler`.
