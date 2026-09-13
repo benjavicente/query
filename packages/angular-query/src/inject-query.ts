@@ -1,9 +1,14 @@
 import { QueryObserver } from '@tanstack/query-core'
 import { assertInInjectionContext, untracked } from '@angular/core'
+import { injectQueryZone } from './utils/inject-query-zone'
 import { injectBaseQuery } from './inject-base-query'
 import { signalProxy } from './utils/signal-proxy'
 import { queryResultFields } from './utils/result-fields'
-import type { DefaultError, QueryKey, RefetchOptions } from '@tanstack/query-core'
+import type {
+  DefaultError,
+  QueryKey,
+  RefetchOptions,
+} from '@tanstack/query-core'
 import type {
   CreateQueryOptions,
   CreateQueryResult,
@@ -178,12 +183,10 @@ export function injectQuery(
   if (typeof ngDevMode === 'undefined' || ngDevMode) {
     assertInInjectionContext(injectQuery)
   }
-  const [resultSignal, getObserver] = injectBaseQuery(
-    optionsFn,
-    QueryObserver,
-  )
+  const outsideZone = injectQueryZone()
+  const [resultSignal, getObserver] = injectBaseQuery(optionsFn, QueryObserver)
   return Object.assign(signalProxy(resultSignal, queryResultFields), {
     refetch: (options?: RefetchOptions) =>
-      untracked(() => getObserver().refetch(options)),
+      outsideZone(() => untracked(() => getObserver().refetch(options))),
   }) as unknown as DefinedCreateQueryResult | CreateQueryResult
 }

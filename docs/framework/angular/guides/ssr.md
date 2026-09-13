@@ -13,6 +13,10 @@ builds on the same setup with browser persistence.
 
 `provideTanStackQuery` registers the factory with Angular's `useFactory`. It runs once per root injector and in an injection context, so it can call `inject()`. Browser- and server-specific query defaults can stay inside this factory.
 
+Angular Query runs its query work outside `NgZone`, so background cache timers do not delay server rendering. Pending queries and mutations still participate in Angular's stability tracking. Server clients default to no retries and `gcTime: Infinity`; explicit client defaults are preserved.
+
+If you call `QueryClient` directly during rendering with a finite `gcTime`, run that work outside `NgZone` too. Await it or use Angular's `PendingTasks` when the HTML needs its result.
+
 ```ts
 import { isPlatformBrowser } from '@angular/common'
 import { inject, PLATFORM_ID } from '@angular/core'

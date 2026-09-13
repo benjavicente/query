@@ -1,5 +1,6 @@
 import { computed, effect, inject, untracked } from '@angular/core'
 import { QueryClient } from '@tanstack/query-core'
+import { injectQueryZone } from './utils/inject-query-zone'
 import { injectIsRestoring } from './inject-is-restoring'
 import { injectPendingTasksLifecycle } from './utils/inject-pending-tasks-lifecycle'
 import { injectExternalStore } from './utils/inject-external-store'
@@ -31,6 +32,7 @@ export function injectBaseQuery<
   >,
   Observer: typeof QueryObserver,
 ) {
+  const outsideZone = injectQueryZone()
   const queryClient = inject(QueryClient)
   const isRestoring = injectIsRestoring()
   const lifecycle = injectPendingTasksLifecycle()
@@ -64,41 +66,51 @@ export function injectBaseQuery<
   // first construction can synchronously emit QueryCache events; a listener
   // must not re-enter this same, not-yet-initialized result. Subscription setup
   // and cleanup run in an effect, where result reads are safe.
-  const observerSignal = computed(
-    () => new Observer(queryClient, untracked(defaultedOptionsSignal)),
+  const observerSignal = computed(() =>
+    outsideZone(
+      () => new Observer(queryClient, untracked(defaultedOptionsSignal)),
+    ),
   )
 
   // Configure the observer outside the result computation. Cache listeners can
   // synchronously read the public result while setOptions notifies.
   effect(() => {
     const options = defaultedOptionsSignal()
-    untracked(() => observerSignal().setOptions(options))
+    outsideZone(() => untracked(() => observerSignal().setOptions(options)))
   })
 
   const resultSignal = injectExternalStore(() => {
     const observer = observerSignal()
     const restoring = isRestoring()
     return {
-      getSnapshot: () => observer.getOptimisticResult(defaultedOptionsSignal()),
+      getSnapshot: () =>
+        outsideZone(() =>
+          observer.getOptimisticResult(defaultedOptionsSignal()),
+        ),
       subscribe: restoring
         ? undefined
         : (onStoreChange) => {
             lifecycle.setPending(
               shouldBlockPendingTasks(observer, observer.getCurrentResult()),
             )
-            const unsubscribe = observer.subscribe((state) => {
-              if (lifecycle.destroyed) return
-              if (shouldBlockPendingTasks(observer, state))
-                lifecycle.setPending(true)
-              // Notify before releasing work so dependent queries can be scheduled.
-              onStoreChange()
-              lifecycle.setPending(
-                shouldBlockPendingTasks(observer, observer.getCurrentResult()),
-              )
-            })
+            const unsubscribe = outsideZone(() =>
+              observer.subscribe((state) => {
+                if (lifecycle.destroyed) return
+                if (shouldBlockPendingTasks(observer, state))
+                  lifecycle.setPending(true)
+                // Notify before releasing work so dependent queries can be scheduled.
+                onStoreChange()
+                lifecycle.setPending(
+                  shouldBlockPendingTasks(
+                    observer,
+                    observer.getCurrentResult(),
+                  ),
+                )
+              }),
+            )
             return () => {
               lifecycle.setPending(false)
-              unsubscribe()
+              outsideZone(unsubscribe)
             }
           },
     }
@@ -107,11 +119,13 @@ export function injectBaseQuery<
   // Imperative methods use current options before starting work, even when
   // invoked before the subscription effect runs.
   const getObserver = () =>
-    untracked(() => {
-      const observer = observerSignal()
-      observer.setOptions(defaultedOptionsSignal())
-      return observer
-    })
+    outsideZone(() =>
+      untracked(() => {
+        const observer = observerSignal()
+        observer.setOptions(defaultedOptionsSignal())
+        return observer
+      }),
+    )
 
   return [resultSignal, getObserver] as const
 }

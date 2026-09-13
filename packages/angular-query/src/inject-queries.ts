@@ -6,6 +6,7 @@ import {
   inject,
   untracked,
 } from '@angular/core'
+import { injectQueryZone } from './utils/inject-query-zone'
 import { signalProxy } from './utils/signal-proxy'
 import { queryResultFields } from './utils/result-fields'
 import { injectIsRestoring } from './inject-is-restoring'
@@ -62,6 +63,7 @@ export function injectQueries<
   if (typeof ngDevMode === 'undefined' || ngDevMode) {
     assertInInjectionContext(injectQueries)
   }
+  const outsideZone = injectQueryZone()
   const queryClient = inject(QueryClient)
   const isRestoring = injectIsRestoring()
   const lifecycle = injectPendingTasksLifecycle()
@@ -100,46 +102,49 @@ export function injectQueries<
   // inputs. Its first construction can synchronously emit QueryCache events;
   // a listener must not re-enter this same, not-yet-initialized result. Setup
   // and cleanup run in an effect, where result reads are safe.
-  const observerSignal = computed(
-    () =>
-      new QueriesObserver<TCombinedResult>(
-        queryClient,
-        untracked(defaultedQueries),
-      ),
+  const observerSignal = computed(() =>
+    outsideZone(
+      () =>
+        new QueriesObserver<TCombinedResult>(
+          queryClient,
+          untracked(defaultedQueries),
+        ),
+    ),
   )
 
   // Configure the observer outside the result computation. Cache listeners can
   // synchronously read public results while setQueries notifies.
   effect(() => {
     const queries = defaultedQueries()
-    untracked(() => observerSignal().setQueries(queries))
+    outsideZone(() => untracked(() => observerSignal().setQueries(queries)))
   })
 
   // Methods address the current array slot, including methods handed to combine.
   const refetches: Array<QueryObserverResult['refetch']> = []
   const getRefetch = (index: number): QueryObserverResult['refetch'] =>
     (refetches[index] ??= (options) =>
-      untracked(() => {
-        const observer = observerSignal()
-        observer.setQueries(defaultedQueries())
-        const queryObserver = observer.getObservers()[index]
-        if (!queryObserver) {
-          return Promise.reject(
-            new Error(`Cannot refetch removed query at index ${index}`),
-          )
-        }
-        return queryObserver.refetch(options)
-      }))
+      outsideZone(() =>
+        untracked(() => {
+          const observer = observerSignal()
+          observer.setQueries(defaultedQueries())
+          const queryObserver = observer.getObservers()[index]
+          if (!queryObserver) {
+            return Promise.reject(
+              new Error(`Cannot refetch removed query at index ${index}`),
+            )
+          }
+          return queryObserver.refetch(options)
+        }),
+      ))
 
   const resultSignal = injectExternalStore(() => {
     const observer = observerSignal()
     const restoring = isRestoring()
     return {
       getSnapshot: () => {
-        const results = observer.getOptimisticResult(
-          defaultedQueries(),
-          undefined,
-        )[0]
+        const results = outsideZone(
+          () => observer.getOptimisticResult(defaultedQueries(), undefined)[0],
+        )
         refetches.length = results.length
         return results.map((result, index) => ({
           ...result,
@@ -152,18 +157,23 @@ export function injectQueries<
             lifecycle.setPending(
               shouldBlockPendingTasks(observer, observer.getCurrentResult()),
             )
-            const unsubscribe = observer.subscribe((state) => {
-              if (lifecycle.destroyed) return
-              if (shouldBlockPendingTasks(observer, state))
-                lifecycle.setPending(true)
-              onStoreChange()
-              lifecycle.setPending(
-                shouldBlockPendingTasks(observer, observer.getCurrentResult()),
-              )
-            })
+            const unsubscribe = outsideZone(() =>
+              observer.subscribe((state) => {
+                if (lifecycle.destroyed) return
+                if (shouldBlockPendingTasks(observer, state))
+                  lifecycle.setPending(true)
+                onStoreChange()
+                lifecycle.setPending(
+                  shouldBlockPendingTasks(
+                    observer,
+                    observer.getCurrentResult(),
+                  ),
+                )
+              }),
+            )
             return () => {
               lifecycle.setPending(false)
-              unsubscribe()
+              outsideZone(unsubscribe)
             }
           },
     }

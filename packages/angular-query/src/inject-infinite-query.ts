@@ -1,5 +1,6 @@
 import { InfiniteQueryObserver } from '@tanstack/query-core'
 import { assertInInjectionContext, untracked } from '@angular/core'
+import { injectQueryZone } from './utils/inject-query-zone'
 import { injectBaseQuery } from './inject-base-query'
 import { signalProxy } from './utils/signal-proxy'
 import { infiniteQueryResultFields } from './utils/result-fields'
@@ -161,6 +162,7 @@ export function injectInfiniteQuery<
   if (typeof ngDevMode === 'undefined' || ngDevMode) {
     assertInInjectionContext(injectInfiniteQuery)
   }
+  const outsideZone = injectQueryZone()
   const [resultSignal, getObserver] = injectBaseQuery(
     optionsFn,
     InfiniteQueryObserver as typeof QueryObserver,
@@ -180,11 +182,17 @@ export function injectInfiniteQuery<
     ),
     {
       refetch: (options?: RefetchOptions) =>
-        untracked(() => getInfiniteObserver().refetch(options)),
+        outsideZone(() =>
+          untracked(() => getInfiniteObserver().refetch(options)),
+        ),
       fetchNextPage: (options?: FetchNextPageOptions) =>
-        untracked(() => getInfiniteObserver().fetchNextPage(options)),
+        outsideZone(() =>
+          untracked(() => getInfiniteObserver().fetchNextPage(options)),
+        ),
       fetchPreviousPage: (options?: FetchPreviousPageOptions) =>
-        untracked(() => getInfiniteObserver().fetchPreviousPage(options)),
+        outsideZone(() =>
+          untracked(() => getInfiniteObserver().fetchPreviousPage(options)),
+        ),
     },
   ) as unknown as
     | DefinedCreateInfiniteQueryResult<TData, TError>

@@ -24,6 +24,7 @@ if (config.test) {
   config.test.include = [
     '**/zoneful-integration.test.ts',
     '**/pending-tasks.test.ts',
+    '**/pending-tasks-ssr.zoneful.test.ts',
     '**/upstream-issues.test.ts',
     '**/inject-external-store.test.ts',
   ]

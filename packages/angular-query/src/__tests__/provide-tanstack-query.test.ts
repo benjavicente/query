@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing'
 import { describe, expect, it } from 'vitest'
-import { InjectionToken, inject } from '@angular/core'
+import { InjectionToken, PLATFORM_ID, inject } from '@angular/core'
 import { QueryClient } from '@tanstack/query-core'
 import { provideTanStackQuery } from '../providers'
 import { provideAngularQueryChangeDetection } from './test-utils'
@@ -35,5 +35,45 @@ describe('provideTanStackQuery', () => {
 
     const providedQueryClient = TestBed.inject(QueryClient)
     expect(providedQueryClient).toBe(queryClient)
+  })
+})
+
+describe('server client defaults', () => {
+  it('uses server defaults without changing an unrelated client', () => {
+    const unrelated = new QueryClient()
+    TestBed.configureTestingModule({
+      providers: [
+        provideAngularQueryChangeDetection(),
+        { provide: PLATFORM_ID, useValue: 'server' },
+        provideTanStackQuery(() => new QueryClient()),
+      ],
+    })
+    expect(TestBed.inject(QueryClient).getDefaultOptions()).toEqual({
+      queries: { gcTime: Infinity, retry: false },
+      mutations: { gcTime: Infinity },
+    })
+    expect(unrelated.getDefaultOptions()).toEqual({})
+  })
+
+  it('preserves explicit server client defaults', () => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideAngularQueryChangeDetection(),
+        { provide: PLATFORM_ID, useValue: 'server' },
+        provideTanStackQuery(
+          () =>
+            new QueryClient({
+              defaultOptions: {
+                queries: { gcTime: 1000, retry: 1, staleTime: 30000 },
+                mutations: { gcTime: 2000 },
+              },
+            }),
+        ),
+      ],
+    })
+    expect(TestBed.inject(QueryClient).getDefaultOptions()).toEqual({
+      queries: { gcTime: 1000, retry: 1, staleTime: 30000 },
+      mutations: { gcTime: 2000 },
+    })
   })
 })

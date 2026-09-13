@@ -3,6 +3,7 @@ import {
   DOCUMENT,
   DestroyRef,
   InjectionToken,
+  NgZone,
   PLATFORM_ID,
   TransferState,
   inject,
@@ -24,6 +25,17 @@ function configureQueryClient() {
   const queryClient = inject(QueryClient)
   const destroyRef = inject(DestroyRef)
   const platformId = inject(PLATFORM_ID)
+
+  if (isPlatformServer(platformId)) {
+    // DOM emulation can fool core's runtime detection. Apply server defaults to
+    // this client without changing other clients or global scheduling providers.
+    const defaults = queryClient.getDefaultOptions()
+    queryClient.setDefaultOptions({
+      ...defaults,
+      queries: { gcTime: Infinity, retry: false, ...defaults.queries },
+      mutations: { gcTime: Infinity, ...defaults.mutations },
+    })
+  }
   const shouldHydrate = inject(INTERNAL_QUERY_CLIENT_SHOULD_HYDRATE)
   const hydrationStateKey = inject(
     INTERNAL_TANSTACK_QUERY_HYDRATION_TRANSFER_KEY,
@@ -91,7 +103,10 @@ export function provideTanStackQuery(
   ...features: ReadonlyArray<QueryFeature>
 ): EnvironmentProviders {
   return makeEnvironmentProviders([
-    { provide: QueryClient, useFactory: queryClientFactory },
+    {
+      provide: QueryClient,
+      useFactory: () => inject(NgZone).runOutsideAngular(queryClientFactory),
+    },
     ...features.map(getQueryFeatureProviders),
     provideEnvironmentInitializer(configureQueryClient),
   ])

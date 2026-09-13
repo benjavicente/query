@@ -6,6 +6,7 @@ import {
   untracked,
 } from '@angular/core'
 import { MutationObserver, QueryClient, noop } from '@tanstack/query-core'
+import { injectQueryZone } from './utils/inject-query-zone'
 import { signalProxy } from './utils/signal-proxy'
 import { mutationResultFields } from './utils/result-fields'
 import { injectPendingTasksLifecycle } from './utils/inject-pending-tasks-lifecycle'
@@ -63,6 +64,7 @@ export function injectMutation<
   if (typeof ngDevMode === 'undefined' || ngDevMode) {
     assertInInjectionContext(injectMutation)
   }
+  const outsideZone = injectQueryZone()
   const queryClient = inject(QueryClient)
   const lifecycle = injectPendingTasksLifecycle()
 
@@ -73,8 +75,10 @@ export function injectMutation<
    */
   const optionsSignal = computed(optionsFn)
 
-  const observerSignal = computed(
-    () => new MutationObserver(queryClient, untracked(optionsSignal)),
+  const observerSignal = computed(() =>
+    outsideZone(
+      () => new MutationObserver(queryClient, untracked(optionsSignal)),
+    ),
   )
 
   // Imperative methods construct the observer synchronously; the external-store
@@ -86,14 +90,17 @@ export function injectMutation<
   // listeners can synchronously read the public result while setOptions emits.
   effect(() => {
     const options = optionsSignal()
-    untracked(() => observerSignal().setOptions(options))
+    outsideZone(() => untracked(() => observerSignal().setOptions(options)))
   })
 
   const mutationStateSignal = injectExternalStore(() => {
     const observer = observerSignal()
     return {
       getSnapshot: () => observer.getCurrentResult(),
-      subscribe: (onStoreChange) => observer.subscribe(onStoreChange),
+      subscribe: (onStoreChange) => {
+        const unsubscribe = outsideZone(() => observer.subscribe(onStoreChange))
+        return () => outsideZone(unsubscribe)
+      },
     }
   })
 
@@ -114,32 +121,38 @@ export function injectMutation<
     TVariables,
     TOnMutateResult
   > = (...args) => {
-    return untracked(() => {
-      const observer = observerSignal()
-      observer.setOptions(optionsSignal())
-      pendingInvocations++
-      lifecycle.setPending(true)
-      // Track invocations, not the observer's latest result: reset or a later
-      // mutation completing must not release work which is still running.
-      const settled = () => {
-        pendingInvocations--
-        lifecycle.setPending(pendingInvocations > 0)
-      }
-      try {
-        return observer.mutate(args[0] as TVariables, args[1]).finally(settled)
-      } catch (error) {
-        settled()
-        throw error
-      }
-    })
+    return outsideZone(() =>
+      untracked(() => {
+        const observer = observerSignal()
+        observer.setOptions(optionsSignal())
+        pendingInvocations++
+        lifecycle.setPending(true)
+        // Track invocations, not the observer's latest result: reset or a later
+        // mutation completing must not release work which is still running.
+        const settled = () => {
+          pendingInvocations--
+          lifecycle.setPending(pendingInvocations > 0)
+        }
+        try {
+          return observer
+            .mutate(args[0] as TVariables, args[1])
+            .finally(settled)
+        } catch (error) {
+          settled()
+          throw error
+        }
+      }),
+    )
   }
 
   const reset = () => {
-    untracked(() => {
-      const observer = observerSignal()
-      observer.setOptions(optionsSignal())
-      observer.reset()
-    })
+    outsideZone(() =>
+      untracked(() => {
+        const observer = observerSignal()
+        observer.setOptions(optionsSignal())
+        observer.reset()
+      }),
+    )
   }
 
   return Object.assign(signalProxy(mutationStateSignal, mutationResultFields), {
