@@ -13,7 +13,6 @@
   "updateInternalDependencies": "patch",
   "fixed": [
     [
-      "@tanstack/angular-query-experimental",
       "@tanstack/eslint-plugin-query",
       "@tanstack/preact-query",
       "@tanstack/preact-query-devtools",
