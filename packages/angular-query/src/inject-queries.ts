@@ -102,14 +102,12 @@ export function injectQueries<
   // inputs. Its first construction can synchronously emit QueryCache events;
   // a listener must not re-enter this same, not-yet-initialized result. Setup
   // and cleanup run in an effect, where result reads are safe.
-  const observerSignal = computed(() =>
-    outsideZone(
-      () =>
-        new QueriesObserver<TCombinedResult>(
-          queryClient,
-          untracked(defaultedQueries),
-        ),
-    ),
+  const observerSignal = computed(
+    () =>
+      new QueriesObserver<TCombinedResult>(
+        queryClient,
+        untracked(defaultedQueries),
+      ),
   )
 
   // Configure the observer outside the result computation. Cache listeners can
@@ -142,9 +140,10 @@ export function injectQueries<
     const restoring = isRestoring()
     return {
       getSnapshot: () => {
-        const results = outsideZone(
-          () => observer.getOptimisticResult(defaultedQueries(), undefined)[0],
-        )
+        const results = observer.getOptimisticResult(
+          defaultedQueries(),
+          undefined,
+        )[0]
         refetches.length = results.length
         return results.map((result, index) => ({
           ...result,
@@ -157,23 +156,18 @@ export function injectQueries<
             lifecycle.setPending(
               shouldBlockPendingTasks(observer, observer.getCurrentResult()),
             )
-            const unsubscribe = outsideZone(() =>
-              observer.subscribe((state) => {
-                if (lifecycle.destroyed) return
-                if (shouldBlockPendingTasks(observer, state))
-                  lifecycle.setPending(true)
-                onStoreChange()
-                lifecycle.setPending(
-                  shouldBlockPendingTasks(
-                    observer,
-                    observer.getCurrentResult(),
-                  ),
-                )
-              }),
-            )
+            const unsubscribe = observer.subscribe((state) => {
+              if (lifecycle.destroyed) return
+              if (shouldBlockPendingTasks(observer, state))
+                lifecycle.setPending(true)
+              onStoreChange()
+              lifecycle.setPending(
+                shouldBlockPendingTasks(observer, observer.getCurrentResult()),
+              )
+            })
             return () => {
               lifecycle.setPending(false)
-              outsideZone(unsubscribe)
+              unsubscribe()
             }
           },
     }

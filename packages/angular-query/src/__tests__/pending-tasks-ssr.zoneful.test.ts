@@ -3,6 +3,7 @@ import {
   Component,
   destroyPlatform,
   provideZoneChangeDetection,
+  signal,
 } from '@angular/core'
 import { bootstrapApplication } from '@angular/platform-browser'
 import {
@@ -70,6 +71,26 @@ class FetchingQueriesComponent {
   }))
 }
 
+@Component({
+  selector: 'app-root',
+  template: '{{ query.data() }}',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+class ReactiveQueryComponent {
+  readonly key = signal('first')
+  readonly query = injectQuery(() => ({
+    queryKey: [this.key()],
+    initialData: this.key(),
+    queryFn: fetchData,
+    staleTime: 30_000,
+    gcTime: 24 * 60 * 60 * 1000,
+  }))
+
+  ngOnInit() {
+    setTimeout(() => this.key.set('second'), 20)
+  }
+}
+
 async function render(component: Type<unknown>) {
   const client = new QueryClient()
   let app: ApplicationRef | undefined
@@ -116,6 +137,10 @@ describe('SSR with real Zone.js timers', () => {
 
   it('serializes cached data without waiting for stale or GC timers', async () => {
     expect(await render(CachedQueryComponent)).toContain('cached-on-server')
+  })
+
+  it('serializes reactive query changes without waiting for background timers', async () => {
+    expect(await render(ReactiveQueryComponent)).toContain('second')
   })
 
   it('waits for a query fetch, but not its background timers', async () => {

@@ -75,10 +75,8 @@ export function injectMutation<
    */
   const optionsSignal = computed(optionsFn)
 
-  const observerSignal = computed(() =>
-    outsideZone(
-      () => new MutationObserver(queryClient, untracked(optionsSignal)),
-    ),
+  const observerSignal = computed(
+    () => new MutationObserver(queryClient, untracked(optionsSignal)),
   )
 
   // Imperative methods construct the observer synchronously; the external-store
@@ -97,10 +95,7 @@ export function injectMutation<
     const observer = observerSignal()
     return {
       getSnapshot: () => observer.getCurrentResult(),
-      subscribe: (onStoreChange) => {
-        const unsubscribe = outsideZone(() => observer.subscribe(onStoreChange))
-        return () => outsideZone(unsubscribe)
-      },
+      subscribe: (onStoreChange) => observer.subscribe(onStoreChange),
     }
   })
 

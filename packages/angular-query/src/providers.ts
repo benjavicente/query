@@ -1,9 +1,9 @@
+import { injectQueryZone } from './utils/inject-query-zone'
 import { isPlatformBrowser, isPlatformServer } from '@angular/common'
 import {
   DOCUMENT,
   DestroyRef,
   InjectionToken,
-  NgZone,
   PLATFORM_ID,
   TransferState,
   inject,
@@ -105,7 +105,7 @@ export function provideTanStackQuery(
   return makeEnvironmentProviders([
     {
       provide: QueryClient,
-      useFactory: () => inject(NgZone).runOutsideAngular(queryClientFactory),
+      useFactory: () => injectQueryZone()(queryClientFactory),
     },
     ...features.map(getQueryFeatureProviders),
     provideEnvironmentInitializer(configureQueryClient),

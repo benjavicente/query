@@ -1,3 +1,4 @@
+import { injectQueryZone } from './inject-query-zone'
 import {
   DestroyRef,
   assertInInjectionContext,
@@ -24,6 +25,9 @@ interface ExternalStoreOptions<T> {
 /**
  * Creates a readonly Angular signal backed by a synchronous external store.
  *
+ * Store access, subscription setup, and cleanup run outside NgZone so background
+ * timers do not hold Angular stability open.
+ *
  * Reads evaluate snapshots without subscribing. An effect owns the subscription
  * and invalidates the snapshot after setup, closing the gap between an early
  * read and connection. The next read recomputes the snapshot; equality prevents
@@ -46,35 +50,38 @@ export function injectExternalStore<T>(
     assertInInjectionContext(injectExternalStore)
   }
   const owner = inject(DestroyRef)
+  const outsideZone = injectQueryZone()
   const revision = signal(0)
-  const requested = computed(binding)
+  const requested = computed(() => outsideZone(binding))
   const invalidate = () => untracked(() => revision.update((n) => n + 1))
 
   effect((onCleanup) => {
     // The previous subscription's cleanup may have destroyed the owner.
     if (owner.destroyed) return
     const current = requested()
-    untracked(() => {
-      try {
-        const unsubscribe = current.subscribe?.(invalidate)
-        if (unsubscribe) {
-          // subscribe() can trigger component/injector destruction before returning.
-          // Registering cleanup afterward misses that destruction.
-          if (owner.destroyed) unsubscribe()
-          else onCleanup(unsubscribe)
+    outsideZone(() =>
+      untracked(() => {
+        try {
+          const unsubscribe = current.subscribe?.(invalidate)
+          if (unsubscribe) {
+            // subscribe() can trigger component/injector destruction before returning.
+            // Registering cleanup afterward misses that destruction.
+            if (owner.destroyed) unsubscribe()
+            else onCleanup(() => outsideZone(unsubscribe))
+          }
+        } finally {
+          // Invalidate after subscribing so an early cached snapshot cannot miss
+          // changes before or during setup. Do not eagerly read the snapshot.
+          invalidate()
         }
-      } finally {
-        // Invalidate after subscribing so an early cached snapshot cannot miss
-        // changes before or during setup. Do not eagerly read the snapshot.
-        invalidate()
-      }
-    })
+      }),
+    )
   })
 
   return computed(
     () => {
       revision()
-      return requested().getSnapshot()
+      return outsideZone(() => requested().getSnapshot())
     },
     options?.equal ? { equal: options.equal } : undefined,
   )
