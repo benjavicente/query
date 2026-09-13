@@ -11,7 +11,7 @@ import {
 import { TestBed } from '@angular/core/testing'
 import { render } from '@testing-library/angular'
 import { queryKey, sleep } from '@tanstack/query-test-utils'
-import { MutationObserver, noop } from '@tanstack/query-core'
+import { noop } from '@tanstack/query-core'
 import { firstValueFrom } from 'rxjs'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
@@ -58,8 +58,7 @@ describe('injectMutation', () => {
     )
     const count = TestBed.runInInjectionContext(() => injectIsMutating())
     const states = TestBed.runInInjectionContext(() => injectMutationState())
-    count()
-    states()
+    await TestBed.inject(ApplicationRef).whenStable()
     const promise = mutation.mutateAsync()
     expect(mutation.status()).toBe('pending')
     expect(count()).toBe(1)
@@ -180,9 +179,7 @@ describe('injectMutation', () => {
     expect(mutations?.options.mutationKey).toEqual(['2'])
   })
 
-  it('subscribes before a mutation started in ngOnInit emits pending state', async () => {
-    const subscribe = vi.spyOn(MutationObserver.prototype, 'subscribe')
-    const subscriptionCountsInsideOnMutate: Array<number> = []
+  it('reflects a mutation started in ngOnInit', async () => {
     const statusesInsideOnMutate: Array<string> = []
 
     @Component({ template: '' })
@@ -190,7 +187,6 @@ describe('injectMutation', () => {
       readonly mutation = injectMutation(() => ({
         mutationFn: () => sleep(10).then(() => 'done'),
         onMutate: () => {
-          subscriptionCountsInsideOnMutate.push(subscribe.mock.calls.length)
           statusesInsideOnMutate.push(this.mutation.status())
         },
       }))
@@ -203,7 +199,6 @@ describe('injectMutation', () => {
     const fixture = TestBed.createComponent(TestComponent)
     fixture.detectChanges()
 
-    expect(subscriptionCountsInsideOnMutate).toEqual([1])
     expect(statusesInsideOnMutate).toEqual(['pending'])
     expect(fixture.componentInstance.mutation.status()).toBe('pending')
 

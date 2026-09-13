@@ -110,7 +110,7 @@ export type DefinedInitialDataOptions<
  *
  * @example
  * ```angular-ts
- * import { queryOptions, injectQuery } from '@tanstack/angular-query'
+ * import { queryOptions, injectQuery } from '@benjavicente/angular-query'
  *
  * export const postsOptions = queryOptions({
  *   queryKey: ['posts'],
@@ -161,7 +161,7 @@ export function queryOptions<
  * @example
  * A parameterized factory, so the same options object can be reused per `id`:
  * ```angular-ts
- * import { queryOptions, injectQuery } from '@tanstack/angular-query'
+ * import { queryOptions, injectQuery } from '@benjavicente/angular-query'
  *
  * export const postOptions = (id: string) =>
  *   queryOptions({
@@ -211,7 +211,7 @@ export function queryOptions<
  * @example
  * A parameterized factory, so the same options object can be reused per `id`:
  * ```angular-ts
- * import { queryOptions, injectQuery } from '@tanstack/angular-query'
+ * import { queryOptions, injectQuery } from '@benjavicente/angular-query'
  *
  * export const postOptions = (id: string) =>
  *   queryOptions({
@@ -240,7 +240,7 @@ export function queryOptions<
  * @example
  * A factory that disables the query, type safe, until `postId` is set:
  * ```angular-ts
- * import { queryOptions, skipToken, injectQuery } from '@tanstack/angular-query'
+ * import { queryOptions, skipToken, injectQuery } from '@benjavicente/angular-query'
  *
  * export const postOptions = (postId: number | undefined) =>
  *   queryOptions({

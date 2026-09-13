@@ -13,7 +13,7 @@ import {
 import { QueryClient, dehydrate, hydrate } from '@tanstack/query-core'
 import { INTERNAL_TANSTACK_QUERY_HYDRATION_TRANSFER_KEY } from './hydration-state-key'
 import type { DehydratedState } from '@tanstack/query-core'
-import type { EnvironmentProviders, Provider } from '@angular/core'
+import type { EnvironmentProviders } from '@angular/core'
 
 const INTERNAL_QUERY_CLIENT_SHOULD_HYDRATE = new InjectionToken<boolean>('', {
   providedIn: 'root',
@@ -47,14 +47,6 @@ function configureQueryClient() {
   destroyRef.onDestroy(() => queryClient.unmount())
 }
 
-function createQueryClientProvider(
-  queryClientFactoryOrToken: InjectionToken<QueryClient> | (() => QueryClient),
-): Provider {
-  return queryClientFactoryOrToken instanceof InjectionToken
-    ? { provide: QueryClient, useExisting: queryClientFactoryOrToken }
-    : { provide: QueryClient, useFactory: queryClientFactoryOrToken }
-}
-
 /**
  * Provides a `QueryClient` and optional TanStack Query features.
  * The factory runs once per injector in Angular's injection context, so it can
@@ -66,7 +58,7 @@ function createQueryClientProvider(
  * import {
  *   provideTanStackQuery,
  *   QueryClient,
- * } from '@tanstack/angular-query'
+ * } from '@benjavicente/angular-query'
  *
  * bootstrapApplication(AppComponent, {
  *   providers: [provideTanStackQuery(() => new QueryClient())],
@@ -77,8 +69,8 @@ function createQueryClientProvider(
  * default the tools will then be loaded when your app is in development mode.
  *
  * ```ts
- * import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query'
- * import { withDevtools } from '@tanstack/angular-query-devtools'
+ * import { provideTanStackQuery, QueryClient } from '@benjavicente/angular-query'
+ * import { withDevtools } from '@benjavicente/angular-query-devtools'
  *
  * bootstrapApplication(AppComponent, {
  *   providers: [
@@ -87,17 +79,7 @@ function createQueryClientProvider(
  * })
  * ```
  *
- * Use an `InjectionToken` when another provider owns client creation:
- *
- * ```ts
- * export const MY_QUERY_CLIENT = new InjectionToken('', {
- *   factory: () => new QueryClient(),
- * })
- *
- * providers: [provideTanStackQuery(MY_QUERY_CLIENT)]
- * ```
- *
- * @param queryClientFactoryOrToken - A `QueryClient` factory or an `InjectionToken` that resolves one.
+ * @param queryClientFactory - Creates or resolves a `QueryClient` in the injection context.
  * @param features - Optional features to configure additional Query functionality.
  * @returns A single {@link EnvironmentProviders} value (do not spread into `providers`).
  * @see https://tanstack.com/query/v5/docs/framework/angular/quick-start
@@ -105,11 +87,11 @@ function createQueryClientProvider(
  * @see https://tanstack.com/query/latest/docs/framework/angular/guides/ssr
  */
 export function provideTanStackQuery(
-  queryClientFactoryOrToken: InjectionToken<QueryClient> | (() => QueryClient),
+  queryClientFactory: () => QueryClient,
   ...features: ReadonlyArray<QueryFeature>
 ): EnvironmentProviders {
   return makeEnvironmentProviders([
-    createQueryClientProvider(queryClientFactoryOrToken),
+    { provide: QueryClient, useFactory: queryClientFactory },
     ...features.map(getQueryFeatureProviders),
     provideEnvironmentInitializer(configureQueryClient),
   ])
@@ -118,9 +100,11 @@ export function provideTanStackQuery(
 const queryFeatureBrand: unique symbol = Symbol('QueryFeature')
 
 /**
- * Helper type to represent a Query feature.
+ * Opaque configuration returned by Query feature functions such as `withHydrationKey`.
+ * Pass features to `provideTanStackQuery`; applications do not construct them directly.
  */
 export interface QueryFeature {
+  /** @internal */
   readonly [queryFeatureBrand]: true
 }
 
@@ -129,7 +113,8 @@ interface InternalQueryFeature extends QueryFeature {
 }
 
 /**
- * Helper function to create an object that represents a Query feature.
+ * Creates a feature shared by Angular Query integration packages.
+ * @internal
  * @param providers -
  * @returns A Query feature.
  */
@@ -142,6 +127,7 @@ export function queryFeature(providers: EnvironmentProviders): QueryFeature {
   return feature
 }
 
+/** @internal */
 export function getQueryFeatureProviders(
   feature: QueryFeature,
 ): EnvironmentProviders {

@@ -1,4 +1,4 @@
-import { QueryClient, provideIsRestoring } from '@benjavicente/angular-query'
+import { QueryClient } from '@benjavicente/angular-query'
 import {
   DestroyRef,
   InjectionToken,
@@ -8,7 +8,10 @@ import {
   provideEnvironmentInitializer,
   signal,
 } from '@angular/core'
-import { queryFeature } from '@benjavicente/angular-query/internal'
+import {
+  provideIsRestoring,
+  queryFeature,
+} from '@benjavicente/angular-query/internal'
 import { isPlatformBrowser } from '@angular/common'
 import {
   persistQueryClientRestore,

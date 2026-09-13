@@ -1,12 +1,8 @@
 import { TestBed } from '@angular/core/testing'
 import { describe, expect, it } from 'vitest'
 import { InjectionToken, inject, signal } from '@angular/core'
-import {
-  QueryClient,
-  injectIsRestoring,
-  provideIsRestoring,
-  provideTanStackQuery,
-} from '..'
+import { provideIsRestoring } from '../internal'
+import { QueryClient, injectIsRestoring, provideTanStackQuery } from '..'
 import { provideAngularQueryChangeDetection } from './test-utils'
 
 describe('injectIsRestoring', () => {
@@ -27,25 +23,6 @@ describe('injectIsRestoring', () => {
     })
 
     expect(isRestoring()).toBe(false)
-  })
-
-  it('returns provided signal value when provideIsRestoring is used', () => {
-    queryClient = new QueryClient()
-    const restoringSignal = signal(true)
-
-    TestBed.configureTestingModule({
-      providers: [
-        provideAngularQueryChangeDetection(),
-        provideTanStackQuery(() => queryClient),
-        provideIsRestoring(restoringSignal.asReadonly()),
-      ],
-    })
-
-    const isRestoring = TestBed.runInInjectionContext(() => {
-      return injectIsRestoring()
-    })
-
-    expect(isRestoring()).toBe(true)
   })
 
   it('resolves a restoration signal factory in the injection context', () => {

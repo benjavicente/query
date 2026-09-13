@@ -14,10 +14,10 @@
   />
 </picture>
 
-[![npm version](https://img.shields.io/npm/v/@tanstack/angular-query)](https://www.npmjs.com/package/@tanstack/angular-query)
-[![npm license](https://img.shields.io/npm/l/@tanstack/angular-query)](https://github.com/TanStack/query/blob/main/LICENSE)
-[![bundle size](https://img.shields.io/bundlephobia/minzip/@tanstack/angular-query)](https://bundlephobia.com/package/@tanstack/angular-query)
-[![npm](https://img.shields.io/npm/dm/@tanstack/angular-query)](https://www.npmjs.com/package/@tanstack/angular-query)
+[![npm version](https://img.shields.io/npm/v/@benjavicente/angular-query)](https://www.npmjs.com/package/@benjavicente/angular-query)
+[![npm license](https://img.shields.io/npm/l/@benjavicente/angular-query)](https://github.com/TanStack/query/blob/main/LICENSE)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/@benjavicente/angular-query)](https://bundlephobia.com/package/@benjavicente/angular-query)
+[![npm](https://img.shields.io/npm/dm/@benjavicente/angular-query)](https://www.npmjs.com/package/@benjavicente/angular-query)
 
 # Angular Query
 
@@ -46,25 +46,25 @@ Visit https://tanstack.com/query/latest/docs/framework/angular/overview
 1. Install `angular-query`
 
 ```bash
-$ npm i @tanstack/angular-query
+$ npm i @benjavicente/angular-query
 ```
 
 or
 
 ```bash
-$ pnpm add @tanstack/angular-query
+$ pnpm add @benjavicente/angular-query
 ```
 
 or
 
 ```bash
-$ yarn add @tanstack/angular-query
+$ yarn add @benjavicente/angular-query
 ```
 
 or
 
 ```bash
-$ bun add @tanstack/angular-query
+$ bun add @benjavicente/angular-query
 ```
 
 2. Initialize **TanStack Query** by adding **provideTanStackQuery** to your application
@@ -72,7 +72,7 @@ $ bun add @tanstack/angular-query
 Pass a factory; Angular runs it once per injector and in an injection context.
 
 ```ts
-import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query'
+import { provideTanStackQuery, QueryClient } from '@benjavicente/angular-query'
 
 bootstrapApplication(AppComponent, {
   providers: [provideTanStackQuery(() => new QueryClient())],
@@ -82,7 +82,7 @@ bootstrapApplication(AppComponent, {
 3. Inject query
 
 ```ts
-import { injectQuery } from '@tanstack/angular-query'
+import { injectQuery } from '@benjavicente/angular-query'
 import { Component } from '@angular/core'
 
 @Component({...})

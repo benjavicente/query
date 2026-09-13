@@ -3,16 +3,15 @@ id: QueryFeature
 title: QueryFeature
 ---
 
-Defined in: [packages/angular-query/src/providers.ts:123](https://github.com/TanStack/query/blob/main/packages/angular-query/src/providers.ts#L123)
-
-Helper type to represent a Query feature.
-
-## Properties
-
-### \[queryFeatureBrand\]
+An opaque configuration returned by Query feature functions. Pass these values to
+`provideTanStackQuery`; application code does not construct or inspect them.
 
 ```ts
-readonly [queryFeatureBrand]: true;
+provideTanStackQuery(
+  () => new QueryClient(),
+  withHydrationKey('secondary-cache'),
+)
 ```
 
-Defined in: [packages/angular-query/src/providers.ts:124](https://github.com/TanStack/query/blob/main/packages/angular-query/src/providers.ts#L124)
+See [provideTanStackQuery](../functions/provideTanStackQuery.md) for provider setup
+and [SSR](../../guides/ssr.md) for hydration features.

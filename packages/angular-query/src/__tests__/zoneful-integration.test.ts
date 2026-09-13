@@ -8,12 +8,12 @@ import {
 } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { provideIsRestoring } from '../internal'
 import {
   QueryClient,
   injectMutation,
   injectQueries,
   injectQuery,
-  provideIsRestoring,
   provideTanStackQuery,
 } from '..'
 
@@ -108,7 +108,7 @@ describe('Zone.js notification integration', () => {
       providers: [
         provideZoneChangeDetection(),
         provideTanStackQuery(() => queryClient),
-        provideIsRestoring(isRestoring.asReadonly()),
+        provideIsRestoring(() => isRestoring.asReadonly()),
       ],
     })
 

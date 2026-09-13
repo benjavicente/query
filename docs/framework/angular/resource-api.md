@@ -10,7 +10,7 @@ familiar Resource shape.
 
 ```ts
 import { Component, input } from '@angular/core'
-import { injectQuery, toResource } from '@tanstack/angular-query'
+import { injectQuery, toResource } from '@benjavicente/angular-query'
 
 @Component({
   selector: 'todo-detail',
@@ -23,10 +23,13 @@ import { injectQuery, toResource } from '@tanstack/angular-query'
 export class TodoDetail {
   readonly id = input.required<number>()
 
-  readonly todoQuery = injectQuery(() => ({
-    queryKey: ['todo', this.id()],
-    queryFn: () => fetchTodo(this.id()),
-  }))
+  readonly todoQuery = injectQuery(() => {
+    const id = this.id()
+    return {
+      queryKey: ['todo', id],
+      queryFn: () => fetchTodo(id),
+    }
+  })
 
   readonly todo = toResource(this.todoQuery)
 }
@@ -72,7 +75,7 @@ factory returns `toResource(query)`.
 ```ts
 import { Component, inject, signal } from '@angular/core'
 import { form, validateAsync } from '@angular/forms/signals'
-import { injectQuery, toResource } from '@tanstack/angular-query'
+import { injectQuery, toResource } from '@benjavicente/angular-query'
 
 type UsernameValidation = {
   available: boolean
@@ -92,12 +95,15 @@ export class RegistrationForm {
       params: ({ value }) => value().trim() || undefined,
       factory: (username) =>
         toResource(
-          injectQuery(() => ({
-            queryKey: ['username-availability', username()],
-            enabled: !!username(),
-            queryFn: (): Promise<UsernameValidation> =>
-              this.users.checkUsername(username()!),
-          })),
+          injectQuery(() => {
+            const name = username()
+            return {
+              queryKey: ['username-availability', name],
+              enabled: !!name,
+              queryFn: (): Promise<UsernameValidation> =>
+                this.users.checkUsername(name!),
+            }
+          }),
         ),
       onSuccess: (result) =>
         result?.available

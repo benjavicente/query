@@ -2,8 +2,10 @@ import type { PersistQueryClientOptions as PersistQueryClientOptionsCore } from 
 
 export type PersistQueryClientUserOptions = {
   persistOptions: Omit<PersistQueryClientOptionsCore, 'queryClient'>
-  onSuccess?: () => Promise<unknown> | unknown
-  onError?: () => Promise<unknown> | unknown
+  /** Called after restoration succeeds. A returned promise is awaited. */
+  onSuccess?: () => unknown
+  /** Called if restoration fails. A returned promise is awaited. */
+  onError?: () => unknown
 }
 
 /**

@@ -11,14 +11,14 @@ sections cover the breaking configuration and entrypoint changes.
 
 ```bash
 npm uninstall @tanstack/angular-query-experimental
-npm install @tanstack/angular-query
+npm install @benjavicente/angular-query
 ```
 
 Angular 20.1 or newer is required by the stable package.
 
 ```ts
 import { injectQuery } from '@tanstack/angular-query-experimental' // [!code --]
-import { injectQuery } from '@tanstack/angular-query' // [!code ++]
+import { injectQuery } from '@benjavicente/angular-query' // [!code ++]
 ```
 
 ## Provide a client factory
@@ -60,19 +60,19 @@ const queryClient = inject(QueryClient) // [!code ++]
 Devtools no longer ship as entrypoints of the core Angular package.
 
 ```bash
-npm install @tanstack/angular-query-devtools
+npm install @benjavicente/angular-query-devtools
 ```
 
 ```ts
 import { withDevtools } from '@tanstack/angular-query-experimental/devtools' // [!code --]
-import { withDevtools } from '@tanstack/angular-query-devtools' // [!code ++]
+import { withDevtools } from '@benjavicente/angular-query-devtools' // [!code ++]
 ```
 
 The production and panel entrypoints move in the same way:
 
 ```ts
 import { withDevtools } from '@tanstack/angular-query-experimental/devtools/production' // [!code --]
-import { withDevtools } from '@tanstack/angular-query-devtools/production' // [!code ++]
+import { withDevtools } from '@benjavicente/angular-query-devtools/production' // [!code ++]
 ```
 
 The devtools options callback now runs in an injection context. Remove the `deps` option and call
@@ -99,7 +99,7 @@ injection context.
 import {
   injectQueries, // [!code --]
 } from '@tanstack/angular-query-experimental/inject-queries-experimental' // [!code --]
-import { injectQueries } from '@tanstack/angular-query' // [!code ++]
+import { injectQueries } from '@benjavicente/angular-query' // [!code ++]
 
 const getQueries = () => ({ queries })
 const results = injectQueries(getQueries, injector) // [!code --]
@@ -253,5 +253,15 @@ withPersistQueryClient(() => ({
 
 The factory runs once per injector, in an injection context, only in the browser.
 Create persisters that access `localStorage` inside this factory.
-For custom restoration integrations, use `provideIsRestoring(restoringSignal)`
-or `provideIsRestoring(() => inject(StorageService).isRestoring)`.
+
+## QueryClient factories
+
+`provideTanStackQuery` accepts a factory. If another provider already owns the client,
+resolve it inside that factory:
+
+```ts
+provideTanStackQuery(() => inject(MY_QUERY_CLIENT))
+```
+
+Replace direct token arguments with this form. Persistence manages its restoration
+state automatically through `withPersistQueryClient`.

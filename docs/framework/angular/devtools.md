@@ -11,10 +11,10 @@ title: Devtools
 
 ## Enable devtools
 
-Add the devtools package (in addition to `@tanstack/angular-query`):
+Add the devtools package (in addition to `@benjavicente/angular-query`):
 
 ```bash
-npm install @tanstack/angular-query-devtools
+npm install @benjavicente/angular-query-devtools
 ```
 
 The devtools help you debug and inspect your queries and mutations. You can enable the devtools by adding `withDevtools` to `provideTanStackQuery`.
@@ -22,9 +22,9 @@ The devtools help you debug and inspect your queries and mutations. You can enab
 By default, Angular Query Devtools only load in development.
 
 ```ts
-import { QueryClient, provideTanStackQuery } from '@tanstack/angular-query'
+import { QueryClient, provideTanStackQuery } from '@benjavicente/angular-query'
 
-import { withDevtools } from '@tanstack/angular-query-devtools'
+import { withDevtools } from '@benjavicente/angular-query-devtools'
 
 export const appConfig: ApplicationConfig = {
   providers: [provideTanStackQuery(() => new QueryClient(), withDevtools())],
@@ -36,7 +36,7 @@ export const appConfig: ApplicationConfig = {
 If you need the real implementation in production, import from the `production` entrypoint.
 
 ```ts
-import { withDevtools } from '@tanstack/angular-query-devtools/production'
+import { withDevtools } from '@benjavicente/angular-query-devtools/production'
 ```
 
 To control when devtools are rendered, use the `loadDevtools` option.
@@ -44,7 +44,7 @@ To control when devtools are rendered, use the `loadDevtools` option.
 When omitted or set to `'auto'`, devtools are only rendered in development mode.
 
 ```ts
-import { withDevtools } from '@tanstack/angular-query-devtools'
+import { withDevtools } from '@benjavicente/angular-query-devtools'
 
 providers: [provideTanStackQuery(() => new QueryClient(), withDevtools())]
 
@@ -64,7 +64,7 @@ This is useful if you want to load devtools based on [Angular environment config
 ```ts
 import { environment } from './environments/environment'
 // Make sure to use the production sub-path to load devtools in production builds
-import { withDevtools } from '@tanstack/angular-query-devtools/production'
+import { withDevtools } from '@benjavicente/angular-query-devtools/production'
 
 providers: [
   provideTanStackQuery(
@@ -96,12 +96,12 @@ Create an application-level import that can be replaced:
 
 ```ts
 // src/app/query-devtools.ts
-export { withDevtools } from '@tanstack/angular-query-devtools/production'
+export { withDevtools } from '@benjavicente/angular-query-devtools/production'
 ```
 
 ```ts
 // src/app/query-devtools.stub.ts
-export { withDevtools } from '@tanstack/angular-query-devtools/stub'
+export { withDevtools } from '@benjavicente/angular-query-devtools/stub'
 ```
 
 Import the application-level module from your config:
@@ -128,8 +128,8 @@ Then configure the production build:
 ```
 
 The same pattern is available for the programmatic panel:
-`@tanstack/angular-query-devtools/devtools-panel/production` and
-`@tanstack/angular-query-devtools/devtools-panel/stub`.
+`@benjavicente/angular-query-devtools/devtools-panel/production` and
+`@benjavicente/angular-query-devtools/devtools-panel/stub`.
 
 ## Reactive options
 
@@ -164,7 +164,7 @@ The callback runs once in an Angular injection context, so it can call
 // ...
 // 👇 Import from the production sub-path to make devtools available in production builds
 import { inject } from '@angular/core'
-import { withDevtools } from '@tanstack/angular-query-devtools/production'
+import { withDevtools } from '@benjavicente/angular-query-devtools/production'
 
 export const appConfig: ApplicationConfig = {
   providers: [

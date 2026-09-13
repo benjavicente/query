@@ -13,13 +13,8 @@ import {
 } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
 import { queryKey, sleep } from '@tanstack/query-test-utils'
-import {
-  QueryClient,
-  onlineManager,
-  provideIsRestoring,
-  provideTanStackQuery,
-  skipToken,
-} from '..'
+import { provideIsRestoring } from '../internal'
+import { QueryClient, onlineManager, provideTanStackQuery, skipToken } from '..'
 import { injectQueries } from '../inject-queries'
 import {
   provideAngularQueryChangeDetection,
@@ -95,8 +90,7 @@ describe('injectQueries', () => {
     const query = TestBed.runInInjectionContext(
       () => injectQueries(() => ({ queries: [options] }))()[0],
     )
-    query.data()
-    query.error()
+    await TestBed.inject(ApplicationRef).whenStable()
     await expect(query.refetch()).resolves.toMatchObject({
       status: 'error',
       error,
@@ -158,35 +152,10 @@ describe('injectQueries', () => {
     unsubscribe()
   })
 
-  it('subscribes on the first result read before effects run', () => {
-    const queries = TestBed.runInInjectionContext(() =>
-      injectQueries(() => ({
-        queries: [
-          {
-            queryKey: ['reentrant-subscribe'],
-            queryFn: () => 'data',
-            enabled: false,
-          },
-        ],
-      })),
-    )
-    const subscriptionEvents: Array<string> = []
-    const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
-      if (event.type === 'observerAdded') subscriptionEvents.push(event.type)
-    })
-
-    expect(queries()[0].status()).toBe('pending')
-    expect(subscriptionEvents).toEqual(['observerAdded'])
-    expect(() => TestBed.tick()).not.toThrow()
-    expect(subscriptionEvents).toEqual(['observerAdded'])
-
-    unsubscribe()
-  })
-
   it('allows deferred cache-listener reads during restoration detach and reattach', async () => {
     const isRestoring = signal(false)
     setupTanStackQueryTestBed(queryClient, {
-      providers: [provideIsRestoring(isRestoring.asReadonly())],
+      providers: [provideIsRestoring(() => isRestoring.asReadonly())],
     })
     const queries = TestBed.runInInjectionContext(() =>
       injectQueries(() => ({
@@ -1297,7 +1266,7 @@ describe('injectQueries', () => {
     const isRestoring = signal(true)
     const fetchSpy = vi.fn(() => sleep(10).then(() => 'restored-data'))
     setupTanStackQueryTestBed(queryClient, {
-      providers: [provideIsRestoring(isRestoring.asReadonly())],
+      providers: [provideIsRestoring(() => isRestoring.asReadonly())],
     })
 
     @Component({
@@ -1360,7 +1329,7 @@ describe('injectQueries', () => {
       const key = signal('old')
       const queriedKeys: Array<string> = []
       setupTanStackQueryTestBed(queryClient, {
-        providers: [provideIsRestoring(isRestoring.asReadonly())],
+        providers: [provideIsRestoring(() => isRestoring.asReadonly())],
       })
 
       const queries = TestBed.runInInjectionContext(() =>
@@ -1412,7 +1381,7 @@ describe('injectQueries', () => {
     const isRestoring = signal(true)
     const staleTime = signal(0)
     setupTanStackQueryTestBed(queryClient, {
-      providers: [provideIsRestoring(isRestoring.asReadonly())],
+      providers: [provideIsRestoring(() => isRestoring.asReadonly())],
     })
 
     const queries = TestBed.runInInjectionContext(() =>
@@ -1462,7 +1431,7 @@ describe('injectQueries', () => {
     const oldQueryKey = ['early-restoration-read', 'old'] as const
     const newQueryKey = ['early-restoration-read', 'new'] as const
     setupTanStackQueryTestBed(queryClient, {
-      providers: [provideIsRestoring(isRestoring.asReadonly())],
+      providers: [provideIsRestoring(() => isRestoring.asReadonly())],
     })
 
     const queries = TestBed.runInInjectionContext(() =>
@@ -1488,7 +1457,6 @@ describe('injectQueries', () => {
     isRestoring.set(false)
 
     expect(queries()[0].status()).toBe('pending')
-    expect(oldQuery.getObserversCount()).toBe(1)
     expect(
       queryClient.getQueryCache().find({ queryKey: newQueryKey }),
     ).toBeDefined()

@@ -61,10 +61,9 @@ export function injectBaseQuery<
   })
 
   // The observer is intentionally lazy so options may read required inputs. Its
-  // first construction and subscription can synchronously emit QueryCache
-  // events; a listener for either initial event must not re-enter this same,
-  // not-yet-initialized result. Subscription setup and cleanup must not synchronously read
-  // this result during reconciliation.
+  // first construction can synchronously emit QueryCache events; a listener
+  // must not re-enter this same, not-yet-initialized result. Subscription setup
+  // and cleanup run in an effect, where result reads are safe.
   const observerSignal = computed(
     () => new Observer(queryClient, untracked(defaultedOptionsSignal)),
   )
@@ -105,13 +104,12 @@ export function injectBaseQuery<
     }
   })
 
-  // Every imperative method uses current options and initializes observation
-  // before starting work, even when invoked before Angular's effects run.
+  // Imperative methods use current options before starting work, even when
+  // invoked before the subscription effect runs.
   const getObserver = () =>
     untracked(() => {
       const observer = observerSignal()
       observer.setOptions(defaultedOptionsSignal())
-      resultSignal()
       return observer
     })
 

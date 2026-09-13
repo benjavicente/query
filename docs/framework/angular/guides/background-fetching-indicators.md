@@ -6,7 +6,7 @@ replace:
   {
     'useIsFetching': 'injectIsFetching',
     'hook': 'function',
-    '@tanstack/react-query': '@tanstack/angular-query',
+    '@tanstack/react-query': '@benjavicente/angular-query',
   }
 ---
 
@@ -42,7 +42,7 @@ class TodosComponent {
 [//]: # 'Example2'
 
 ```angular-ts
-import { injectIsFetching } from '@tanstack/angular-query'
+import { injectIsFetching } from '@benjavicente/angular-query'
 
 @Component({
   selector: 'global-loading-indicator',
@@ -68,4 +68,4 @@ readonly isFetching = injectIsFetching(() => ({ queryKey: ['todos', this.userId(
 readonly isMutating = injectIsMutating(() => ({ mutationKey: ['save', this.userId()] }))
 ```
 
-The count updates when these dependencies change, without reconnecting the cache subscription.
+The count updates when these dependencies change.

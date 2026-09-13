@@ -13,7 +13,8 @@ Pass a factory to `provideTanStackQuery`. Angular runs it once per injector and 
 
 ```ts
 import { provideHttpClient } from '@angular/common/http'
-import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query'
+import { bootstrapApplication } from '@angular/platform-browser'
+import { provideTanStackQuery, QueryClient } from '@benjavicente/angular-query'
 
 bootstrapApplication(AppComponent, {
   providers: [
@@ -34,7 +35,7 @@ import {
   injectMutation,
   injectQuery,
   QueryClient,
-} from '@tanstack/angular-query'
+} from '@benjavicente/angular-query'
 
 @Component({
   template: `

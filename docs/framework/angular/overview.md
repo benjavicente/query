@@ -3,7 +3,7 @@ id: overview
 title: Overview
 ---
 
-The `@tanstack/angular-query` package offers a 1st-class API for using TanStack Query via Angular.
+The `@benjavicente/angular-query` package offers a 1st-class API for using TanStack Query via Angular.
 
 If you have any feedback, please contact us at the [TanStack Discord](https://tlinz.com/discord) server or [visit this discussion](https://github.com/TanStack/query/discussions/6293) on Github.
 
@@ -59,8 +59,7 @@ In the example below, you can see TanStack Query in its most basic and simple fo
 ```angular-ts
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
 import { HttpClient } from '@angular/common/http'
-import { CommonModule } from '@angular/common'
-import { injectQuery } from '@tanstack/angular-query'
+import { injectQuery } from '@benjavicente/angular-query'
 import { lastValueFrom } from 'rxjs'
 
 @Component({

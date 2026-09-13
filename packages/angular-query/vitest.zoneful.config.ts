@@ -25,6 +25,7 @@ if (config.test) {
     '**/zoneful-integration.test.ts',
     '**/pending-tasks.test.ts',
     '**/upstream-issues.test.ts',
+    '**/inject-external-store.test.ts',
   ]
   config.test.exclude = []
 }

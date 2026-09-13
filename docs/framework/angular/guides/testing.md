@@ -46,7 +46,7 @@ const query = TestBed.runInInjectionContext(() =>
   })),
 )
 
-TestBed.tick() // Trigger effect
+TestBed.tick() // Synchronize the test application
 
 // Application is stable when queries are idle
 await appRef.whenStable()
@@ -102,7 +102,7 @@ const query = TestBed.runInInjectionContext(() =>
   })),
 )
 
-TestBed.tick() // Initialize the query subscription and start the request
+TestBed.tick() // Synchronize the test application so the request starts
 const fixturePromise = TestBed.inject(ApplicationRef).whenStable()
 httpCtrl.expectOne('/api/todos').flush([{ id: 1 }])
 await fixturePromise
@@ -110,6 +110,17 @@ await fixturePromise
 expect(query.data()).toEqual([{ id: 1 }])
 httpCtrl.verify()
 ```
+
+Test observable results after normal Angular initialization and updates. For components, render
+with `fixture.detectChanges()` and await `fixture.whenStable()` when the operation should finish.
+For injection-context-only tests, synchronize the test application as shown above. When using
+HTTP mocks or fake timers, flush the request or advance time before awaiting stability.
+
+Avoid asserting an exact subscription order or a stale intermediate value during initialization.
+Those are implementation details. To test pending mutation or fetching state, hold the operation
+open with a controlled promise and assert after rendering; do not await stability until you
+resolve that promise. To test completed state, resolve the operation and await stability before
+asserting the result.
 
 ## Infinite queries & pagination
 
@@ -146,7 +157,7 @@ const mutation = TestBed.runInInjectionContext(() =>
 
 mutation.mutate('test')
 
-// Trigger effect
+// Synchronize the test application
 TestBed.tick()
 
 await appRef.whenStable()

@@ -20,7 +20,7 @@ postTodoMutation = injectMutation(() => ({
 import {
   injectMutation,
   QueryClient,
-} from '@tanstack/angular-query'
+} from '@benjavicente/angular-query'
 
 export class TodosComponent {
   readonly queryClient = inject(QueryClient)

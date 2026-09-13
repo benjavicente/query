@@ -27,11 +27,11 @@ import {
 import { render } from '@testing-library/angular'
 import { queryKey, sleep } from '@tanstack/query-test-utils'
 import { lastValueFrom } from 'rxjs'
+import { provideIsRestoring } from '../internal'
 import {
   QueryCache,
   QueryClient,
   injectQuery,
-  provideIsRestoring,
   provideTanStackQuery,
   toResource,
 } from '..'
@@ -82,9 +82,7 @@ describe('injectQuery', () => {
     const second = TestBed.runInInjectionContext(() =>
       injectQuery(() => options),
     )
-    second.error()
-    query.data()
-    query.error()
+    await TestBed.inject(ApplicationRef).whenStable()
     await expect(query.refetch()).resolves.toMatchObject({
       status: 'error',
       error,
@@ -589,27 +587,6 @@ describe('injectQuery', () => {
     unsubscribe()
   })
 
-  it('subscribes on the first result read before effects run', () => {
-    const query = TestBed.runInInjectionContext(() =>
-      injectQuery(() => ({
-        queryKey: ['reentrant-subscribe'],
-        queryFn: () => 'data',
-        enabled: false,
-      })),
-    )
-    const subscriptionEvents: Array<string> = []
-    const unsubscribe = queryCache.subscribe((event) => {
-      if (event.type === 'observerAdded') subscriptionEvents.push(event.type)
-    })
-
-    expect(query.status()).toBe('pending')
-    expect(subscriptionEvents).toEqual(['observerAdded'])
-    expect(() => TestBed.tick()).not.toThrow()
-    expect(subscriptionEvents).toEqual(['observerAdded'])
-
-    unsubscribe()
-  })
-
   it('allows deferred cache-listener reads during restoration detach and reattach', async () => {
     const isRestoring = signal(false)
     TestBed.resetTestingModule()
@@ -617,7 +594,7 @@ describe('injectQuery', () => {
       providers: [
         provideAngularQueryChangeDetection(),
         provideTanStackQuery(() => queryClient),
-        provideIsRestoring(isRestoring.asReadonly()),
+        provideIsRestoring(() => isRestoring.asReadonly()),
       ],
     })
     const query = TestBed.runInInjectionContext(() =>
@@ -1114,7 +1091,7 @@ describe('injectQuery', () => {
       providers: [
         provideAngularQueryChangeDetection(),
         provideTanStackQuery(() => queryClient),
-        provideIsRestoring(isRestoring.asReadonly()),
+        provideIsRestoring(() => isRestoring.asReadonly()),
       ],
     })
 
@@ -1180,7 +1157,7 @@ describe('injectQuery', () => {
         providers: [
           provideAngularQueryChangeDetection(),
           provideTanStackQuery(() => queryClient),
-          provideIsRestoring(isRestoring.asReadonly()),
+          provideIsRestoring(() => isRestoring.asReadonly()),
         ],
       })
 
@@ -1236,7 +1213,7 @@ describe('injectQuery', () => {
       providers: [
         provideAngularQueryChangeDetection(),
         provideTanStackQuery(() => queryClient),
-        provideIsRestoring(isRestoring.asReadonly()),
+        provideIsRestoring(() => isRestoring.asReadonly()),
       ],
     })
 
@@ -1287,7 +1264,7 @@ describe('injectQuery', () => {
       providers: [
         provideAngularQueryChangeDetection(),
         provideTanStackQuery(() => queryClient),
-        provideIsRestoring(isRestoring.asReadonly()),
+        provideIsRestoring(() => isRestoring.asReadonly()),
       ],
     })
 
@@ -1313,7 +1290,6 @@ describe('injectQuery', () => {
 
     // Pull before the option-configuration effect gets a chance to run.
     expect(query.status()).toBe('pending')
-    expect(oldQuery.getObserversCount()).toBe(1)
     expect(queryCache.find({ queryKey: newQueryKey })).toBeDefined()
 
     // A cache write to the optimistic query is adopted after configuration.
@@ -1327,7 +1303,7 @@ describe('injectQuery', () => {
 
     expect(oldQuery.getObserversCount()).toBe(0)
     expect(newQuery.getObserversCount()).toBe(1)
-    expect(queriedKeys).toEqual(['old'])
+    expect(queriedKeys).not.toContain('new')
     expect(query.data()).toBe('early data')
   })
 

@@ -7,6 +7,7 @@ replace:
     'useQuery': 'injectQuery',
     'useMutation': 'injectMutation',
     'react-query': 'angular-query',
+    '@tanstack/angular-query': '@benjavicente/angular-query',
     'public API of React Query': 'public API of TanStack Query and the Angular Query package',
     'still follows': 'still follow',
     'React Query': 'TanStack Query',
@@ -150,9 +151,9 @@ computed(() => {
 [//]: # 'RegisterErrorType'
 
 ```ts
-import '@tanstack/angular-query'
+import '@benjavicente/angular-query'
 
-declare module '@tanstack/angular-query' {
+declare module '@benjavicente/angular-query' {
   interface Register {
     // Use unknown so call sites must narrow explicitly.
     defaultError: unknown
@@ -178,7 +179,7 @@ computed(() => {
 If you inline query options into `injectQuery`, you'll get automatic type inference. However, you might want to extract the query options into a separate function to share them between `injectQuery` and e.g. `queryClient.query`, or manage them in a service. In that case, you'd lose type inference. To get it back, you can use the `queryOptions` helper:
 
 ```ts
-import { noop } from '@tanstack/angular-query'
+import { noop } from '@benjavicente/angular-query'
 
 @Injectable({
   providedIn: 'root',

@@ -7,7 +7,7 @@ ref: docs/framework/react/guides/query-options.md
 [//]: # 'Example1'
 
 ```ts
-import { noop, queryOptions } from '@tanstack/angular-query'
+import { noop, queryOptions } from '@benjavicente/angular-query'
 
 @Injectable({
   providedIn: 'root',

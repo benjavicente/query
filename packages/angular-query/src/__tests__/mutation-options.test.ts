@@ -1,3 +1,4 @@
+import { Component } from '@angular/core'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TestBed } from '@angular/core/testing'
 import { QueryClient } from '@tanstack/query-core'
@@ -55,10 +56,14 @@ describe('mutationOptions', () => {
       mutationFn: () => sleep(50).then(() => 'data'),
     })
 
-    const [mutation, isMutating] = TestBed.runInInjectionContext(() => [
-      injectMutation(() => mutationOpts),
-      injectIsMutating(),
-    ])
+    @Component({ template: '' })
+    class Host {
+      readonly mutation = injectMutation(() => mutationOpts)
+      readonly isMutating = injectIsMutating()
+    }
+    const fixture = TestBed.createComponent(Host)
+    fixture.detectChanges()
+    const { mutation, isMutating } = fixture.componentInstance
 
     expect(isMutating()).toBe(0)
 
@@ -75,10 +80,14 @@ describe('mutationOptions', () => {
       mutationFn: () => sleep(50).then(() => 'data'),
     })
 
-    const [mutation, isMutating] = TestBed.runInInjectionContext(() => [
-      injectMutation(() => mutationOpts),
-      injectIsMutating(),
-    ])
+    @Component({ template: '' })
+    class Host {
+      readonly mutation = injectMutation(() => mutationOpts)
+      readonly isMutating = injectIsMutating()
+    }
+    const fixture = TestBed.createComponent(Host)
+    fixture.detectChanges()
+    const { mutation, isMutating } = fixture.componentInstance
 
     expect(isMutating()).toBe(0)
 
@@ -100,13 +109,15 @@ describe('mutationOptions', () => {
       mutationFn: () => sleep(50).then(() => 'data2'),
     })
 
-    const [mutation1, mutation2, isMutating] = TestBed.runInInjectionContext(
-      () => [
-        injectMutation(() => mutationOpts1),
-        injectMutation(() => mutationOpts2),
-        injectIsMutating(),
-      ],
-    )
+    @Component({ template: '' })
+    class Host {
+      readonly mutation1 = injectMutation(() => mutationOpts1)
+      readonly mutation2 = injectMutation(() => mutationOpts2)
+      readonly isMutating = injectIsMutating()
+    }
+    const fixture = TestBed.createComponent(Host)
+    fixture.detectChanges()
+    const { mutation1, mutation2, isMutating } = fixture.componentInstance
 
     expect(isMutating()).toBe(0)
 
@@ -129,13 +140,17 @@ describe('mutationOptions', () => {
       mutationFn: () => sleep(50).then(() => 'data2'),
     })
 
-    const [mutation1, mutation2, isMutating] = TestBed.runInInjectionContext(
-      () => [
-        injectMutation(() => mutationOpts1),
-        injectMutation(() => mutationOpts2),
-        injectIsMutating(() => ({ mutationKey: mutationOpts1.mutationKey })),
-      ],
-    )
+    @Component({ template: '' })
+    class Host {
+      readonly mutation1 = injectMutation(() => mutationOpts1)
+      readonly mutation2 = injectMutation(() => mutationOpts2)
+      readonly isMutating = injectIsMutating(() => ({
+        mutationKey: mutationOpts1.mutationKey,
+      }))
+    }
+    const fixture = TestBed.createComponent(Host)
+    fixture.detectChanges()
+    const { mutation1, mutation2, isMutating } = fixture.componentInstance
 
     expect(isMutating()).toBe(0)
 

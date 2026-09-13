@@ -30,7 +30,7 @@ export { injectIsFetching } from './inject-is-fetching'
 
 export { injectIsMutating } from './inject-is-mutating'
 
-export { injectIsRestoring, provideIsRestoring } from './inject-is-restoring'
+export { injectIsRestoring } from './inject-is-restoring'
 
 export { injectMutation } from './inject-mutation'
 

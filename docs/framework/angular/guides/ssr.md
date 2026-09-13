@@ -16,7 +16,7 @@ builds on the same setup with browser persistence.
 ```ts
 import { isPlatformBrowser } from '@angular/common'
 import { inject, PLATFORM_ID } from '@angular/core'
-import { QueryClient } from '@tanstack/angular-query'
+import { QueryClient } from '@benjavicente/angular-query'
 
 export function createQueryClient() {
   const isBrowser = isPlatformBrowser(inject(PLATFORM_ID))
@@ -48,8 +48,8 @@ import {
   withEventReplay,
   withNoHttpTransferCache,
 } from '@angular/platform-browser'
-import { provideTanStackQuery } from '@tanstack/angular-query'
-import { withDevtools } from '@tanstack/angular-query-devtools'
+import { provideTanStackQuery } from '@benjavicente/angular-query'
+import { withDevtools } from '@benjavicente/angular-query-devtools'
 import { createQueryClient } from './query-client'
 
 export const appConfig: ApplicationConfig = {

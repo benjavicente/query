@@ -6,6 +6,7 @@ replace:
   {
     'React': 'Angular',
     'react-query': 'angular-query',
+    '@tanstack/angular-query': '@benjavicente/angular-query',
     'promise': 'promise or observable',
     'custom hooks': 'services',
     'the `useQuery` hook': '`injectQuery`',
@@ -17,7 +18,7 @@ replace:
 [//]: # 'Example'
 
 ```ts
-import { injectQuery } from '@tanstack/angular-query'
+import { injectQuery } from '@benjavicente/angular-query'
 
 export class TodosComponent {
   readonly todosQuery = injectQuery(() => ({

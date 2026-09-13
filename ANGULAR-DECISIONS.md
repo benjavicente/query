@@ -86,7 +86,7 @@ Having the entrypoint for devtools in the same package could give false expectat
 // Old - devtools in the same package
 import { withDevtools } from '@tanstack/angular-query-experimental/devtools'
 // New - package for devtools
-import { withDevtools } from '@tanstack/angular-query-devtools'
+import { withDevtools } from '@benjavicente/angular-query-devtools'
 ```
 
 The Angular adapter statically imports the devtools implementation, matching the
@@ -107,10 +107,10 @@ Angular `fileReplacements` can be used when automatic conditions do not work:
 
 ```ts
 // src/app/query-devtools.ts
-export { withDevtools } from '@tanstack/angular-query-devtools/production'
+export { withDevtools } from '@benjavicente/angular-query-devtools/production'
 
 // src/app/query-devtools.stub.ts
-export { withDevtools } from '@tanstack/angular-query-devtools/stub'
+export { withDevtools } from '@benjavicente/angular-query-devtools/stub'
 ```
 
 ```json
@@ -160,7 +160,7 @@ import { injectQueries } from '@tanstack/angular-query-experimental/inject-queri
 const results = runInInjectionContext(injector, () => injectQueries(getQueries))
 
 // New
-import { injectQueries } from '@tanstack/angular-query'
+import { injectQueries } from '@benjavicente/angular-query'
 const results = runInInjectionContext(injector, () => injectQueries(getQueries))
 ```
 
@@ -194,12 +194,12 @@ Relatively simple to maintain integration for quick installing the package with 
 The only weird thing there is linking the devtools dependency version at build time.
 
 ```sh
-ng add @tanstack/angular-query
+ng add @benjavicente/angular-query
 ```
 
 That will:
 
-- Install `@tanstack/angular-query` and `@tanstack/angular-query-devtools`
+- Install `@benjavicente/angular-query` and `@benjavicente/angular-query-devtools`
 - Add the provider to the application if the application follows Angular conventions
 
 ### Resource API via `toResource`
@@ -306,11 +306,185 @@ This can produce additional consumer updates when selectors or combiners allocat
 
 ### Synchronous notifications and stability
 
+#### Why subscribing inside a computed is unsafe
+
+The problem is the external code that `subscribe()` can run synchronously. A read
+can start a fetch, invoke a cache listener, or update other signals before its
+surrounding computed has finished. `untracked` prevents dependency tracking; it
+neither postpones that code nor makes it safe to reenter an unfinished computed.
+
+These reduced examples illustrate the former subscribe-on-read approach. They omit
+subscription bookkeeping and teardown to isolate the first read. Adding a guard to
+subscribe only once does not fix either example.
+
+**Example 1: a subscription callback reenters an unfinished computed.**
+
+```ts
+import { computed, untracked } from '@angular/core'
+
+const store = {
+  getSnapshot: () => 1,
+  subscribe() {
+    // Represents a synchronous external listener invoked during setup.
+    summary()
+    return () => {}
+  },
+}
+
+const value = computed(() => {
+  untracked(() => store.subscribe())
+  return store.getSnapshot()
+})
+const summary = computed(() => `Value: ${value()}`)
+
+summary() // Throws: summary is already being evaluated.
+```
+
+The call chain is `summary → value → subscribe → summary`. Neither computed has
+finished when subscription setup asks for the summary again. Angular detects the
+cycle rather than returning a valid value. In Query, the equivalent is an
+`observerAdded` cache listener reading a query result while that result's first
+read is installing its observer subscription.
+
+**Example 2: subscription setup changes state halfway through a computation.**
+
+```ts
+import { computed, signal, untracked } from '@angular/core'
+
+const phase = signal('idle')
+let current = 0
+const store = {
+  getSnapshot: () => current,
+  subscribe() {
+    current = 1
+    phase.set('ready')
+    return () => {}
+  },
+}
+
+const value = computed(() => {
+  untracked(() => store.subscribe())
+  return store.getSnapshot()
+})
+const view = computed(() => ({ phase: phase(), value: value() }))
+
+view() // { phase: 'idle', value: 1 }
+phase() // 'ready'
+```
+
+`view` first captures the old phase. Reading `value` then subscribes, which changes
+both the store and the phase. The returned object combines the phase from before
+setup with the value from after setup. That pair does not represent either the
+initial state (`idle`, `0`) or the completed state (`ready`, `1`). A later
+recomputation cannot undo an inconsistent object already returned to a caller.
+Even rereading the store after subscribing cannot repair the phase captured by the
+outer computation.
+
+The replacement keeps subscription setup outside these computations. An effect
+subscribes and then invalidates the snapshot; subsequent reads derive current
+state without installing a subscription halfway through their evaluation. This
+also catches store changes between an early read and setup. The tradeoff is that
+an early cached snapshot can need normal Angular initialization to catch up;
+reads are not a synchronous connection API.
+
+This addresses side effects from **subscription setup**, not arbitrary impure
+snapshot getters or binding factories. Those still must not write to their inputs
+or recursively read the result. It also does not make separate store updates an
+atomic transaction.
+
+#### Chosen implementation and testing contract
+
 Architectural change. Subscriptions are inlined into their external-store bindings. Observer
 notifications invalidate signals directly, with no adapter batching, queued microtask, or zone
-wrapper. The external-store helper reconciles subscriptions on an effect or first read, uses
-tracked snapshot dependencies, and ignores retired connections. Its optional `lazy` mode is removed;
-there is one activation policy and snapshots remain lazily evaluated.
+wrapper. The adapter uses `inject-external-store`, which reconciles subscriptions
+only in an effect. Reading a result never starts or switches its subscription. The helper retains
+tracked snapshot dependencies and unsubscribes from previous sources. Binding factories and initial
+snapshots remain lazy so required inputs are not read during construction.
+
+Previously the first read could subscribe before effects ran. An already-read snapshot can now
+remain stale until the connection effect runs. After installing the listener, the effect invalidates
+the snapshot, closing the gap for changes before or during setup. The next read recomputes the
+value; snapshot equality prevents unchanged values from propagating. The same catch-up applies after
+source switches and restoration. Snapshots are never eagerly evaluated just to connect.
+There is no subscription-error state or custom retry policy: setup and cleanup failures follow
+Angular's effect error handling and do not replace readable snapshots. Factory and snapshot
+failures remain errors on reads. The effect's cleanup owns unsubscription; destruction does not
+force a new detached snapshot.
+
+Public signatures are unchanged. Imperative query and mutation methods still use current options,
+but no longer read a result solely to initialize observation. Once connected, cache notifications
+remain synchronous. Setup and cleanup can read results; recursive reads during binding factories
+or snapshot evaluation remain unsupported.
+
+Tests exercise component initialization, rendered values, cache changes, source replacement,
+restoration, and destruction. They should use normal Angular rendering/stability boundaries and
+assert the resulting state, without asserting which effect runs first, how many reads setup takes,
+or that an intermediate snapshot must be stale. The implementation's scheduling is not a public
+API guarantee. `inject-external-store.test.ts` covers the helper contract in both
+change-detection modes; the regular query and mutation suites cover adapter behavior. The former subscribe-on-read implementation has been
+removed. The design history and standalone version live in `~/Repos/angular-sub`, documented in
+`EFFECT-EXTERNAL-STORE.md` there.
+
+#### Why the destruction check remains
+
+An effect can be destroyed while its body is still executing. For example,
+`observer.subscribe()` can synchronously emit `observerAdded`; an external listener
+can close a dynamically created component using `ComponentRef.destroy()`. Destruction
+runs the effect's already-registered cleanup immediately, but does not interrupt the
+JavaScript call stack:
+
+```ts
+effect((onCleanup) => {
+  const unsubscribe = store.subscribe(notify) // External listener destroys the owner here.
+  onCleanup(unsubscribe) // Too late for the destruction that already happened.
+})
+```
+
+Angular's cleanup registration appends to the effect's cleanup list. It does not
+immediately execute a callback registered after destruction. Therefore the helper
+checks `owner.destroyed` after `subscribe()` returns and releases that subscription
+immediately if needed. The earlier check prevents acquiring a replacement subscription
+when the previous subscription's cleanup destroys the owner.
+
+Angular itself runs effect cleanup without reactive dependency tracking. Registering
+`onCleanup(unsubscribe)` is sufficient; wrapping it in another `untracked` is redundant.
+This keeps two direct lifecycle checks without reintroducing an `active` flag or a
+connection state machine. A standalone diagnostic on Angular 20.3.18 and 22.1.0
+confirmed the behavior for both component and environment-injector destruction:
+late registration alone ran cleanup zero times; the explicit check ran it once.
+
+#### QueryClient operations during reactive option changes
+
+Observer options are applied in an Angular effect. Immediately changing a key signal
+and calling `QueryClient.invalidateQueries`, `refetchQueries`, or `resetQueries` can
+therefore still act on the previous observer before Angular synchronizes. This is an
+accepted timing limitation of the current API, not a requirement to make option
+application synchronous. The three #6414 expected-failure tests were removed on that
+basis. Query result methods such as `query.refetch()` explicitly refresh current
+options; arbitrary QueryClient operations do not.
+
+There is upstream precedent for deferring refetches. Vue Query originally delayed the
+entire invalidation with `setTimeout(0)` to address reactive key mismatches
+([PR #6561](https://github.com/TanStack/query/pull/6561), fixing #6414). That made
+invalidation itself unexpectedly asynchronous ([#7694](https://github.com/TanStack/query/issues/7694)).
+[PR #7930](https://github.com/TanStack/query/pull/7930) changed it to invalidate immediately
+with `refetchType: 'none'`, then refetch after Vue's `nextTick()`. See the
+[current Vue implementation](https://github.com/TanStack/query/blob/main/packages/vue-query/src/queryClient.ts).
+`nextTick()` is a framework update boundary, not a general guarantee that any timer or
+microtask waits for Angular's synchronization.
+
+An Angular equivalent would need a deliberate scheduling contract. Delaying the
+refetch could allow a departing observer to unsubscribe before selecting active
+queries, but does not guarantee that a newly attached query cannot fetch before a
+later explicit refetch. Do not defer all cache operations as an incidental helper
+change. `removeQueries` is separate: it removes entries synchronously and does not
+itself refetch. An observer that still needs the removed key can recreate it later.
+No corresponding deferred-removal policy was found in the reviewed upstream sources.
+
+When query parameters are reactive, derive request parameters from the query function's
+`queryKey` (or capture them in the options factory) instead of rereading live signals.
+This prevents an old-key request from caching new-key data, even if an extra request
+occurs before observer synchronization.
 
 One narrow `NgZone.run` remains in pending-task release. On tested Angular 20, 21, and 22
 runtimes with Zone.js, releasing the
@@ -341,6 +515,30 @@ Breaking change. `injectIsFetching` and `injectIsMutating` accept an optional fi
 matching the other injection helpers. Signals and required inputs can be read in it. Filter changes
 update counts synchronously without requiring a cache event or reinstalling the subscription.
 Calls without arguments continue to work.
+
+### One factory form for providers
+
+`provideTanStackQuery` takes `() => QueryClient`; `provideIsRestoring` takes
+`() => Signal<boolean>`. Both run through Angular DI. Separate token/value forms
+only duplicated that path: use `() => inject(CLIENT_TOKEN)` or `() => state` instead.
+The provider tests cover resolving an existing instance and observing signal changes.
+
+Persistence callback return types use `unknown`, which already includes promises;
+`Promise<unknown> | unknown` conveyed no additional constraint. Restoration still
+awaits returned promises.
+
+### Simplification review: distinctions that still carry behavior
+
+The provider token/value branches were removable because factories express the same
+operation with the same DI lifetime. The following distinctions are still useful:
+
+- Query and infinite-query overloads preserve the defined-data result when initial
+  data is supplied. Removing them would weaken inference, not just remove runtime code.
+- Devtools accepts static values or signals because its options factory runs once in
+  an injection context. Turning it into a repeatedly evaluated reactive factory would
+  change when `inject()` is valid and how options are updated.
+- The local `ResourceSnapshot` type covers Angular 20, which does not export that type.
+  It can disappear when the package's minimum Angular version makes it redundant.
 
 ### Persistence state belongs to the injector
 
@@ -415,7 +613,7 @@ queries. The migration guide clarifies that manually refetching a disabled query
 ### Test consolidation
 
 Removed the duplicate client-provider and Zone.js destruction test files. The existing provider
-suite covers factory and token injection; the shared pending-task suite covers unresolved query
+suite covers client factories, including factories that resolve existing tokens; the shared pending-task suite covers unresolved query
 and mutation destruction in both modes. Removed weaker timed destruction cases in favor of those
 unresolved-operation regressions.
 
@@ -428,5 +626,17 @@ identity, and object-shape behavior; they no longer test manually attached metho
 
 - Keep query `_defaulted` and `_optimisticResults` types consistent with the other adapters, which also inherit these core query options. Mutation options continue to omit `_defaulted`.
 - Persistence now accepts only an options factory. It runs once per injector in the browser injection context; examples and tests use this form.
-- Restoration integrations use `provideIsRestoring`, accepting a signal or a DI factory returning a signal. The restoration token is private and no longer exported by the internal entry point. Persistence retains separate writable state per injector.
+- Restoration integrations use `provideIsRestoring` from the internal entry point, accepting only a DI factory returning a signal. An existing signal is provided with `provideIsRestoring(() => restoringSignal)`, using the same path as the persister. The restoration token is private and no longer exported by the internal entry point. Persistence retains separate writable state per injector.
 - The devtools panel accepts a nullable host for conditional views. Live relocation between existing hosts is not added; changing callbacks can use a stable callback that reads current state.
+
+### Public documentation boundary
+
+`queryFeature`, `getQueryFeatureProviders`, and `provideIsRestoring` are integration
+internals exported only through `/internal`, not application setup APIs. They carry
+`@internal` annotations so reference generation excludes them. The persister uses the
+internal restoration provider; applications use `withPersistQueryClient` and can read
+restoration status with the public `injectIsRestoring` helper.
+
+Guides and top-level Angular pages describe application setup and observable behavior.
+The public `QueryFeature` type is opaque: its private brand is excluded from generated
+documentation. Implementation rationale belongs in this decision record.

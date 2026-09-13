@@ -97,10 +97,9 @@ export function injectQueries<
   }
 
   // The observer is intentionally lazy so query factories may read required
-  // inputs. Its first construction and subscription can synchronously emit
-  // QueryCache events; a listener for either initial event must not re-enter this
-  // same, not-yet-initialized result. Subscription setup and cleanup must not synchronously
-  // read these results during reconciliation.
+  // inputs. Its first construction can synchronously emit QueryCache events;
+  // a listener must not re-enter this same, not-yet-initialized result. Setup
+  // and cleanup run in an effect, where result reads are safe.
   const observerSignal = computed(
     () =>
       new QueriesObserver<TCombinedResult>(
@@ -123,7 +122,6 @@ export function injectQueries<
       untracked(() => {
         const observer = observerSignal()
         observer.setQueries(defaultedQueries())
-        resultSignal()
         const queryObserver = observer.getObservers()[index]
         if (!queryObserver) {
           return Promise.reject(

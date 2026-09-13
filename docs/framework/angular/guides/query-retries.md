@@ -15,7 +15,7 @@ replace:
 [//]: # 'Example'
 
 ```ts
-import { injectQuery } from '@tanstack/angular-query'
+import { injectQuery } from '@benjavicente/angular-query'
 
 // Make a specific query retry a certain number of times
 const todoQuery = injectQuery(() => ({
@@ -34,7 +34,7 @@ import {
   QueryCache,
   QueryClient,
   QueryClientProvider,
-} from '@tanstack/angular-query'
+} from '@benjavicente/angular-query'
 
 const createQueryClient = () =>
   new QueryClient({

@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing'
 import { describe, expect, it } from 'vitest'
-import { InjectionToken } from '@angular/core'
+import { InjectionToken, inject } from '@angular/core'
 import { QueryClient } from '@tanstack/query-core'
 import { provideTanStackQuery } from '../providers'
 import { provideAngularQueryChangeDetection } from './test-utils'
@@ -20,7 +20,7 @@ describe('provideTanStackQuery', () => {
     expect(providedQueryClient).toBe(queryClient)
   })
 
-  it('should provide a QueryClient instance using an InjectionToken', () => {
+  it('resolves an existing QueryClient through a factory in the injection context', () => {
     const queryClient = new QueryClient()
     const CUSTOM_QUERY_CLIENT = new InjectionToken<QueryClient>('', {
       factory: () => queryClient,
@@ -29,7 +29,7 @@ describe('provideTanStackQuery', () => {
     TestBed.configureTestingModule({
       providers: [
         provideAngularQueryChangeDetection(),
-        provideTanStackQuery(CUSTOM_QUERY_CLIENT),
+        provideTanStackQuery(() => inject(CUSTOM_QUERY_CLIENT)),
       ],
     })
 

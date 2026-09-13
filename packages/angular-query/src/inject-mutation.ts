@@ -77,8 +77,8 @@ export function injectMutation<
     () => new MutationObserver(queryClient, untracked(optionsSignal)),
   )
 
-  // Imperative methods construct the observer before initializing the result
-  // subscription, which makes mutations started in ngOnInit synchronous-safe.
+  // Imperative methods construct the observer synchronously; the external-store
+  // effect owns its subscription. Avoid caching idle state before mutate runs.
   // A cache listener must not re-enter this result during its very first direct
   // read, while the lazy MutationObserver constructor is still running.
 
@@ -117,7 +117,6 @@ export function injectMutation<
     return untracked(() => {
       const observer = observerSignal()
       observer.setOptions(optionsSignal())
-      mutationStateSignal()
       pendingInvocations++
       lifecycle.setPending(true)
       // Track invocations, not the observer's latest result: reset or a later
@@ -139,7 +138,6 @@ export function injectMutation<
     untracked(() => {
       const observer = observerSignal()
       observer.setOptions(optionsSignal())
-      mutationStateSignal()
       observer.reset()
     })
   }

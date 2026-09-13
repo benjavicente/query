@@ -16,7 +16,7 @@ import {
   QueryCache,
   QueryClient,
   provideTanStackQuery,
-} from '@tanstack/angular-query'
+} from '@benjavicente/angular-query'
 
 export const queryProviders = provideTanStackQuery(() => {
   const errors = inject(ErrorHandler)

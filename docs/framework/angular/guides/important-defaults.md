@@ -6,6 +6,7 @@ replace:
   {
     'React': 'Angular',
     'react-query': 'angular-query',
+    '@tanstack/angular-query': '@benjavicente/angular-query',
     'useQuery': 'injectQuery',
     'useInfiniteQuery': 'injectInfiniteQuery',
     'useMemo and useCallback': 'setting signal values',

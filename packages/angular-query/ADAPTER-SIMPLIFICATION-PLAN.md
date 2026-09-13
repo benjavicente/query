@@ -32,7 +32,7 @@ The remaining sections describe the pre-change audit and original task proposals
 | Is `replaceEqualDeep` correct as equality?     | The existing boolean expression works for whole-result equality, but loses partial structural sharing. Prefer retaining the reconciled snapshot. | `replaceEqualDeep` returns a value, not a boolean; comparing that return value with the previous result discards its reused children when any part changes.                                                     |
 | Is the `injectQueries` microtask wrong?        | Remove it together with subscription-time throwing.                                                                                              | In this checkout, ordinary notifications are already synchronous. The remaining microtask is an error-reporting escape from the observer callback, and it captures an error which may be obsolete when it runs. |
 | Should Angular expose observer `throwOnError`? | Remove it from Angular hook options. Keep ordinary error state and explicit promise rejection behavior.                                          | There is no adapter-provided component recovery boundary. `toResource` already offers throwing value reads.                                                                                                     |
-| Is `provideQueryClient` redundant?             | Remove it.                                                                                                                                       | Its implementation is equivalent to `provideTanStackQuery(factoryOrToken)` with zero features, including mounting and hydration setup.                                                                          |
+| Is `provideQueryClient` redundant?             | Remove it.                                                                                                                                       | Its implementation is equivalent to `provideTanStackQuery(factory)` with zero features, including mounting and hydration setup.                                                                          |
 
 Angular explicitly distinguishes stateful async APIs such as `resource` from APIs which forward asynchronous failures to `ErrorHandler`. Angular's Resource value can throw when read in an error state. These are separate from an automatic notification on every failed request. Sources: [Angular error handling](https://v20.angular.dev/best-practices/error-handling), [Angular resources](https://v20.angular.dev/guide/signals/resource).
 
@@ -157,11 +157,11 @@ Acceptance: option-only changes do not resubscribe or refetch unchanged stale qu
 
 **Files:** [providers.ts](/Users/bv/Repos/query/packages/angular-query/src/providers.ts:70), root exports, provider tests, generated API pages and docs navigation.
 
-Replace all application/test uses with `provideTanStackQuery(factoryOrToken)` and delete the duplicate public function. Both currently execute `configureQueryClient`, so the removed API is not a genuinely bare DI registration. A plain `{ provide: QueryClient, useFactory: ... }` is appropriate only when the caller explicitly owns setup; it is not the equivalent migration because it omits mounting and hydration.
+Replace all application/test uses with `provideTanStackQuery(factory)` and delete the duplicate public function. Both currently execute `configureQueryClient`, so the removed API is not a genuinely bare DI registration. A plain `{ provide: QueryClient, useFactory: ... }` is appropriate only when the caller explicitly owns setup; it is not the equivalent migration because it omits mounting and hydration.
 
-Acceptance: factory and token forms still run once per injector; child injector setup/unmount and SSR hydration retain their behavior; generated declarations, docs, and examples no longer advertise the removed name.
+Acceptance: a single factory form runs once per injector and can resolve existing tokens with `inject()`; child injector setup/unmount and SSR hydration retain their behavior; generated declarations, docs, and examples no longer advertise the removed name.
 
-**Migration:** `provideQueryClient(factoryOrToken)` → `provideTanStackQuery(factoryOrToken)`.
+**Migration:** `provideQueryClient(factory)` → `provideTanStackQuery(factory)`. For token arguments use `provideTanStackQuery(() => inject(token))`.
 
 ### T8 — P1: Allocate persistence restoration state per injector
 
@@ -230,7 +230,7 @@ import {
   QueryCache,
   QueryClient,
   provideTanStackQuery,
-} from '@tanstack/angular-query'
+} from '@benjavicente/angular-query'
 
 export const queryProviders = provideTanStackQuery(() => {
   const errors = inject(ErrorHandler)

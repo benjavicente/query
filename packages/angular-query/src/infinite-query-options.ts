@@ -148,7 +148,7 @@ export type DefinedInitialDataInfiniteOptions<
  *
  * @example
  * ```angular-ts
- * import { infiniteQueryOptions, injectInfiniteQuery } from '@tanstack/angular-query'
+ * import { infiniteQueryOptions, injectInfiniteQuery } from '@benjavicente/angular-query'
  *
  * export const projectsOptions = infiniteQueryOptions({
  *   queryKey: ['projects'],
@@ -213,7 +213,7 @@ export function infiniteQueryOptions<
  * @example
  * A parameterized factory, so the same options object can be reused per `postId`:
  * ```angular-ts
- * import { infiniteQueryOptions, injectInfiniteQuery } from '@tanstack/angular-query'
+ * import { infiniteQueryOptions, injectInfiniteQuery } from '@benjavicente/angular-query'
  *
  * export const commentsOptions = (postId: string) =>
  *   infiniteQueryOptions({
@@ -287,7 +287,7 @@ export function infiniteQueryOptions<
  * @example
  * A parameterized factory, so the same options object can be reused per `postId`:
  * ```angular-ts
- * import { infiniteQueryOptions, injectInfiniteQuery } from '@tanstack/angular-query'
+ * import { infiniteQueryOptions, injectInfiniteQuery } from '@benjavicente/angular-query'
  *
  * export const commentsOptions = (postId: string) =>
  *   infiniteQueryOptions({

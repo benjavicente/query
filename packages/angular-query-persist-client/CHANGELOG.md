@@ -1,4 +1,4 @@
-# @tanstack/angular-query-persist-client
+# @benjavicente/angular-query-persist-client
 
 ## 5.102.8
 

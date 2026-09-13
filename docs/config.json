@@ -5065,10 +5065,6 @@
               "to": "framework/angular/reference/functions/partialMatchKey"
             },
             {
-              "label": "Functions / provideIsRestoring",
-              "to": "framework/angular/reference/functions/provideIsRestoring"
-            },
-            {
               "label": "Functions / provideTanStackQuery",
               "to": "framework/angular/reference/functions/provideTanStackQuery"
             },
@@ -5147,10 +5143,6 @@
             {
               "label": "Interfaces / CancelOptions",
               "to": "framework/angular/reference/interfaces/CancelOptions"
-            },
-            {
-              "label": "Interfaces / CreateBaseQueryOptions",
-              "to": "framework/angular/reference/interfaces/CreateBaseQueryOptions"
             },
             {
               "label": "Interfaces / CreateInfiniteQueryOptions",

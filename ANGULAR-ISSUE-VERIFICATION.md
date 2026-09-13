@@ -2,7 +2,7 @@
 
 **A blanket claim that this adapter resolves every Angular-related issue is not supported.** The nine open Angular runtime/type issues have matching passing local coverage, including fresh reproductions and both browser timing examples. However, two older Angular-related failure modes are reproducible, upstream release work remains, and some historical runner/site issues were not independently replayed.
 
-Reviewed commit: `2b0436c76` on `angular-release/scoped-publishing`. The implementation was not changed during this audit. Added `upstream-issues.test.ts` and included it in the Zone.js test configuration. The three #6414 cases are explicitly marked `it.fails`: they are known failures, not fixed behavior.
+Reviewed commit: `2b0436c76` on `angular-release/scoped-publishing`. The implementation was not changed during this audit. Added `upstream-issues.test.ts` and included it in the Zone.js test configuration. The three #6414 cases were originally recorded as expected failures. They have since been removed because synchronous QueryClient/options coordination is outside the accepted effect-based contract; the timing limitation is documented below.
 
 ## Scope and search
 
@@ -21,7 +21,7 @@ Title/body search returned 53 issues; Angular package labels returned 36, all al
 
 ## Remaining findings
 
-### 1. Direct QueryClient methods still race reactive query keys (#6414)
+### 1. Accepted timing limitation: direct QueryClient calls before option synchronization (#6414)
 
 [#6414](https://github.com/TanStack/query/issues/6414) is a closed Vue issue whose comments explicitly report the same Angular problem. It was missing from the old local inventory.
 
@@ -34,7 +34,7 @@ Observed:                     (foo, foo), (foo, bar), (bar, bar)
 
 This causes an extra request and can cache data for the new parameter under the old key when `queryFn` reads the live signal. The adapter applies options in an Angular effect in [inject-base-query.ts](packages/angular-query/src/inject-base-query.ts). Its result methods refresh options through `getObserver()`, but direct QueryClient calls do not use that path. This is distinct from the supported, tested `query.refetch()` fix for #9174.
 
-Reproduction: the three final tests in [upstream-issues.test.ts](packages/angular-query/src/__tests__/upstream-issues.test.ts). They first failed normally with the observed sequence above, then were retained as explicit expected failures. Reading fetch parameters from the query function's `queryKey` avoids mixing identities, but does not eliminate the extra old-key fetch. This contract needs a deliberate fix or documented limitation before claiming all related problems are solved.
+The original reproduction used three expected-failure tests, now removed: the adapter intentionally applies options in an effect and does not promise that arbitrary QueryClient calls synchronize them first. This removes an unsupported expectation, not the observed extra request. Reading fetch parameters from the query function's `queryKey` avoids mixing identities, but does not eliminate an extra old-key fetch. The Vue precedent for immediate invalidation followed by deferred refetch, and the limits of applying it to Angular, are recorded in [ANGULAR-DECISIONS.md](ANGULAR-DECISIONS.md#queryclient-operations-during-reactive-option-changes).
 
 ### 2. Shared devtools declarations still require undeclared Solid types (#6153 variant)
 
@@ -59,9 +59,9 @@ This reproduces the undeclared-dependency symptom of [#6153](https://github.com/
 ## All open Angular issues
 
 | Issue | Local verdict | Evidence / limit |
-| --- | --- | --- |
-| [#7488](https://github.com/TanStack/query/issues/7488) — [angular-query]  Accessing `.data` kicks off the `CreateQueryOptions` function | Verified locally | Required-input data alias stays lazy; options factory runs only after the input is set. Existing alias coverage plus explicit #7488 test. |
-| [#8703](https://github.com/TanStack/query/issues/8703) — Stable release of `@tanstack/angular-query` and `@tanstack/angular-query-devtools` packages | Not complete | Stable-release tracker still open; local manifests publish under @benjavicente, not upstream @tanstack. |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [#7488](https://github.com/TanStack/query/issues/7488) — [angular-query] Accessing `.data` kicks off the `CreateQueryOptions` function | Verified locally | Required-input data alias stays lazy; options factory runs only after the input is set. Existing alias coverage plus explicit #7488 test. |
+| [#8703](https://github.com/TanStack/query/issues/8703) — Stable release of `@benjavicente/angular-query` and `@benjavicente/angular-query-devtools` packages | Not complete | Stable-release tracker still open; local manifests now use the official @tanstack names, but the packages are not published yet. |
 | [#8704](https://github.com/TanStack/query/issues/8704) — Angular: fix `injectQueries` | Covered by implementation and suites | Main-package export, reactive query lists, combine, result identity, cleanup, restoration, stability and declaration tests pass. |
 | [#8713](https://github.com/TanStack/query/issues/8713) — Angular: publish stable package and deprecate experimental package | Not complete | Stable publication and experimental-package deprecation require upstream release actions. |
 | [#8984](https://github.com/TanStack/query/issues/8984) — Angular: no type narrowing on infinite query status | Verified locally | Infinite-query declaration suite narrows data after isSuccess(), and error/pending branches. All six TypeScript compiler targets pass. |
@@ -104,9 +104,9 @@ Audit logs, packed artifacts, the strict consumer reproduction, and the producti
 These rows deliberately separate current source evidence from external/history-only issues.
 
 | Issue | Assessment | Evidence / remaining verification |
-| --- | --- | --- |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | [#6153](https://github.com/TanStack/query/issues/6153) — query-devtools leaking Solid types results in type error in adapter specific dev tools | Reproduced packaging variant | A clean consumer fails TS2882 because shared query-devtools declarations import undeclared solid-js. See findings below. |
-| [#6414](https://github.com/TanStack/query/issues/6414) — Query key and reactive value differ after invalidation (Angular also mentioned) | Reproduced | All three QueryClient methods fetch with the old key and new signal value; three explicit expected-failure tests. |
+| [#6414](https://github.com/TanStack/query/issues/6414) — Query key and reactive value differ after invalidation (Angular also mentioned) | Accepted timing limitation | QueryClient calls can precede effect-applied options. Expected-failure tests removed; the observed timing and Vue deferred-refetch precedent remain documented. |
 | [#6522](https://github.com/TanStack/query/issues/6522) — Angular demo in the home page does not launch correctly | Historical / external | Homepage demo deployment; the local adapter cannot establish the deployed site is fixed. |
 | [#6567](https://github.com/TanStack/query/issues/6567) — Angular Query's data signal is not updating if data is present in the cache | Verified locally | New #6567 test switches between two cached keys and immediately sees the correct data. |
 | [#6635](https://github.com/TanStack/query/issues/6635) — Angular Query: type narrowing not working on query and mutation result | Verified locally | Query and mutation status-narrowing declaration suites pass. |
@@ -128,10 +128,10 @@ These rows deliberately separate current source evidence from external/history-o
 | [#8364](https://github.com/TanStack/query/issues/8364) — Cannot find module @tanstack/angular-query-experimental in jest test | Not independently verified | Original Jest configuration was not rerun. ESM-only artifacts require compatible Jest configuration; strict ATTW reports CJS resolution. |
 | [#8453](https://github.com/TanStack/query/issues/8453) — TypeScript errors when using exported queryOptions factory | Covered by declaration emit | Exported queryOptions declaration regression and TypeScript build matrix pass. |
 | [#8475](https://github.com/TanStack/query/issues/8475) — declares 'QueryClient' locally, but it is not exported | Covered by exports/types | The Angular entrypoint re-exports QueryClient from query-core; clean consumer resolves it through the built package. |
-| [#8545](https://github.com/TanStack/query/issues/8545) — [Angular query] Queries with enabled: false have their fields not behaving as expected | Source addressed; exact case not rerun | Imperative refetch refreshes options and subscribes before fetching. Disabled-query/current-key tests pass; exact ngOnInit reproduction not replayed. |
+| [#8545](https://github.com/TanStack/query/issues/8545) — [Angular query] Queries with enabled: false have their fields not behaving as expected | Source addressed; exact case not rerun | Imperative refetch refreshes options; observation follows Angular initialization. Disabled-query/current-key tests pass; exact ngOnInit reproduction not replayed. |
 | [#8705](https://github.com/TanStack/query/issues/8705) — Angular: support providing TanStack Query and `withDevtools` on lazy loaded routes | Source/tests support it | EnvironmentProviders support route injectors; devtools duplicate-provider tests pass. A lazy-route bundle split was not measured. |
-| [#8706](https://github.com/TanStack/query/issues/8706) — Angular: update documentation to reflect stable release | Source addressed; release pending | Stable-name docs and migration guides exist; this branch still builds @benjavicente packages. |
-| [#8707](https://github.com/TanStack/query/issues/8707) — Angular: framework version support policy | Policy set; docs mismatch | Peers and migration require Angular >=20.1.0, while installation.md still says v20 and higher. |
+| [#8706](https://github.com/TanStack/query/issues/8706) — Angular: update documentation to reflect stable release | Source addressed; release pending | Stable-name docs and migration guides exist; publication is still pending. |
+| [#8707](https://github.com/TanStack/query/issues/8707) — Angular: framework version support policy | Policy set; docs aligned | Peers, migration guidance, and installation docs require Angular >=20.1.0. |
 | [#8711](https://github.com/TanStack/query/issues/8711) — Angular: injector parameter needs to be made consistent between all functions | Intentional API resolution | Injection helpers consistently require an injection context; custom injector arguments are removed and migrations documented. |
 | [#8712](https://github.com/TanStack/query/issues/8712) — Angular: remove deprecated APIs | Source addressed | provideAngularQuery, injectQueryClient, and now provideQueryClient are removed; migration guide reflects this. |
 | [#8714](https://github.com/TanStack/query/issues/8714) — Angular: make a decision on what needs to run in the injection context | Decision documented | Providers/devtools/persistence use factory injection contexts; query option callbacks use captured dependencies. This is an API policy, not a runtime fix claim. |
@@ -141,7 +141,7 @@ These rows deliberately separate current source evidence from external/history-o
 | [#8839](https://github.com/TanStack/query/issues/8839) — Angular: caught errors in the queryFn do not run in the zone | Intentional breaking change | Automatic observer throwOnError/NgZone error reporting is removed. Cache callbacks replace it; the old automatic-reporting contract is not retained. |
 | [#8994](https://github.com/TanStack/query/issues/8994) — Invalid URL in docs/framework/angular/guides/caching.md | Source addressed | Angular caching guide links to ./important-defaults.md, which exists. |
 | [#9078](https://github.com/TanStack/query/issues/9078) — Angular: Esbuild always generates chunks for devtools | Verified bundle boundary | Default production graph contains no real devtools input; explicit production subpath is the positive control. |
-| [#9174](https://github.com/TanStack/query/issues/9174) — .refetch() is not working as expected  after signal update when using injectQuery | Source/tests support direct refetch | Query refetch refreshes options synchronously; infinite queries share that base. This does not cover direct QueryClient methods, which still fail #6414. |
+| [#9174](https://github.com/TanStack/query/issues/9174) — .refetch() is not working as expected after signal update when using injectQuery | Source/tests support direct refetch | Query refetch refreshes options synchronously; infinite queries share that base. This does not cover direct QueryClient methods, which retain the documented #6414 timing limitation. |
 | [#9525](https://github.com/TanStack/query/issues/9525) — [Angular] Unpublished package used in the basic persister example | Source/package present; publication separate | Scoped persister builds and packs. This does not prove upstream @tanstack publication or repair a deployed example. |
 | [#9536](https://github.com/TanStack/query/issues/9536) — Missing Community Projects page for Angular | Still absent locally | No docs/framework/angular/community/community-projects.md page exists. Closing the issue did not add one. |
 | [#9744](https://github.com/TanStack/query/issues/9744) — Angular docs: useIsFetching not converted to injectIsFetching in background-fetching-indicators guide | Source addressed | Background-fetching guide includes useIsFetching-to-injectIsFetching replacements and an Angular example. |

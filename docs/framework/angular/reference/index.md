@@ -50,7 +50,6 @@ title: "@benjavicente/angular-query"
 - [injectQueries](functions/injectQueries.md)
 - [injectQuery](functions/injectQuery.md)
 - [mutationOptions](functions/mutationOptions.md)
-- [provideIsRestoring](functions/provideIsRestoring.md)
 - [provideTanStackQuery](functions/provideTanStackQuery.md)
 - [queryOptions](functions/queryOptions.md)
 - [toResource](functions/toResource.md)

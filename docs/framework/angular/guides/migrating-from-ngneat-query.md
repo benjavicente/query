@@ -16,7 +16,7 @@ unless your application imports it independently.
 
 ```bash
 npm uninstall @ngneat/query @ngneat/query-devtools @tanstack/query-core
-npm install @tanstack/angular-query @tanstack/angular-query-devtools
+npm install @benjavicente/angular-query @benjavicente/angular-query-devtools
 ```
 
 If you use OpenNG, uninstall `@openng/query` and `@openng/query-devtools` instead.
@@ -30,8 +30,8 @@ when building caches or default options.
 ```ts
 import { QueryCache } from '@ngneat/query' // [!code --]
 import { provideQueryClientOptions } from '@ngneat/query' // [!code --]
-import { QueryCache, QueryClient } from '@tanstack/angular-query' // [!code ++]
-import { provideTanStackQuery } from '@tanstack/angular-query' // [!code ++]
+import { QueryCache, QueryClient } from '@benjavicente/angular-query' // [!code ++]
+import { provideTanStackQuery } from '@benjavicente/angular-query' // [!code ++]
 
 const queryClientConfig = {
   queryCache: new QueryCache({ onError: handleError }),
@@ -218,7 +218,7 @@ Use Angular dependency injection directly instead of `injectQueryClient`:
 ```ts
 import { injectQueryClient } from '@ngneat/query' // [!code --]
 import { inject } from '@angular/core' // [!code ++]
-import { QueryClient } from '@tanstack/angular-query' // [!code ++]
+import { QueryClient } from '@benjavicente/angular-query' // [!code ++]
 
 private readonly queryClient = injectQueryClient() // [!code --]
 private readonly queryClient = inject(QueryClient) // [!code ++]
@@ -232,8 +232,8 @@ Query devtools package.
 ```ts
 import { provideQueryClientOptions } from '@ngneat/query' // [!code --]
 import { provideQueryDevTools } from '@ngneat/query-devtools' // [!code --]
-import { QueryClient, provideTanStackQuery } from '@tanstack/angular-query' // [!code ++]
-import { withDevtools } from '@tanstack/angular-query-devtools' // [!code ++]
+import { QueryClient, provideTanStackQuery } from '@benjavicente/angular-query' // [!code ++]
+import { withDevtools } from '@benjavicente/angular-query-devtools' // [!code ++]
 
 const devtools = withDevtools(() => ({ initialIsOpen: true }))
 

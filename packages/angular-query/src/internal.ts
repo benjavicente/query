@@ -5,3 +5,4 @@
  * without notice.
  */
 export { getQueryFeatureProviders, queryFeature } from './providers'
+export { provideIsRestoring } from './inject-is-restoring'

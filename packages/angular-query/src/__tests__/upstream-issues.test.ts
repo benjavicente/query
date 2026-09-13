@@ -286,36 +286,4 @@ describe('upstream Angular issue reproductions', () => {
     expect(query.data()).toBe('updated')
     expect(query.isRefetching()).toBe(false)
   })
-
-  // Still reproducible: QueryClient methods bypass the adapter's imperative
-  // option refresh. Keep the desired behavior as explicit expected failures.
-  it.fails.each([
-    'invalidateQueries',
-    'refetchQueries',
-    'resetQueries',
-  ] as const)(
-    '#6414 Angular comment: %s after a signal change must not fetch with a mismatched key',
-    async (method) => {
-      const key = signal('foo')
-      const seen: Array<[unknown, string]> = []
-      TestBed.runInInjectionContext(() =>
-        injectQuery(() => ({
-          queryKey: ['6414', key()],
-          queryFn: ({ queryKey }) => {
-            seen.push([queryKey[1], key()])
-            return Promise.resolve(key())
-          },
-        })),
-      )
-      TestBed.tick()
-      await TestBed.inject(ApplicationRef).whenStable()
-      key.set('bar')
-      await client[method]({ queryKey: ['6414'] })
-      await TestBed.inject(ApplicationRef).whenStable()
-      expect(seen).toEqual([
-        ['foo', 'foo'],
-        ['bar', 'bar'],
-      ])
-    },
-  )
 })

@@ -8,8 +8,9 @@ TanStack Query works with any data fetching client that returns a Promise, inclu
 
 ## Using Angular's `HttpClient` for data fetching
 
-Angular's `HttpClient` returns Observables, while query and mutation functions must return Promises.
-Convert the Observable with RxJS's `firstValueFrom` or `lastValueFrom`.
+Angular's `HttpClient` returns Observables, which query and mutation functions do not consume
+directly. Convert the Observable with RxJS's `firstValueFrom` or `lastValueFrom`. Query functions
+can also return a synchronous value.
 
 ```ts
 @Component({

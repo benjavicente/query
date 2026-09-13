@@ -4,10 +4,10 @@ title: provideTanStackQuery
 ---
 
 ```ts
-function provideTanStackQuery(queryClientFactoryOrToken, ...features): EnvironmentProviders;
+function provideTanStackQuery(queryClientFactory, ...features): EnvironmentProviders;
 ```
 
-Defined in: [packages/angular-query/src/providers.ts:107](https://github.com/TanStack/query/blob/main/packages/angular-query/src/providers.ts#L107)
+Defined in: [packages/angular-query/src/providers.ts:99](https://github.com/TanStack/query/blob/main/packages/angular-query/src/providers.ts#L99)
 
 Provides a `QueryClient` and optional TanStack Query features.
 The factory runs once per injector in Angular's injection context, so it can
@@ -19,7 +19,7 @@ call `inject()` and each SSR request can receive an independent cache.
 import {
   provideTanStackQuery,
   QueryClient,
-} from '@tanstack/angular-query'
+} from '@benjavicente/angular-query'
 
 bootstrapApplication(AppComponent, {
   providers: [provideTanStackQuery(() => new QueryClient())],
@@ -30,8 +30,8 @@ You can also enable optional developer tools by adding `withDevtools`. By
 default the tools will then be loaded when your app is in development mode.
 
 ```ts
-import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query'
-import { withDevtools } from '@tanstack/angular-query-devtools'
+import { provideTanStackQuery, QueryClient } from '@benjavicente/angular-query'
+import { withDevtools } from '@benjavicente/angular-query-devtools'
 
 bootstrapApplication(AppComponent, {
   providers: [
@@ -40,23 +40,23 @@ bootstrapApplication(AppComponent, {
 })
 ```
 
-Use an `InjectionToken` when another provider owns client creation:
+Resolve an existing token inside the factory when another provider owns client creation:
 
 ```ts
 export const MY_QUERY_CLIENT = new InjectionToken('', {
   factory: () => new QueryClient(),
 })
 
-providers: [provideTanStackQuery(MY_QUERY_CLIENT)]
+providers: [provideTanStackQuery(() => inject(MY_QUERY_CLIENT))]
 ```
 
 ## Parameters
 
-### queryClientFactoryOrToken
+### queryClientFactory
 
-A `QueryClient` factory or an `InjectionToken` that resolves one.
+Creates or resolves a `QueryClient` in the injection context.
 
-`InjectionToken`\<`QueryClient`\> | () => `QueryClient`
+() => `QueryClient`
 
 ### features
 
