@@ -176,20 +176,20 @@
               "to": "framework/angular/quick-start"
             },
             {
-              "label": "Angular HttpClient and other data fetching clients",
-              "to": "framework/angular/angular-httpclient-and-other-data-fetching-clients"
-            },
-            {
               "label": "Devtools",
               "to": "framework/angular/devtools"
             },
             {
-              "label": "TypeScript",
-              "to": "framework/angular/typescript"
+              "label": "Angular HttpClient",
+              "to": "framework/angular/angular-httpclient-and-other-data-fetching-clients"
             },
             {
-              "label": "Zoneless",
-              "to": "framework/angular/zoneless"
+              "label": "Resource API",
+              "to": "framework/angular/resource-api"
+            },
+            {
+              "label": "TypeScript",
+              "to": "framework/angular/typescript"
             }
           ]
         },
@@ -775,12 +775,28 @@
               "to": "framework/angular/guides/default-query-function"
             },
             {
+              "label": "SSR",
+              "to": "framework/angular/guides/ssr"
+            },
+            {
               "label": "Testing",
               "to": "framework/angular/guides/testing"
             },
             {
               "label": "Does this replace state managers?",
               "to": "framework/angular/guides/does-this-replace-client-state"
+            },
+            {
+              "label": "Migrating from Experimental",
+              "to": "framework/angular/guides/migrating-from-experimental"
+            },
+            {
+              "label": "Migrating from ngneat/query",
+              "to": "framework/angular/guides/migrating-from-ngneat-query"
+            },
+            {
+              "label": "Error Handling",
+              "to": "framework/angular/guides/error-handling"
             }
           ]
         },
@@ -4953,10 +4969,6 @@
           "label": "angular",
           "children": [
             {
-              "label": "Angular Reference",
-              "to": "framework/angular/reference/index"
-            },
-            {
               "label": "Functions / defaultShouldDehydrateMutation",
               "to": "framework/angular/reference/functions/defaultShouldDehydrateMutation"
             },
@@ -5013,12 +5025,12 @@
               "to": "framework/angular/reference/functions/injectMutationState"
             },
             {
-              "label": "Functions / injectQuery",
-              "to": "framework/angular/reference/functions/injectQuery"
+              "label": "Functions / injectQueries",
+              "to": "framework/angular/reference/functions/injectQueries"
             },
             {
-              "label": "Functions / injectQueryClient",
-              "to": "framework/angular/reference/functions/injectQueryClient"
+              "label": "Functions / injectQuery",
+              "to": "framework/angular/reference/functions/injectQuery"
             },
             {
               "label": "Functions / isCancelledError",
@@ -5049,24 +5061,8 @@
               "to": "framework/angular/reference/functions/partialMatchKey"
             },
             {
-              "label": "Functions / provideAngularQuery",
-              "to": "framework/angular/reference/functions/provideAngularQuery"
-            },
-            {
-              "label": "Functions / provideIsRestoring",
-              "to": "framework/angular/reference/functions/provideIsRestoring"
-            },
-            {
-              "label": "Functions / provideQueryClient",
-              "to": "framework/angular/reference/functions/provideQueryClient"
-            },
-            {
               "label": "Functions / provideTanStackQuery",
               "to": "framework/angular/reference/functions/provideTanStackQuery"
-            },
-            {
-              "label": "Functions / queryFeature",
-              "to": "framework/angular/reference/functions/queryFeature"
             },
             {
               "label": "Functions / queryOptions",
@@ -5081,44 +5077,20 @@
               "to": "framework/angular/reference/functions/shouldThrowError"
             },
             {
-              "label": "Classes / CancelledError",
-              "to": "framework/angular/reference/classes/CancelledError"
+              "label": "Functions / toResource",
+              "to": "framework/angular/reference/functions/toResource"
             },
             {
-              "label": "Classes / InfiniteQueryObserver",
-              "to": "framework/angular/reference/classes/InfiniteQueryObserver"
+              "label": "Functions / withHydrationKey",
+              "to": "framework/angular/reference/functions/withHydrationKey"
             },
             {
-              "label": "Classes / Mutation",
-              "to": "framework/angular/reference/classes/Mutation"
+              "label": "Functions / withNoQueryHydration",
+              "to": "framework/angular/reference/functions/withNoQueryHydration"
             },
             {
-              "label": "Classes / MutationCache",
-              "to": "framework/angular/reference/classes/MutationCache"
-            },
-            {
-              "label": "Classes / MutationObserver",
-              "to": "framework/angular/reference/classes/MutationObserver"
-            },
-            {
-              "label": "Classes / QueriesObserver",
-              "to": "framework/angular/reference/classes/QueriesObserver"
-            },
-            {
-              "label": "Classes / Query",
-              "to": "framework/angular/reference/classes/Query"
-            },
-            {
-              "label": "Classes / QueryCache",
-              "to": "framework/angular/reference/classes/QueryCache"
-            },
-            {
-              "label": "Classes / QueryClient",
-              "to": "framework/angular/reference/classes/QueryClient"
-            },
-            {
-              "label": "Classes / QueryObserver",
-              "to": "framework/angular/reference/classes/QueryObserver"
+              "label": "Interfaces / BaseInfiniteQueryNarrowing",
+              "to": "framework/angular/reference/interfaces/BaseInfiniteQueryNarrowing"
             },
             {
               "label": "Interfaces / BaseMutationNarrowing",
@@ -5133,10 +5105,6 @@
               "to": "framework/angular/reference/interfaces/CancelOptions"
             },
             {
-              "label": "Interfaces / CreateBaseQueryOptions",
-              "to": "framework/angular/reference/interfaces/CreateBaseQueryOptions"
-            },
-            {
               "label": "Interfaces / CreateInfiniteQueryOptions",
               "to": "framework/angular/reference/interfaces/CreateInfiniteQueryOptions"
             },
@@ -5145,12 +5113,16 @@
               "to": "framework/angular/reference/interfaces/CreateMutationOptions"
             },
             {
-              "label": "Interfaces / CreateQueryOptions",
-              "to": "framework/angular/reference/interfaces/CreateQueryOptions"
-            },
-            {
               "label": "Interfaces / DefaultOptions",
               "to": "framework/angular/reference/interfaces/DefaultOptions"
+            },
+            {
+              "label": "Interfaces / DefinedInfiniteQueryNarrowing",
+              "to": "framework/angular/reference/interfaces/DefinedInfiniteQueryNarrowing"
+            },
+            {
+              "label": "Interfaces / DefinedQueryNarrowing",
+              "to": "framework/angular/reference/interfaces/DefinedQueryNarrowing"
             },
             {
               "label": "Interfaces / DehydrateOptions",
@@ -5229,28 +5201,8 @@
               "to": "framework/angular/reference/interfaces/InitialPageParam"
             },
             {
-              "label": "Interfaces / InjectInfiniteQueryOptions",
-              "to": "framework/angular/reference/interfaces/InjectInfiniteQueryOptions"
-            },
-            {
-              "label": "Interfaces / InjectIsFetchingOptions",
-              "to": "framework/angular/reference/interfaces/InjectIsFetchingOptions"
-            },
-            {
-              "label": "Interfaces / InjectIsMutatingOptions",
-              "to": "framework/angular/reference/interfaces/InjectIsMutatingOptions"
-            },
-            {
-              "label": "Interfaces / InjectMutationOptions",
-              "to": "framework/angular/reference/interfaces/InjectMutationOptions"
-            },
-            {
-              "label": "Interfaces / InjectMutationStateOptions",
-              "to": "framework/angular/reference/interfaces/InjectMutationStateOptions"
-            },
-            {
-              "label": "Interfaces / InjectQueryOptions",
-              "to": "framework/angular/reference/interfaces/InjectQueryOptions"
+              "label": "Interfaces / InjectQueriesOptions",
+              "to": "framework/angular/reference/interfaces/InjectQueriesOptions"
             },
             {
               "label": "Interfaces / InvalidateOptions",
@@ -5373,6 +5325,10 @@
               "to": "framework/angular/reference/interfaces/QueryOptions"
             },
             {
+              "label": "Interfaces / QueryResource",
+              "to": "framework/angular/reference/interfaces/QueryResource"
+            },
+            {
               "label": "Interfaces / QueryState",
               "to": "framework/angular/reference/interfaces/QueryState"
             },
@@ -5405,364 +5361,316 @@
               "to": "framework/angular/reference/interfaces/TimeoutManager"
             },
             {
-              "label": "Types / AnyDataTag",
+              "label": "Type Aliases / AnyDataTag",
               "to": "framework/angular/reference/type-aliases/AnyDataTag"
             },
             {
-              "label": "Types / CreateBaseMutationResult",
+              "label": "Type Aliases / CreateBaseMutationResult",
               "to": "framework/angular/reference/type-aliases/CreateBaseMutationResult"
             },
             {
-              "label": "Types / CreateBaseQueryResult",
+              "label": "Type Aliases / CreateBaseQueryResult",
               "to": "framework/angular/reference/type-aliases/CreateBaseQueryResult"
             },
             {
-              "label": "Types / CreateInfiniteQueryResult",
+              "label": "Type Aliases / CreateInfiniteQueryResult",
               "to": "framework/angular/reference/type-aliases/CreateInfiniteQueryResult"
             },
             {
-              "label": "Types / CreateMutateAsyncFunction",
+              "label": "Type Aliases / CreateMutateAsyncFunction",
               "to": "framework/angular/reference/type-aliases/CreateMutateAsyncFunction"
             },
             {
-              "label": "Types / CreateMutateFunction",
+              "label": "Type Aliases / CreateMutateFunction",
               "to": "framework/angular/reference/type-aliases/CreateMutateFunction"
             },
             {
-              "label": "Types / CreateMutationResult",
+              "label": "Type Aliases / CreateMutationResult",
               "to": "framework/angular/reference/type-aliases/CreateMutationResult"
             },
             {
-              "label": "Types / CreateQueryResult",
+              "label": "Type Aliases / CreateQueryOptions",
+              "to": "framework/angular/reference/type-aliases/CreateQueryOptions"
+            },
+            {
+              "label": "Type Aliases / CreateQueryResult",
               "to": "framework/angular/reference/type-aliases/CreateQueryResult"
             },
             {
-              "label": "Types / DataTag",
+              "label": "Type Aliases / DataTag",
               "to": "framework/angular/reference/type-aliases/DataTag"
             },
             {
-              "label": "Types / DefaultError",
+              "label": "Type Aliases / DefaultError",
               "to": "framework/angular/reference/type-aliases/DefaultError"
             },
             {
-              "label": "Types / DefaultedInfiniteQueryObserverOptions",
+              "label": "Type Aliases / DefaultedInfiniteQueryObserverOptions",
               "to": "framework/angular/reference/type-aliases/DefaultedInfiniteQueryObserverOptions"
             },
             {
-              "label": "Types / DefaultedQueryObserverOptions",
+              "label": "Type Aliases / DefaultedQueryObserverOptions",
               "to": "framework/angular/reference/type-aliases/DefaultedQueryObserverOptions"
             },
             {
-              "label": "Types / DefinedCreateInfiniteQueryResult",
+              "label": "Type Aliases / DefinedCreateInfiniteQueryResult",
               "to": "framework/angular/reference/type-aliases/DefinedCreateInfiniteQueryResult"
             },
             {
-              "label": "Types / DefinedCreateQueryResult",
+              "label": "Type Aliases / DefinedCreateQueryResult",
               "to": "framework/angular/reference/type-aliases/DefinedCreateQueryResult"
             },
             {
-              "label": "Types / DefinedInfiniteQueryObserverResult",
+              "label": "Type Aliases / DefinedInfiniteQueryObserverResult",
               "to": "framework/angular/reference/type-aliases/DefinedInfiniteQueryObserverResult"
             },
             {
-              "label": "Types / DefinedInitialDataInfiniteOptions",
+              "label": "Type Aliases / DefinedInitialDataInfiniteOptions",
               "to": "framework/angular/reference/type-aliases/DefinedInitialDataInfiniteOptions"
             },
             {
-              "label": "Types / DefinedInitialDataOptions",
+              "label": "Type Aliases / DefinedInitialDataOptions",
               "to": "framework/angular/reference/type-aliases/DefinedInitialDataOptions"
             },
             {
-              "label": "Types / DefinedQueryObserverResult",
+              "label": "Type Aliases / DefinedQueryObserverResult",
               "to": "framework/angular/reference/type-aliases/DefinedQueryObserverResult"
             },
             {
-              "label": "Types / DevtoolsFeature",
-              "to": "framework/angular/reference/type-aliases/DevtoolsFeature"
-            },
-            {
-              "label": "Types / DistributiveOmit",
+              "label": "Type Aliases / DistributiveOmit",
               "to": "framework/angular/reference/type-aliases/DistributiveOmit"
             },
             {
-              "label": "Types / EnsureInfiniteQueryDataOptions",
+              "label": "Type Aliases / EnsureInfiniteQueryDataOptions",
               "to": "framework/angular/reference/type-aliases/EnsureInfiniteQueryDataOptions"
             },
             {
-              "label": "Types / FetchInfiniteQueryOptions",
+              "label": "Type Aliases / FetchInfiniteQueryOptions",
               "to": "framework/angular/reference/type-aliases/FetchInfiniteQueryOptions"
             },
             {
-              "label": "Types / FetchStatus",
+              "label": "Type Aliases / FetchStatus",
               "to": "framework/angular/reference/type-aliases/FetchStatus"
             },
             {
-              "label": "Types / GetNextPageParamFunction",
+              "label": "Type Aliases / GetNextPageParamFunction",
               "to": "framework/angular/reference/type-aliases/GetNextPageParamFunction"
             },
             {
-              "label": "Types / GetPreviousPageParamFunction",
+              "label": "Type Aliases / GetPreviousPageParamFunction",
               "to": "framework/angular/reference/type-aliases/GetPreviousPageParamFunction"
             },
             {
-              "label": "Types / InferDataFromTag",
+              "label": "Type Aliases / InferDataFromTag",
               "to": "framework/angular/reference/type-aliases/InferDataFromTag"
             },
             {
-              "label": "Types / InferErrorFromTag",
+              "label": "Type Aliases / InferErrorFromTag",
               "to": "framework/angular/reference/type-aliases/InferErrorFromTag"
             },
             {
-              "label": "Types / InfiniteQueryExecuteOptions",
+              "label": "Type Aliases / InfiniteQueryExecuteOptions",
               "to": "framework/angular/reference/type-aliases/InfiniteQueryExecuteOptions"
             },
             {
-              "label": "Types / InfiniteQueryObserverResult",
+              "label": "Type Aliases / InfiniteQueryObserverResult",
               "to": "framework/angular/reference/type-aliases/InfiniteQueryObserverResult"
             },
             {
-              "label": "Types / InitialDataFunction",
+              "label": "Type Aliases / InitialDataFunction",
               "to": "framework/angular/reference/type-aliases/InitialDataFunction"
             },
             {
-              "label": "Types / ManagedTimerId",
+              "label": "Type Aliases / ManagedTimerId",
               "to": "framework/angular/reference/type-aliases/ManagedTimerId"
             },
             {
-              "label": "Types / MutateFunction",
+              "label": "Type Aliases / MutateFunction",
               "to": "framework/angular/reference/type-aliases/MutateFunction"
             },
             {
-              "label": "Types / MutateFunctionRest",
+              "label": "Type Aliases / MutateFunctionRest",
               "to": "framework/angular/reference/type-aliases/MutateFunctionRest"
             },
             {
-              "label": "Types / MutationCacheNotifyEvent",
+              "label": "Type Aliases / MutationCacheNotifyEvent",
               "to": "framework/angular/reference/type-aliases/MutationCacheNotifyEvent"
             },
             {
-              "label": "Types / MutationFunction",
+              "label": "Type Aliases / MutationFunction",
               "to": "framework/angular/reference/type-aliases/MutationFunction"
             },
             {
-              "label": "Types / MutationFunctionContext",
+              "label": "Type Aliases / MutationFunctionContext",
               "to": "framework/angular/reference/type-aliases/MutationFunctionContext"
             },
             {
-              "label": "Types / MutationKey",
+              "label": "Type Aliases / MutationKey",
               "to": "framework/angular/reference/type-aliases/MutationKey"
             },
             {
-              "label": "Types / MutationMeta",
+              "label": "Type Aliases / MutationMeta",
               "to": "framework/angular/reference/type-aliases/MutationMeta"
             },
             {
-              "label": "Types / MutationObserverResult",
+              "label": "Type Aliases / MutationObserverResult",
               "to": "framework/angular/reference/type-aliases/MutationObserverResult"
             },
             {
-              "label": "Types / MutationScope",
+              "label": "Type Aliases / MutationScope",
               "to": "framework/angular/reference/type-aliases/MutationScope"
             },
             {
-              "label": "Types / MutationStatus",
+              "label": "Type Aliases / MutationStateOptions",
+              "to": "framework/angular/reference/type-aliases/MutationStateOptions"
+            },
+            {
+              "label": "Type Aliases / MutationStatus",
               "to": "framework/angular/reference/type-aliases/MutationStatus"
             },
             {
-              "label": "Types / NetworkMode",
+              "label": "Type Aliases / NetworkMode",
               "to": "framework/angular/reference/type-aliases/NetworkMode"
             },
             {
-              "label": "Types / NonUndefinedGuard",
+              "label": "Type Aliases / NonUndefinedGuard",
               "to": "framework/angular/reference/type-aliases/NonUndefinedGuard"
             },
             {
-              "label": "Types / NotifyEventType",
+              "label": "Type Aliases / NotifyEventType",
               "to": "framework/angular/reference/type-aliases/NotifyEventType"
             },
             {
-              "label": "Types / NotifyOnChangeProps",
+              "label": "Type Aliases / NotifyOnChangeProps",
               "to": "framework/angular/reference/type-aliases/NotifyOnChangeProps"
             },
             {
-              "label": "Types / OmitKeyof",
+              "label": "Type Aliases / OmitKeyof",
               "to": "framework/angular/reference/type-aliases/OmitKeyof"
             },
             {
-              "label": "Types / Override",
+              "label": "Type Aliases / Override",
               "to": "framework/angular/reference/type-aliases/Override"
             },
             {
-              "label": "Types / PersistQueryClientFeature",
-              "to": "framework/angular/reference/type-aliases/PersistQueryClientFeature"
-            },
-            {
-              "label": "Types / PlaceholderDataFunction",
+              "label": "Type Aliases / PlaceholderDataFunction",
               "to": "framework/angular/reference/type-aliases/PlaceholderDataFunction"
             },
             {
-              "label": "Types / QueriesOptions",
+              "label": "Type Aliases / QueriesOptions",
               "to": "framework/angular/reference/type-aliases/QueriesOptions"
             },
             {
-              "label": "Types / QueriesPlaceholderDataFunction",
+              "label": "Type Aliases / QueriesPlaceholderDataFunction",
               "to": "framework/angular/reference/type-aliases/QueriesPlaceholderDataFunction"
             },
             {
-              "label": "Types / QueriesResults",
+              "label": "Type Aliases / QueriesResults",
               "to": "framework/angular/reference/type-aliases/QueriesResults"
             },
             {
-              "label": "Types / QueryBooleanOption",
+              "label": "Type Aliases / QueryBooleanOption",
               "to": "framework/angular/reference/type-aliases/QueryBooleanOption"
             },
             {
-              "label": "Types / QueryCacheNotifyEvent",
+              "label": "Type Aliases / QueryCacheNotifyEvent",
               "to": "framework/angular/reference/type-aliases/QueryCacheNotifyEvent"
             },
             {
-              "label": "Types / QueryFeatures",
-              "to": "framework/angular/reference/type-aliases/QueryFeatures"
-            },
-            {
-              "label": "Types / QueryFunction",
+              "label": "Type Aliases / QueryFunction",
               "to": "framework/angular/reference/type-aliases/QueryFunction"
             },
             {
-              "label": "Types / QueryFunctionContext",
+              "label": "Type Aliases / QueryFunctionContext",
               "to": "framework/angular/reference/type-aliases/QueryFunctionContext"
             },
             {
-              "label": "Types / QueryKey",
+              "label": "Type Aliases / QueryKey",
               "to": "framework/angular/reference/type-aliases/QueryKey"
             },
             {
-              "label": "Types / QueryKeyHashFunction",
+              "label": "Type Aliases / QueryKeyHashFunction",
               "to": "framework/angular/reference/type-aliases/QueryKeyHashFunction"
             },
             {
-              "label": "Types / QueryKeyWithDataTag",
+              "label": "Type Aliases / QueryKeyWithDataTag",
               "to": "framework/angular/reference/type-aliases/QueryKeyWithDataTag"
             },
             {
-              "label": "Types / QueryMeta",
+              "label": "Type Aliases / QueryMeta",
               "to": "framework/angular/reference/type-aliases/QueryMeta"
             },
             {
-              "label": "Types / QueryObserverResult",
+              "label": "Type Aliases / QueryObserverResult",
               "to": "framework/angular/reference/type-aliases/QueryObserverResult"
             },
             {
-              "label": "Types / QueryPersister",
+              "label": "Type Aliases / QueryPersister",
               "to": "framework/angular/reference/type-aliases/QueryPersister"
             },
             {
-              "label": "Types / QueryStatus",
+              "label": "Type Aliases / QueryStatus",
               "to": "framework/angular/reference/type-aliases/QueryStatus"
             },
             {
-              "label": "Types / SkipToken",
+              "label": "Type Aliases / SkipToken",
               "to": "framework/angular/reference/type-aliases/SkipToken"
             },
             {
-              "label": "Types / StaleTime",
+              "label": "Type Aliases / StaleTime",
               "to": "framework/angular/reference/type-aliases/StaleTime"
             },
             {
-              "label": "Types / StaleTimeFunction",
+              "label": "Type Aliases / StaleTimeFunction",
               "to": "framework/angular/reference/type-aliases/StaleTimeFunction"
             },
             {
-              "label": "Types / ThrowOnError",
+              "label": "Type Aliases / ThrowOnError",
               "to": "framework/angular/reference/type-aliases/ThrowOnError"
             },
             {
-              "label": "Types / TimeoutCallback",
+              "label": "Type Aliases / TimeoutCallback",
               "to": "framework/angular/reference/type-aliases/TimeoutCallback"
             },
             {
-              "label": "Types / TimeoutProvider",
+              "label": "Type Aliases / TimeoutProvider",
               "to": "framework/angular/reference/type-aliases/TimeoutProvider"
             },
             {
-              "label": "Types / UndefinedInitialDataInfiniteOptions",
+              "label": "Type Aliases / UndefinedInitialDataInfiniteOptions",
               "to": "framework/angular/reference/type-aliases/UndefinedInitialDataInfiniteOptions"
             },
             {
-              "label": "Types / UndefinedInitialDataOptions",
+              "label": "Type Aliases / UndefinedInitialDataOptions",
               "to": "framework/angular/reference/type-aliases/UndefinedInitialDataOptions"
             },
             {
-              "label": "Types / UnsetMarker",
+              "label": "Type Aliases / UnsetMarker",
               "to": "framework/angular/reference/type-aliases/UnsetMarker"
             },
             {
-              "label": "Types / UnusedSkipTokenInfiniteOptions",
+              "label": "Type Aliases / UnusedSkipTokenInfiniteOptions",
               "to": "framework/angular/reference/type-aliases/UnusedSkipTokenInfiniteOptions"
             },
             {
-              "label": "Types / UnusedSkipTokenOptions",
+              "label": "Type Aliases / UnusedSkipTokenOptions",
               "to": "framework/angular/reference/type-aliases/UnusedSkipTokenOptions"
             },
             {
-              "label": "Types / Updater",
+              "label": "Type Aliases / Updater",
               "to": "framework/angular/reference/type-aliases/Updater"
             },
             {
-              "label": "Types / WithRequired",
+              "label": "Type Aliases / WithRequired",
               "to": "framework/angular/reference/type-aliases/WithRequired"
             },
             {
-              "label": "Types / dataTagErrorSymbol",
+              "label": "Type Aliases / dataTagErrorSymbol",
               "to": "framework/angular/reference/type-aliases/dataTagErrorSymbol"
             },
             {
-              "label": "Types / dataTagSymbol",
+              "label": "Type Aliases / dataTagSymbol",
               "to": "framework/angular/reference/type-aliases/dataTagSymbol"
-            },
-            {
-              "label": "Variables / dataTagErrorSymbol",
-              "to": "framework/angular/reference/variables/dataTagErrorSymbol"
-            },
-            {
-              "label": "Variables / dataTagSymbol",
-              "to": "framework/angular/reference/variables/dataTagSymbol"
-            },
-            {
-              "label": "Variables / defaultScheduler",
-              "to": "framework/angular/reference/variables/defaultScheduler"
-            },
-            {
-              "label": "Variables / environmentManager",
-              "to": "framework/angular/reference/variables/environmentManager"
-            },
-            {
-              "label": "Variables / focusManager",
-              "to": "framework/angular/reference/variables/focusManager"
-            },
-            {
-              "label": "Variables / isServer",
-              "to": "framework/angular/reference/variables/isServer"
-            },
-            {
-              "label": "Variables / notifyManager",
-              "to": "framework/angular/reference/variables/notifyManager"
-            },
-            {
-              "label": "Variables / onlineManager",
-              "to": "framework/angular/reference/variables/onlineManager"
-            },
-            {
-              "label": "Variables / skipToken",
-              "to": "framework/angular/reference/variables/skipToken"
-            },
-            {
-              "label": "Variables / timeoutManager",
-              "to": "framework/angular/reference/variables/timeoutManager"
-            },
-            {
-              "label": "Variables / unsetMarker",
-              "to": "framework/angular/reference/variables/unsetMarker"
             }
           ]
         },
