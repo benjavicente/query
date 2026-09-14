@@ -1,6 +1,6 @@
+import { injectQueryZone } from './inject-query-zone'
 import {
   DestroyRef,
-  NgZone,
   assertInInjectionContext,
   computed,
   effect,
@@ -50,16 +50,16 @@ export function injectExternalStore<T>(
     assertInInjectionContext(injectExternalStore)
   }
   const owner = inject(DestroyRef)
-  const ngZone = inject(NgZone)
+  const outsideZone = injectQueryZone()
   const revision = signal(0)
-  const requested = computed(() => ngZone.runOutsideAngular(binding))
+  const requested = computed(() => outsideZone(binding))
   const invalidate = () => untracked(() => revision.update((n) => n + 1))
 
   effect((onCleanup) => {
     // The previous subscription's cleanup may have destroyed the owner.
     if (owner.destroyed) return
     const current = requested()
-    ngZone.runOutsideAngular(() =>
+    outsideZone(() =>
       untracked(() => {
         try {
           const unsubscribe = current.subscribe?.(invalidate)
@@ -67,7 +67,7 @@ export function injectExternalStore<T>(
             // subscribe() can trigger component/injector destruction before returning.
             // Registering cleanup afterward misses that destruction.
             if (owner.destroyed) unsubscribe()
-            else onCleanup(() => ngZone.runOutsideAngular(unsubscribe))
+            else onCleanup(() => outsideZone(unsubscribe))
           }
         } finally {
           // Invalidate after subscribing so an early cached snapshot cannot miss
@@ -81,7 +81,7 @@ export function injectExternalStore<T>(
   return computed(
     () => {
       revision()
-      return ngZone.runOutsideAngular(() => requested().getSnapshot())
+      return outsideZone(() => requested().getSnapshot())
     },
     options?.equal ? { equal: options.equal } : undefined,
   )
