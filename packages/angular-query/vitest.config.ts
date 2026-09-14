@@ -22,7 +22,7 @@ export default defineConfig({
       tsconfig: './tsconfig.spec.json',
       // Vitest sets VITEST; Analog defaults jit: true, which skips ngtsc transforms for
       // signal inputs so inputBinding() fails (NG0315). jit: false needs compiler-cli on
-      // TypeScript 5.9+ to avoid a TS 5.8 bind crash (root pnpm override).
+      // the same TypeScript 5.9 version as the plugin to avoid mixed compiler ASTs.
       jit: false,
     }),
   ],
