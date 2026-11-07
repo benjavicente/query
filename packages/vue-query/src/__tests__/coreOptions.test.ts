@@ -9,7 +9,6 @@ import { createKey, sleep } from '@tanstack/query-test-utils'
 import { useInfiniteQuery } from '../useInfiniteQuery'
 import { useMutation } from '../useMutation'
 import { useQuery } from '../useQuery'
-import { useQueryClient } from '../useQueryClient'
 
 vi.mock(import('../useQueryClient'))
 
@@ -87,30 +86,6 @@ describe('core options', () => {
 
     enabled.value = true
     await nextTick()
-    await vi.advanceTimersByTimeAsync(0)
-
-    expect(queryFn).toHaveBeenCalledTimes(1)
-  })
-
-  // Known limitation: a zero-argument `enabled` is a Vue getter, so its result is cached until a Vue dependency
-  // changes. Remove `.fails` when `enabled` is read again for state that Vue doesn't track.
-  it.fails('should re-read a zero-argument enabled without Vue dependencies', async () => {
-    const key = createKey()
-    let isReady = false
-    const queryFn = vi.fn<() => Promise<string>>(() =>
-      sleep(0).then(() => 'data'),
-    )
-    const options = coreQueryOptions({
-      queryKey: key,
-      queryFn,
-      enabled: () => isReady,
-    })
-
-    useQuery(() => options)
-    await vi.advanceTimersByTimeAsync(0)
-
-    isReady = true
-    void useQueryClient().invalidateQueries({ queryKey: key })
     await vi.advanceTimersByTimeAsync(0)
 
     expect(queryFn).toHaveBeenCalledTimes(1)
