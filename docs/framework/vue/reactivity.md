@@ -159,6 +159,35 @@ More details on this option can be found on the [useQuery reference](./reference
 
 The other query options accept refs as well, and pick up changes to them. Reactive getters, however, are only resolved in `queryKey` and `enabled`, since a function is already a valid value for options such as `select` or `staleTime`.
 
+### Sharing Options With `@tanstack/query-core`
+
+`useQuery`, `useInfiniteQuery`, `useQueries`, and `useMutation` also accept options created by the `queryOptions`, `infiniteQueryOptions`, and `mutationOptions` helpers of `@tanstack/query-core`, which is useful for options shared with framework-agnostic code. Those options are plain values, so make them reactive by passing a getter for the whole options object:
+
+```ts
+import { queryOptions } from '@tanstack/query-core'
+
+// Framework-agnostic code, with no `ref`s
+export const userProjectsOptions = (userId: string) =>
+  queryOptions({
+    queryKey: ['userProjects', userId],
+    queryFn: () => api.fetchUserProjects(userId),
+  })
+
+// In a component: reacts to changes in props.userId
+useQuery(() => userProjectsOptions(props.userId))
+```
+
+Individual options can still be overridden with reactive values, as in `useQuery({ ...sharedOptions, enabled: isReady })`.
+
+### Functions in `enabled`
+
+A function passed as `enabled` is treated according to the number of parameters it declares:
+
+- A function with no parameters, such as `() => isReady.value`, is a reactive getter. It is called while tracking dependencies, without arguments.
+- A function that declares a parameter, such as `(query) => !query.state.data`, is the `query-core` callback. It receives the query and its dependencies are not tracked: a `ref` read inside of it is current when it is called, but a change to that `ref` does not by itself call it again. To react to a `ref`, read it in a getter for the whole options object instead.
+
+Functions that declare no parameters but use their arguments are treated as getters, and so don't receive the query. This includes parameters with a default value, as in `(query = fallback) => ...`, and rest parameters, as in wrappers like `(...args) => callback(...args)`. Declare the parameter directly to receive the query.
+
 ### Immutability
 
 Results from `useQuery` are always immutable. This is necessary for performance and caching purposes. If you need to mutate a value returned from `useQuery`, you must create a copy of the data.

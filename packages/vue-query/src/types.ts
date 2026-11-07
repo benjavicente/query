@@ -82,6 +82,21 @@ export type DeepUnwrapRef<T> = T extends UnwrapLeaf
       : UnwrapRef<T>
 
 /**
+ * Options from `@tanstack/query-core`, such as those created by its `queryOptions` helper, with each option
+ * except `queryKey` also accepted as a `ref` or `computed`. `enabled` also accepts a reactive getter.
+ *
+ * Unlike {@link UseQueryOptions}, callbacks see `TOptions`' query key as it is, without {@link DeepUnwrapRef}.
+ * A key from core holds no `ref`s, and this lets `TQueryKey` be inferred from those callbacks.
+ */
+export type ReactiveCoreOptions<TOptions> = {
+  [Property in keyof TOptions]: Property extends 'enabled'
+    ? TOptions[Property] | MaybeRefOrGetter<boolean | undefined>
+    : Property extends 'queryKey'
+      ? TOptions[Property]
+      : MaybeRef<TOptions[Property]>
+} & ShallowOption
+
+/**
  * The `vue-query`-specific `shallow` option, accepted by query and mutation options.
  */
 export type ShallowOption = {
