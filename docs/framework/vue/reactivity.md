@@ -161,7 +161,7 @@ The other query options accept refs as well, and pick up changes to them. Reacti
 
 ### Sharing Options With `@tanstack/query-core`
 
-`useQuery`, `useInfiniteQuery`, `useQueries`, and `useMutation` also accept options created by the `queryOptions`, `infiniteQueryOptions`, and `mutationOptions` helpers of `@tanstack/query-core`, which is useful for options shared with framework-agnostic code. Those options are plain values, so make them reactive by passing a getter for the whole options object:
+Options created by the `queryOptions`, `infiniteQueryOptions`, and `mutationOptions` helpers of `@tanstack/query-core` are useful for sharing options with framework-agnostic code. Those options are plain values, so pass them to `useQuery` and `useInfiniteQuery` through a getter, which also keeps them reactive:
 
 ```ts
 import { queryOptions } from '@tanstack/query-core'
@@ -177,7 +177,7 @@ export const userProjectsOptions = (userId: string) =>
 useQuery(() => userProjectsOptions(props.userId))
 ```
 
-Individual options can still be overridden with reactive values, as in `useQuery({ ...sharedOptions, enabled: isReady })`.
+To override an option reactively, do it inside the getter, as in `useQuery(() => ({ ...sharedOptions, enabled: isReady.value }))`. `useQueries` and `useMutation` accept these options directly.
 
 ### Functions in `enabled`
 

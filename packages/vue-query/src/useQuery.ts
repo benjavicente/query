@@ -8,7 +8,7 @@ import type {
   QueryObserverOptions,
 } from '@tanstack/query-core'
 import type { UseBaseQueryReturnType } from './useBaseQuery'
-import type { MaybeRefOrGetter, ReactiveCoreOptions } from './types'
+import type { MaybeRefOrGetter, RefFreeQueryKey } from './types'
 import type { QueryClient } from './queryClient'
 import type {
   DefinedInitialQueryOptions,
@@ -319,10 +319,9 @@ export function useQuery<
 ): UseQueryReturnType<TData, TError>
 
 /**
- * Overload for options from `@tanstack/query-core`, selected when `initialData` is known to be defined. Options
- * can be passed directly, or through a `ref`, a `computed`, or a reactive getter. It comes after the Vue
- * overloads so that options they accept resolve exactly as before.
- * @param options - The options from `@tanstack/query-core` to use.
+ * Overload for a getter of options from `@tanstack/query-core`, selected when `initialData` is known to be
+ * defined. It comes after the Vue overloads so that options they accept resolve exactly as before.
+ * @param options - A getter returning the options from `@tanstack/query-core` to use.
  * @param queryClient - Use this to use a custom `QueryClient`. Otherwise, the one provided by `VueQueryPlugin`
  * will be used.
  * @returns The current query result, typed so that `data` is never `undefined` (unless a `select` changes
@@ -334,23 +333,25 @@ export function useQuery<
   TData = TQueryFnData,
   TQueryKey extends QueryKey = QueryKey,
 >(
-  options: MaybeRefOrGetter<
-    ReactiveCoreOptions<
-      QueryObserverOptions<TQueryFnData, TError, TData, TQueryFnData, TQueryKey>
-    > & {
+  options: () => QueryObserverOptions<
+    TQueryFnData,
+    TError,
+    TData,
+    TQueryFnData,
+    TQueryKey
+  > &
+    RefFreeQueryKey<TQueryKey> & {
       initialData:
         | NonUndefinedGuard<TQueryFnData>
         | (() => NonUndefinedGuard<TQueryFnData>)
-    }
-  >,
+    },
   queryClient?: QueryClient,
 ): UseQueryDefinedReturnType<TData, TError>
 
 /**
- * Overload for options from `@tanstack/query-core`. Options can be passed directly, or through a `ref`, a
- * `computed`, or a reactive getter. It comes after the Vue overloads so that options they accept resolve exactly
- * as before.
- * @param options - The options from `@tanstack/query-core` to use.
+ * Overload for a getter of options from `@tanstack/query-core`. It comes after the Vue overloads so that options
+ * they accept resolve exactly as before.
+ * @param options - A getter returning the options from `@tanstack/query-core` to use.
  * @param queryClient - Use this to use a custom `QueryClient`. Otherwise, the one provided by `VueQueryPlugin`
  * will be used.
  * @returns The current query result, with `data` typed as possibly `undefined`.
@@ -361,11 +362,14 @@ export function useQuery<
   TData = TQueryFnData,
   TQueryKey extends QueryKey = QueryKey,
 >(
-  options: MaybeRefOrGetter<
-    ReactiveCoreOptions<
-      QueryObserverOptions<TQueryFnData, TError, TData, TQueryFnData, TQueryKey>
-    >
-  >,
+  options: () => QueryObserverOptions<
+    TQueryFnData,
+    TError,
+    TData,
+    TQueryFnData,
+    TQueryKey
+  > &
+    RefFreeQueryKey<TQueryKey>,
   queryClient?: QueryClient,
 ): UseQueryReturnType<TData, TError>
 

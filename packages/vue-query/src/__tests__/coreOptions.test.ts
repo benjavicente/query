@@ -21,36 +21,19 @@ describe('core options', () => {
     vi.useRealTimers()
   })
 
-  it('should fetch with core options', async () => {
+  it('should fetch with a getter of core options', async () => {
     const options = coreQueryOptions({
       queryKey: createKey(),
       queryFn: () => sleep(0).then(() => 'data'),
     })
 
-    const { data } = useQuery(options)
+    const { data } = useQuery(() => options)
     await vi.advanceTimersByTimeAsync(0)
 
     expect(data.value).toBe('data')
   })
 
   it('should pass the query to a core enabled callback', async () => {
-    const key = createKey()
-    const enabled = vi.fn<
-      (query: { queryKey: ReadonlyArray<unknown> }) => boolean
-    >((query) => Array.isArray(query.queryKey))
-    const options = coreQueryOptions({
-      queryKey: key,
-      queryFn: () => sleep(0).then(() => 'data'),
-      enabled,
-    })
-
-    useQuery(options)
-    await vi.advanceTimersByTimeAsync(0)
-
-    expect(enabled.mock.calls[0]?.[0].queryKey).toStrictEqual(key)
-  })
-
-  it('should pass the query to a core enabled callback through a getter', async () => {
     const key = createKey()
     const enabled = vi.fn<
       (query: { queryKey: ReadonlyArray<unknown> }) => boolean
@@ -86,7 +69,7 @@ describe('core options', () => {
     expect(data.value).toBe(2)
   })
 
-  it('should let a reactive override replace a core enabled callback', async () => {
+  it('should let an override in the getter replace a core enabled callback', async () => {
     const enabled = ref(false)
     const queryFn = vi.fn<() => Promise<string>>(() =>
       sleep(0).then(() => 'data'),
@@ -97,7 +80,7 @@ describe('core options', () => {
       enabled: () => true,
     })
 
-    useQuery({ ...options, enabled })
+    useQuery(() => ({ ...options, enabled: enabled.value }))
     await vi.advanceTimersByTimeAsync(0)
     expect(queryFn).not.toHaveBeenCalled()
 
@@ -108,7 +91,7 @@ describe('core options', () => {
     expect(queryFn).toHaveBeenCalledTimes(1)
   })
 
-  it('should fetch with core infinite options', async () => {
+  it('should fetch with a getter of core infinite options', async () => {
     const options = coreInfiniteQueryOptions({
       queryKey: createKey(),
       queryFn: ({ pageParam }) => sleep(0).then(() => pageParam),
@@ -116,7 +99,7 @@ describe('core options', () => {
       getNextPageParam: (lastPage) => lastPage + 1,
     })
 
-    const { data, fetchNextPage } = useInfiniteQuery(options)
+    const { data, fetchNextPage } = useInfiniteQuery(() => options)
     await vi.advanceTimersByTimeAsync(0)
     expect(data.value?.pages).toStrictEqual([0])
 

@@ -1,5 +1,5 @@
 import { assertType, describe, expectTypeOf, it } from 'vitest'
-import { computed, ref } from 'vue-demi'
+import { ref } from 'vue-demi'
 import {
   infiniteQueryOptions as coreInfiniteQueryOptions,
   mutationOptions as coreMutationOptions,
@@ -15,8 +15,10 @@ import { useQuery } from '../useQuery'
 import type {
   CoreQueryOptions,
   InfiniteData,
+  QueryFunctionContext,
   QueryKey,
 } from '@tanstack/query-core'
+import type { Ref } from 'vue-demi'
 import type { UseInfiniteQueryOptions } from '../useInfiniteQuery'
 import type { UseQueryOptions } from '../queryOptions'
 import type { MaybeRefOrGetter } from '../types'
@@ -26,10 +28,10 @@ declare const todoId: number
 
 describe('core options', () => {
   describe('useQuery', () => {
-    it('should accept core options directly', () => {
+    it('should accept a getter of core options', () => {
       const options = coreQueryOptions({ queryKey: createKey(), queryFn })
 
-      expectTypeOf(useQuery(options).data.value).toEqualTypeOf<
+      expectTypeOf(useQuery(() => options).data.value).toEqualTypeOf<
         Array<number> | undefined
       >()
     })
@@ -40,7 +42,7 @@ describe('core options', () => {
         queryFn: ({ queryKey }) => [queryKey[1]],
       })
 
-      expectTypeOf(useQuery(options).data.value).toEqualTypeOf<
+      expectTypeOf(useQuery(() => options).data.value).toEqualTypeOf<
         Array<1> | undefined
       >()
     })
@@ -54,7 +56,7 @@ describe('core options', () => {
         refetchInterval: (query) => (query.state.data ? 1000 : false),
       })
 
-      expectTypeOf(useQuery(options).data.value).toEqualTypeOf<
+      expectTypeOf(useQuery(() => options).data.value).toEqualTypeOf<
         Array<number> | undefined
       >()
     })
@@ -66,7 +68,7 @@ describe('core options', () => {
         select: (data) => data.length,
       })
 
-      expectTypeOf(useQuery(options).data.value).toEqualTypeOf<
+      expectTypeOf(useQuery(() => options).data.value).toEqualTypeOf<
         number | undefined
       >()
     })
@@ -78,7 +80,9 @@ describe('core options', () => {
         initialData: [1],
       })
 
-      expectTypeOf(useQuery(options).data.value).toEqualTypeOf<Array<number>>()
+      expectTypeOf(useQuery(() => options).data.value).toEqualTypeOf<
+        Array<number>
+      >()
     })
 
     it('should accept skipToken', () => {
@@ -87,52 +91,27 @@ describe('core options', () => {
         queryFn: Math.random() > 0.5 ? queryFn : skipToken,
       })
 
-      expectTypeOf(useQuery(options).data.value).toEqualTypeOf<
-        Array<number> | undefined
-      >()
-    })
-
-    it('should accept a getter, a computed and a ref of core options', () => {
-      const options = coreQueryOptions({
-        queryKey: ['todo', todoId] as const,
-        queryFn,
-        enabled: (query) => query.queryKey[1] === todoId,
-      })
-
       expectTypeOf(useQuery(() => options).data.value).toEqualTypeOf<
         Array<number> | undefined
       >()
-      expectTypeOf(useQuery(computed(() => options)).data.value).toEqualTypeOf<
-        Array<number> | undefined
-      >()
-      expectTypeOf(useQuery(ref(options)).data.value).toEqualTypeOf<
-        Array<number> | undefined
-      >()
     })
 
-    it('should accept reactive overrides of core options', () => {
+    it('should accept overrides inside the getter', () => {
+      const enabled = ref(true)
       const options = coreQueryOptions({
         queryKey: ['todo', todoId] as const,
         queryFn,
         enabled: (query) => query.queryKey[1] === todoId,
       })
 
-      const results = [
-        useQuery({ ...options, enabled: ref(true) }),
-        useQuery({ ...options, enabled: computed(() => true) }),
-        useQuery({ ...options, enabled: () => true }),
-        useQuery({ ...options, staleTime: ref(1000) }),
-        useQuery({ ...options, shallow: true }),
-      ]
-
-      expectTypeOf(results[0]!.data.value).toEqualTypeOf<
-        Array<number> | undefined
-      >()
+      expectTypeOf(
+        useQuery(() => ({ ...options, enabled: enabled.value })).data.value,
+      ).toEqualTypeOf<Array<number> | undefined>()
     })
 
     it('should accept generic core options', () => {
       function useWrapper<TData>(options: CoreQueryOptions<TData>) {
-        return useQuery(options)
+        return useQuery(() => options)
       }
 
       expectTypeOf(useWrapper).returns.toHaveProperty('data')
@@ -143,15 +122,33 @@ describe('core options', () => {
 
       assertType(
         // @ts-expect-error enabled is not a string
-        useQuery({ ...options, enabled: 'yes' }),
+        useQuery(() => ({ ...options, enabled: 'yes' })),
       )
       assertType(
         // @ts-expect-error select receives the query data
-        useQuery({ ...options, select: (data: string) => data }),
+        useQuery(() => ({ ...options, select: (data: string) => data })),
+      )
+    })
+
+    it('should reject callbacks typed with a ref in the key', () => {
+      const id = ref(1)
+      type RefKey = readonly ['todo', Ref<number>]
+
+      assertType(
+        // @ts-expect-error the callback receives the unwrapped key
+        useQuery(() => ({
+          queryKey: ['todo', id] as const,
+          queryFn: (context: QueryFunctionContext<RefKey>) =>
+            context.queryKey[1].value,
+        })),
       )
       assertType(
-        // @ts-expect-error queryFn does not match the tagged key
-        useQuery({ ...options, queryFn: () => Promise.resolve('data') }),
+        useQuery({
+          queryKey: ['todo', id] as const,
+          // @ts-expect-error the callback receives the unwrapped key
+          queryFn: (context: QueryFunctionContext<RefKey>) =>
+            context.queryKey[1].value,
+        }),
       )
     })
   })
@@ -182,7 +179,7 @@ describe('core options', () => {
       getNextPageParam: () => 1,
     }
 
-    it('should accept core options directly and through a getter', () => {
+    it('should accept a getter of core options', () => {
       const options = coreInfiniteQueryOptions({
         queryKey: createKey(),
         queryFn: page,
@@ -190,9 +187,6 @@ describe('core options', () => {
         enabled: (query) => !query.state.data,
       })
 
-      expectTypeOf(useInfiniteQuery(options).data.value).toEqualTypeOf<
-        InfiniteData<Array<number>> | undefined
-      >()
       expectTypeOf(useInfiniteQuery(() => options).data.value).toEqualTypeOf<
         InfiniteData<Array<number>> | undefined
       >()
@@ -206,7 +200,7 @@ describe('core options', () => {
         initialData: { pages: [[1]], pageParams: [0] },
       })
 
-      expectTypeOf(useInfiniteQuery(options).data.value).toEqualTypeOf<
+      expectTypeOf(useInfiniteQuery(() => options).data.value).toEqualTypeOf<
         InfiniteData<Array<number>>
       >()
     })
