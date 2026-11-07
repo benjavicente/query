@@ -87,8 +87,8 @@ export type DeepUnwrapRef<T> = T extends UnwrapLeaf
  * Rejects a `queryKey` that contains a `ref`.
  * @internal
  */
-export type RefFreeQueryKey<TQueryKey> = [TQueryKey] extends [
-  DeepUnwrapRef<TQueryKey>,
+export type RefFreeQueryKey<TQueryKey> = [DeepUnwrapRef<TQueryKey>] extends [
+  TQueryKey,
 ]
   ? unknown
   : { queryKey?: never }

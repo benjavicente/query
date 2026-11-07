@@ -130,6 +130,57 @@ describe('core options', () => {
       )
     })
 
+    it('should reject core options with a ref in the key', () => {
+      const primitive = coreQueryOptions({
+        queryKey: ['todo', ref(1)] as const,
+        queryFn,
+      })
+      const object = coreQueryOptions({
+        queryKey: ['todo', ref<object>({ id: 1 })] as const,
+        queryFn,
+      })
+      const nested = coreQueryOptions({
+        queryKey: ['todo', { ids: [ref(1)] }] as const,
+        queryFn,
+      })
+
+      assertType(
+        // @ts-expect-error the key contains a ref
+        useQuery(() => primitive),
+      )
+      assertType(
+        // @ts-expect-error the key contains a ref
+        useQuery(() => object),
+      )
+      assertType(
+        // @ts-expect-error the key contains a ref
+        useQuery(() => nested),
+      )
+    })
+
+    it('should accept ref-free keys of any shape', () => {
+      class TodoId {
+        constructor(public value: number) {}
+      }
+      const queryKey: [string, number?] = ['todo']
+      const shapes = coreQueryOptions({
+        queryKey: [
+          'todo',
+          { date: new Date(), map: new Map<string, number>() },
+          new TodoId(1),
+        ] as const,
+        queryFn,
+      })
+      const optional = coreQueryOptions({ queryKey, queryFn })
+
+      expectTypeOf(useQuery(() => shapes).data.value).toEqualTypeOf<
+        Array<number> | undefined
+      >()
+      expectTypeOf(useQuery(() => optional).data.value).toEqualTypeOf<
+        Array<number> | undefined
+      >()
+    })
+
     it('should reject callbacks typed with a ref in the key', () => {
       const id = ref(1)
       type RefKey = readonly ['todo', Ref<number>]
