@@ -6,7 +6,8 @@ import { QueryClient } from '../queryClient'
 import { queryOptions } from '../queryOptions'
 import { useQueries } from '../useQueries'
 import { useQuery } from '../useQuery'
-import type { InitialDataFunction } from '@tanstack/query-core'
+import type { InitialDataFunction, QueryKey } from '@tanstack/query-core'
+import type { UseQueryOptions } from '../queryOptions'
 
 // Regression test for exported queryOptions inference under declaration emit.
 // TypeScript should be able to name the return type without expanding the
@@ -263,6 +264,69 @@ describe('queryOptions', () => {
 
     expectTypeOf(data).toEqualTypeOf<unknown>()
     expectTypeOf(tagged[dataTagSymbol]).toEqualTypeOf<unknown>()
+  })
+
+  it('should be accepted by useQuery when the queryKey contains a ref', () => {
+    const id = ref(1)
+    const options = queryOptions({
+      queryKey: ['todo', id] as const,
+      queryFn: ({ queryKey }) => {
+        expectTypeOf(queryKey[1]).toEqualTypeOf<number>()
+        return [queryKey[1]]
+      },
+      enabled: (query) => {
+        expectTypeOf(query.queryKey[1]).toEqualTypeOf<number>()
+        return true
+      },
+    })
+
+    expectTypeOf(useQuery(options).data.value).toEqualTypeOf<
+      Array<number> | undefined
+    >()
+    expectTypeOf(useQuery(() => options).data.value).toEqualTypeOf<
+      Array<number> | undefined
+    >()
+  })
+
+  it('should narrow data in useQuery when the queryKey contains a ref and initialData is defined', () => {
+    const options = queryOptions({
+      queryKey: ['todo', ref(1)],
+      queryFn: () => Promise.resolve(5),
+      initialData: 1,
+    })
+
+    expectTypeOf(useQuery(options).data.value).toEqualTypeOf<number>()
+  })
+
+  it('should keep the queryKey with a ref usable in useQueries and QueryClient methods', () => {
+    const options = queryOptions({
+      queryKey: ['todo', ref(1)] as const,
+      queryFn: () => Promise.resolve(5),
+    })
+
+    expectTypeOf(
+      useQueries({ queries: [options] }).value[0].data,
+    ).toEqualTypeOf<number | undefined>()
+    expectTypeOf(new QueryClient().query(options)).toEqualTypeOf<
+      Promise<number>
+    >()
+  })
+
+  it('should keep inferring the key from queryFn in wrappers that omit queryKey', () => {
+    type PlainOptions<TQueryKey extends QueryKey> = Extract<
+      UseQueryOptions<number, Error, number, number, TQueryKey>,
+      { queryKey: unknown }
+    >
+    const wrapper = <TQueryKey extends QueryKey>(
+      options: Omit<PlainOptions<TQueryKey>, 'queryKey'>,
+    ) => options as unknown as TQueryKey
+
+    const key = wrapper({
+      queryFn: ({ queryKey }: { queryKey: readonly ['todo', number] }) =>
+        queryKey[1],
+    })
+
+    expectTypeOf(key).toEqualTypeOf<readonly ['todo', number]>()
   })
 
   it('should allow to be passed to QueryClient methods while containing getter', () => {

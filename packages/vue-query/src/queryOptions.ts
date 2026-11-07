@@ -118,7 +118,7 @@ export type UseQueryOptions<
         TQueryData,
         TQueryKey
       >
-    ]: Property extends 'enabled' | 'queryKey'
+    ]: Property extends 'queryKey'
       ? QueryOptions<
           TQueryFnData,
           TError,
@@ -126,26 +126,34 @@ export type UseQueryOptions<
           TQueryData,
           TQueryKey
         >[Property]
-      : Property extends 'queryFn'
-        ? MaybeRefDeep<
-            | QueryOptions<
+      : Property extends 'enabled'
+        ? QueryOptions<
+            TQueryFnData,
+            TError,
+            TData,
+            TQueryData,
+            NoInfer<TQueryKey>
+          >[Property]
+        : Property extends 'queryFn'
+          ? MaybeRefDeep<
+              | QueryOptions<
+                  TQueryFnData,
+                  TError,
+                  TData,
+                  TQueryData,
+                  TQueryKey
+                >[Property]
+              | SkipTokenForUseQuery
+            >
+          : MaybeRefDeep<
+              QueryOptions<
                 TQueryFnData,
                 TError,
                 TData,
                 TQueryData,
-                TQueryKey
+                NoInfer<TQueryKey>
               >[Property]
-            | SkipTokenForUseQuery
-          >
-        : MaybeRefDeep<
-            QueryOptions<
-              TQueryFnData,
-              TError,
-              TData,
-              TQueryData,
-              TQueryKey
-            >[Property]
-          >
+            >
   } & ShallowOption
 >
 
