@@ -81,9 +81,10 @@ export type DeepUnwrapRef<T> = T extends UnwrapLeaf
         }
       : UnwrapRef<T>
 
+// Options typed for `@tanstack/query-core` keep the key as written, so their callbacks would be typed with the `ref`,
+// but at runtime they receive the unwrapped key.
 /**
- * Rejects a `queryKey` that contains a `ref` in options typed for `@tanstack/query-core`, whose callbacks would
- * otherwise be typed with the `ref`, when at runtime they receive the unwrapped key.
+ * Rejects a `queryKey` that contains a `ref`.
  * @internal
  */
 export type RefFreeQueryKey<TQueryKey> = [TQueryKey] extends [

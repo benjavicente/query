@@ -318,9 +318,11 @@ export function useQuery<
   queryClient?: QueryClient,
 ): UseQueryReturnType<TData, TError>
 
+// The `@tanstack/query-core` overloads come after the Vue overloads, so that options those accept resolve exactly as
+// before.
 /**
- * Overload for a getter of options from `@tanstack/query-core`, selected when `initialData` is known to be
- * defined. It comes after the Vue overloads so that options they accept resolve exactly as before.
+ * Accepts a getter returning options from `@tanstack/query-core`, such as those created by its `queryOptions`
+ * helper. This overload is selected when `initialData` is known to be defined.
  * @param options - A getter returning the options from `@tanstack/query-core` to use.
  * @param queryClient - Use this to use a custom `QueryClient`. Otherwise, the one provided by `VueQueryPlugin`
  * will be used.
@@ -349,8 +351,8 @@ export function useQuery<
 ): UseQueryDefinedReturnType<TData, TError>
 
 /**
- * Overload for a getter of options from `@tanstack/query-core`. It comes after the Vue overloads so that options
- * they accept resolve exactly as before.
+ * Accepts a getter returning options from `@tanstack/query-core`, such as those created by its `queryOptions`
+ * helper.
  * @param options - A getter returning the options from `@tanstack/query-core` to use.
  * @param queryClient - Use this to use a custom `QueryClient`. Otherwise, the one provided by `VueQueryPlugin`
  * will be used.
@@ -373,9 +375,11 @@ export function useQuery<
   queryClient?: QueryClient,
 ): UseQueryReturnType<TData, TError>
 
+// Repeats the Vue fallback overload: `Parameters<typeof useQuery>` reads the last overload, so it has to stay
+// `UseQueryOptions`.
 /**
- * Same as the fallback overload above. It is repeated last so that `Parameters<typeof useQuery>`, which reads the
- * last overload, keeps resolving to {@link UseQueryOptions}.
+ * Fallback overload for options whose `initialData` presence isn't statically known, with `data` typed as possibly
+ * `undefined`.
  * @param options - A `ref`, plain value, or reactive getter resolving to the {@link UseQueryOptions} to use.
  * @param queryClient - Use this to use a custom `QueryClient`. Otherwise, the one provided by `VueQueryPlugin`
  * will be used.
