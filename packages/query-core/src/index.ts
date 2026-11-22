@@ -43,6 +43,12 @@ export {
   skipToken,
 } from './utils'
 export type { MutationFilters, QueryFilters, SkipToken, Updater } from './utils'
+export {
+  getSkippedInfiniteQueryResult,
+  getSkippedQueryResult,
+  skipQuery,
+} from './skipQuery'
+export type { SkipQuery } from './skipQuery'
 
 export { streamedQuery as experimental_streamedQuery } from './streamedQuery'
 
