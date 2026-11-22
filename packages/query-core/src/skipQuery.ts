@@ -25,6 +25,10 @@ export const skipQuery = Symbol()
  */
 export type SkipQuery = typeof skipQuery
 
+/**
+ * Logs (outside production) that a method of the skipped result was called.
+ * @param method - The name of the called method.
+ */
 function warnSkipped(method: string): void {
   if (process.env.NODE_ENV !== 'production') {
     console.error(
@@ -64,30 +68,28 @@ const skippedQueryResult: QueryObserverPendingResult<any, any> = {
   },
 }
 
-const skippedInfiniteQueryResult: InfiniteQueryObserverPendingResult<
-  any,
-  any
-> = {
-  ...skippedQueryResult,
-  refetch: () => {
-    warnSkipped('refetch')
-    return Promise.resolve(skippedInfiniteQueryResult)
-  },
-  fetchNextPage: () => {
-    warnSkipped('fetchNextPage')
-    return Promise.resolve(skippedInfiniteQueryResult)
-  },
-  fetchPreviousPage: () => {
-    warnSkipped('fetchPreviousPage')
-    return Promise.resolve(skippedInfiniteQueryResult)
-  },
-  hasNextPage: false,
-  hasPreviousPage: false,
-  isFetchNextPageError: false,
-  isFetchingNextPage: false,
-  isFetchPreviousPageError: false,
-  isFetchingPreviousPage: false,
-}
+const skippedInfiniteQueryResult: InfiniteQueryObserverPendingResult<any, any> =
+  {
+    ...skippedQueryResult,
+    refetch: () => {
+      warnSkipped('refetch')
+      return Promise.resolve(skippedInfiniteQueryResult)
+    },
+    fetchNextPage: () => {
+      warnSkipped('fetchNextPage')
+      return Promise.resolve(skippedInfiniteQueryResult)
+    },
+    fetchPreviousPage: () => {
+      warnSkipped('fetchPreviousPage')
+      return Promise.resolve(skippedInfiniteQueryResult)
+    },
+    hasNextPage: false,
+    hasPreviousPage: false,
+    isFetchNextPageError: false,
+    isFetchingNextPage: false,
+    isFetchPreviousPageError: false,
+    isFetchingPreviousPage: false,
+  }
 
 /**
  * Returns the result of a query skipped with {@link skipQuery}: an idle `pending` result without
