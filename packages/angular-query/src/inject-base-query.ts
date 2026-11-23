@@ -1,5 +1,5 @@
 import { computed, effect, inject, untracked } from '@angular/core'
-import { QueryClient } from '@tanstack/query-core'
+import { QueryClient, skipQuery } from '@tanstack/query-core'
 import { injectIsRestoring } from './inject-is-restoring'
 import { injectExternalStore } from './utils/inject-external-store'
 import { injectPendingTasksLifecycle } from './utils/inject-pending-tasks-lifecycle'
@@ -9,11 +9,12 @@ import type {
   QueryObserver,
   QueryObserverOptions,
   QueryObserverResult,
+  SkipQuery,
 } from '@tanstack/query-core'
 
 /**
  * Base implementation for `injectQuery` and `injectInfiniteQuery`.
- * @param optionsFn - Produces the reactive query options.
+ * @param optionsFn - Produces the reactive query options, or `skipQuery` to skip the query.
  * @param Observer - The core observer constructor for this query kind.
  * @returns The current result signal and a function that reads its active observer.
  */
@@ -24,13 +25,9 @@ export function injectBaseQuery<
   TQueryData,
   TQueryKey extends QueryKey,
 >(
-  optionsFn: () => QueryObserverOptions<
-    TQueryFnData,
-    TError,
-    TData,
-    TQueryData,
-    TQueryKey
-  >,
+  optionsFn: () =>
+    | QueryObserverOptions<TQueryFnData, TError, TData, TQueryData, TQueryKey>
+    | SkipQuery,
   Observer: typeof QueryObserver,
 ) {
   const outsideZone = injectQueryZone()
@@ -42,14 +39,20 @@ export function injectBaseQuery<
     observer: QueryObserver<TQueryFnData, TError, TData, TQueryData, TQueryKey>,
     result: QueryObserverResult<TData, TError>,
   ) => {
+    // A skipped observer has no query and never fetches
+    const query = observer.getCurrentQuery()
     return (
-      observer.getCurrentQuery().state.fetchStatus !== 'idle' ||
+      (query !== undefined && query.state.fetchStatus !== 'idle') ||
       (result.fetchStatus !== 'idle' && result.isEnabled)
     )
   }
 
   const defaultedOptionsSignal = computed(() => {
-    const defaultedOptions = queryClient.defaultQueryOptions(optionsFn())
+    const options = optionsFn()
+    if (options === skipQuery) {
+      return skipQuery
+    }
+    const defaultedOptions = queryClient.defaultQueryOptions(options)
     defaultedOptions._optimisticResults = isRestoring()
       ? 'isRestoring'
       : 'optimistic'

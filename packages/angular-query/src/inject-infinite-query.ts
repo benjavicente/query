@@ -14,6 +14,7 @@ import type {
   QueryKey,
   QueryObserver,
   RefetchOptions,
+  SkipQuery,
 } from '@tanstack/query-core'
 import type {
   DefinedInitialDataInfiniteOptions,
@@ -96,7 +97,9 @@ export function injectInfiniteQuery<
  * "infinite scroll".
  * @param optionsFn - A function returning the {@link UndefinedInitialDataInfiniteOptions} to use
  * — everything you can pass to `injectInfiniteQuery`. Similar to `computed` from Angular, this function runs
- * in the reactive context, so signals read inside it drive the query.
+ * in the reactive context, so signals read inside it drive the query. Return `skipQuery` instead to skip
+ * the query: no query is created or observed, and the result stays the same idle `pending` result (with
+ * `hasNextPage` and `hasPreviousPage` set to `false`) until the function returns options again.
  * @returns The same signals as `injectQuery`, with the addition of `fetchNextPage`, `fetchPreviousPage`,
  * `hasNextPage`, `hasPreviousPage`, `isFetchingNextPage`, and `isFetchingPreviousPage`. `data().pages` and
  * `data().pageParams` are also added, as long as a `select` doesn't change `TData` away from its default
@@ -232,13 +235,15 @@ export function injectInfiniteQuery<
   TQueryKey extends QueryKey = QueryKey,
   TPageParam = unknown,
 >(
-  optionsFn: () => UndefinedInitialDataInfiniteOptions<
-    TQueryFnData,
-    TError,
-    TData,
-    TQueryKey,
-    TPageParam
-  >,
+  optionsFn: () =>
+    | UndefinedInitialDataInfiniteOptions<
+        TQueryFnData,
+        TError,
+        TData,
+        TQueryKey,
+        TPageParam
+      >
+    | SkipQuery,
 ): CreateInfiniteQueryResult<TData, TError>
 
 /**
@@ -247,7 +252,8 @@ export function injectInfiniteQuery<
  * useful when wrapping `injectInfiniteQuery` in your own helper function that forwards caller-provided
  * options.
  * @param optionsFn - A function that returns infinite query options. Similar to `computed` from
- * Angular, this function runs in the reactive context, so signals read inside it drive the query.
+ * Angular, this function runs in the reactive context, so signals read inside it drive the query. Return
+ * `skipQuery` instead to skip the query.
  * @returns The infinite query result.
  * @see https://tanstack.com/query/latest/docs/framework/angular/guides/infinite-queries
  */
@@ -258,13 +264,15 @@ export function injectInfiniteQuery<
   TQueryKey extends QueryKey = QueryKey,
   TPageParam = unknown,
 >(
-  optionsFn: () => CreateInfiniteQueryOptions<
-    TQueryFnData,
-    TError,
-    TData,
-    TQueryKey,
-    TPageParam
-  >,
+  optionsFn: () =>
+    | CreateInfiniteQueryOptions<
+        TQueryFnData,
+        TError,
+        TData,
+        TQueryKey,
+        TPageParam
+      >
+    | SkipQuery,
 ): CreateInfiniteQueryResult<TData, TError>
 
 export function injectInfiniteQuery<
@@ -288,7 +296,8 @@ export function injectInfiniteQuery<
         TData,
         TQueryKey,
         TPageParam
-      >,
+      >
+    | SkipQuery,
 ):
   | DefinedCreateInfiniteQueryResult<TData, TError>
   | CreateInfiniteQueryResult<TData, TError> {

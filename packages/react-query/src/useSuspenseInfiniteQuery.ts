@@ -1,5 +1,9 @@
 'use client'
-import { InfiniteQueryObserver, skipToken } from '@tanstack/query-core'
+import {
+  InfiniteQueryObserver,
+  skipQuery,
+  skipToken,
+} from '@tanstack/query-core'
 import { defaultThrowOnError } from './suspense'
 import { useBaseQuery } from './useBaseQuery'
 import type {
@@ -118,6 +122,9 @@ export function useSuspenseInfiniteQuery<
   if (process.env.NODE_ENV !== 'production') {
     if ((options.queryFn as any) === skipToken) {
       console.error('skipToken is not allowed for useSuspenseInfiniteQuery')
+    }
+    if ((options as unknown) === skipQuery) {
+      console.error('skipQuery is not allowed for useSuspenseInfiniteQuery')
     }
   }
 

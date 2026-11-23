@@ -5,7 +5,12 @@ import {
   inject,
   untracked,
 } from '@angular/core'
-import { QueriesObserver, QueryClient } from '@tanstack/query-core'
+import {
+  QueriesObserver,
+  QueryClient,
+  getSkippedQueryResult,
+  skipQuery,
+} from '@tanstack/query-core'
 import { injectIsRestoring } from './inject-is-restoring'
 import { injectExternalStore } from './utils/inject-external-store'
 import { injectPendingTasksLifecycle } from './utils/inject-pending-tasks-lifecycle'
@@ -168,6 +173,9 @@ export function injectQueries<
 
   const defaultedQueries = computed(() => {
     return optionsSignal().queries.map((opts) => {
+      if (opts === skipQuery) {
+        return skipQuery
+      }
       const defaultedOptions = queryClient.defaultQueryOptions(
         opts as QueryObserverOptions,
       )
@@ -187,6 +195,8 @@ export function injectQueries<
     const queries = observer.getQueries()
 
     return results.some((result, index) => {
+      // A skipped query has no `Query` and never fetches
+      if (result === getSkippedQueryResult()) return false
       return (
         queries[index]?.state.fetchStatus !== 'idle' ||
         (result.fetchStatus !== 'idle' && result.isEnabled)
@@ -235,10 +245,12 @@ export function injectQueries<
           undefined,
         )[0]
         refetches.length = results.length
-        return results.map((result, index) => ({
-          ...result,
-          refetch: getRefetch(index),
-        }))
+        // Keep the static skipped result as is: its `refetch` already does nothing
+        return results.map((result, index) =>
+          result === getSkippedQueryResult()
+            ? result
+            : { ...result, refetch: getRefetch(index) },
+        )
       },
       subscribe: restoring
         ? undefined

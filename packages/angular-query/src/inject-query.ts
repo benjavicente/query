@@ -8,6 +8,7 @@ import type {
   DefaultError,
   QueryKey,
   RefetchOptions,
+  SkipQuery,
 } from '@tanstack/query-core'
 import type {
   DefinedInitialDataOptions,
@@ -74,7 +75,9 @@ export function injectQuery<
  * Injects a query: a declarative dependency on an asynchronous source of data that is tied to a unique key.
  * @param optionsFn - A function returning the {@link UndefinedInitialDataOptions} to use — everything
  * you can pass to `injectQuery`. Similar to `computed` from Angular, this function runs in the reactive
- * context, so signals read inside it (in `queryKey`, `enabled`, etc.) drive the query.
+ * context, so signals read inside it (in `queryKey`, `enabled`, etc.) drive the query. Return `skipQuery`
+ * instead to skip the query: no query is created or observed, and the result stays the same idle `pending`
+ * result until the function returns options again.
  * @returns The query result. `status()` is `'error'` if the query has an error from a fetch that failed
  * after its retries or if `select` threw, `'success'` if the query has cached data (even if `select`
  * returns `undefined`) or data from `placeholderData`, and `'pending'` otherwise.
@@ -147,12 +150,9 @@ export function injectQuery<
   TData = TQueryFnData,
   TQueryKey extends QueryKey = QueryKey,
 >(
-  optionsFn: () => UndefinedInitialDataOptions<
-    TQueryFnData,
-    TError,
-    TData,
-    TQueryKey
-  >,
+  optionsFn: () =>
+    | UndefinedInitialDataOptions<TQueryFnData, TError, TData, TQueryKey>
+    | SkipQuery,
 ): CreateQueryResult<TData, TError>
 
 /**
@@ -161,7 +161,7 @@ export function injectQuery<
  * `injectQuery` in your own helper function that forwards caller-provided options.
  * @param optionsFn - A function that returns query options. Similar to `computed` from Angular, this
  * function runs in the reactive context, so signals read inside it (in `queryKey`, `enabled`, etc.) drive
- * the query.
+ * the query. Return `skipQuery` instead to skip the query.
  * @returns The query result.
  * @see https://tanstack.com/query/latest/docs/framework/angular/guides/queries
  */
@@ -171,11 +171,13 @@ export function injectQuery<
   TData = TQueryFnData,
   TQueryKey extends QueryKey = QueryKey,
 >(
-  optionsFn: () => CreateQueryOptions<TQueryFnData, TError, TData, TQueryKey>,
+  optionsFn: () =>
+    | CreateQueryOptions<TQueryFnData, TError, TData, TQueryKey>
+    | SkipQuery,
 ): CreateQueryResult<TData, TError>
 
 export function injectQuery(
-  optionsFn: () => CreateQueryOptions,
+  optionsFn: () => CreateQueryOptions | SkipQuery,
 ): DefinedCreateQueryResult | CreateQueryResult {
   if (typeof ngDevMode === 'undefined' || ngDevMode) {
     assertInInjectionContext(injectQuery)

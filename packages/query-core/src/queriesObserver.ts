@@ -1,8 +1,10 @@
 import { notifyManager } from './notifyManager'
 import { QueryObserver } from './queryObserver'
+import { skipQuery } from './skipQuery'
 import { Subscribable } from './subscribable'
 import { replaceEqualDeep, shallowEqualObjects } from './utils'
 import type { QueryClient } from './queryClient'
+import type { SkipQuery } from './skipQuery'
 import type {
   DefaultedQueryObserverOptions,
   QueryObserverOptions,
@@ -66,18 +68,18 @@ export class QueriesObserver<
 > extends Subscribable<QueriesObserverListener> {
   #client: QueryClient
   #result!: Array<QueryObserverResult>
-  #queries: Array<QueryObserverOptions>
+  #queries: Array<QueryObserverOptions | SkipQuery>
   #options?: QueriesObserverOptions<TCombinedResult>
   #observers: Array<QueryObserver>
   #combinedResult!: TCombinedResult
   #lastCombine?: CombineFn<TCombinedResult>
   #lastResult?: Array<QueryObserverResult>
-  #lastQueryHashes?: Array<string>
+  #lastQueryHashes?: Array<string | undefined>
   #observerMatches: Array<QueryObserverMatch> = []
 
   constructor(
     client: QueryClient,
-    queries: Array<QueryObserverOptions<any, any, any, any, any>>,
+    queries: Array<QueryObserverOptions<any, any, any, any, any> | SkipQuery>,
     options?: QueriesObserverOptions<TCombinedResult>,
   ) {
     super()
@@ -119,7 +121,8 @@ export class QueriesObserver<
    * are reused for queries that match an already-observed query hash;
    * observers for queries that are no longer present are destroyed, and new
    * observers are created and subscribed to for newly added queries.
-   * @param queries - The options of the queries to observe.
+   * @param queries - The options of the queries to observe. A `skipQuery` entry gets a skipped
+   * observer, whose result is the static skipped result.
    * @param options - Replaces the observer's options, e.g. its `combine` function.
    * @example
    * ```ts
@@ -130,16 +133,16 @@ export class QueriesObserver<
    * ```
    */
   setQueries(
-    queries: Array<QueryObserverOptions>,
+    queries: Array<QueryObserverOptions | SkipQuery>,
     options?: QueriesObserverOptions<TCombinedResult>,
   ): void {
     this.#queries = queries
     this.#options = options
 
     if (process.env.NODE_ENV !== 'production') {
-      const queryHashes = queries.map(
-        (query) => this.#client.defaultQueryOptions(query).queryHash,
-      )
+      const queryHashes = queries
+        .filter((query) => query !== skipQuery)
+        .map((query) => this.#client.defaultQueryOptions(query).queryHash)
       if (new Set(queryHashes).size !== queryHashes.length) {
         console.warn(
           '[QueriesObserver]: Duplicate Queries found. This might result in unexpected behavior.',
@@ -217,7 +220,7 @@ export class QueriesObserver<
   /**
    * Returns the underlying `Query` instances currently being observed, in
    * the same order as the queries passed to the constructor or `setQueries`.
-   * @returns The observed queries.
+   * @returns The observed queries, with `undefined` for skipped queries.
    */
   getQueries() {
     return this.#observers.map((observer) => observer.getCurrentQuery())
@@ -247,7 +250,7 @@ export class QueriesObserver<
    * function that returns the results wrapped for property-access tracking.
    */
   getOptimisticResult(
-    queries: Array<QueryObserverOptions>,
+    queries: Array<QueryObserverOptions | SkipQuery>,
     combine: CombineFn<TCombinedResult> | undefined,
   ): [
     rawResult: Array<QueryObserverResult>,
@@ -271,9 +274,7 @@ export class QueriesObserver<
     ) {
       this.#result = matches.map((match) => match.observer.getCurrentResult())
     }
-    const queryHashes = matches.map(
-      (match) => match.defaultedQueryOptions.queryHash,
-    )
+    const queryHashes = matches.map(getQueryHash)
 
     return [
       result,
@@ -294,7 +295,8 @@ export class QueriesObserver<
 
     return matches.map((match, index) => {
       const observerResult = result[index]!
-      return !match.defaultedQueryOptions.notifyOnChangeProps
+      return match.defaultedQueryOptions !== skipQuery &&
+        !match.defaultedQueryOptions.notifyOnChangeProps
         ? match.observer.trackResult(observerResult, (accessedProp) => {
             // track property on all observers to ensure proper (synchronized) tracking (#7000)
             if (!trackedProps.has(accessedProp)) {
@@ -311,7 +313,7 @@ export class QueriesObserver<
   #combineResult(
     input: Array<QueryObserverResult>,
     combine: CombineFn<TCombinedResult> | undefined,
-    queryHashes?: Array<string>,
+    queryHashes?: Array<string | undefined>,
   ): TCombinedResult {
     if (combine) {
       const lastHashes = this.#lastQueryHashes
@@ -355,11 +357,16 @@ export class QueriesObserver<
   }
 
   #findMatchingObservers(
-    queries: Array<QueryObserverOptions>,
+    queries: Array<QueryObserverOptions | SkipQuery>,
   ): Array<QueryObserverMatch> {
     const prevObserversMap = new Map<string, Array<QueryObserver>>()
+    const prevSkippedObservers: Array<QueryObserver> = []
 
     this.#observers.forEach((observer) => {
+      if (!observer.getCurrentQuery()) {
+        prevSkippedObservers.push(observer)
+        return
+      }
       const key = observer.options.queryHash
       if (!key) return
 
@@ -375,6 +382,15 @@ export class QueriesObserver<
     const observers: Array<QueryObserverMatch> = []
 
     queries.forEach((options) => {
+      if (options === skipQuery) {
+        observers.push({
+          defaultedQueryOptions: skipQuery,
+          observer:
+            prevSkippedObservers.shift() ??
+            new QueryObserver(this.#client, skipQuery),
+        })
+        return
+      }
       const defaultedOptions = this.#client.defaultQueryOptions(options)
       const match = prevObserversMap.get(defaultedOptions.queryHash)?.shift()
       const observer =
@@ -415,9 +431,7 @@ export class QueriesObserver<
         : this.#combineResult(
             this.#trackResult(this.#result, this.#observerMatches),
             this.#options?.combine,
-            this.#observerMatches.map(
-              (match) => match.defaultedQueryOptions.queryHash,
-            ),
+            this.#observerMatches.map(getQueryHash),
           )
 
       if (shouldSkipCombine || previousResult !== newResult) {
@@ -432,6 +446,17 @@ export class QueriesObserver<
 }
 
 type QueryObserverMatch = {
-  defaultedQueryOptions: DefaultedQueryObserverOptions
+  defaultedQueryOptions: DefaultedQueryObserverOptions | SkipQuery
   observer: QueryObserver
+}
+
+/**
+ * Returns the query hash of a match.
+ * @param match - A query's options paired with the observer created for it.
+ * @returns The query hash, or `undefined` for a skipped query.
+ */
+function getQueryHash(match: QueryObserverMatch): string | undefined {
+  return match.defaultedQueryOptions === skipQuery
+    ? undefined
+    : match.defaultedQueryOptions.queryHash
 }

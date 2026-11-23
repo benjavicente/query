@@ -6,6 +6,7 @@ import type {
   QueryFunction,
   QueryKey,
   QueryObserverResult,
+  SkipQuery,
   dataTagErrorSymbol,
 } from '@tanstack/query-core'
 import type {
@@ -39,7 +40,11 @@ type QueryError<T> = T extends {
 type MAXIMUM_DEPTH = 20
 type SkipTokenForCreateQueries = symbol
 
-type GetCreateQueryOptionsForCreateQueries<T> = T extends {
+type GetCreateQueryOptionsForCreateQueries<T> = T extends SkipQuery
+  ? SkipQuery
+  : GetCreateQueryOptionsForNonSkippedQueries<T>
+
+type GetCreateQueryOptionsForNonSkippedQueries<T> = T extends {
   queryFnData: infer TQueryFnData
   error?: infer TError
   data: infer TData
@@ -116,31 +121,41 @@ type InferDataAndError<T> = T extends {
                 }
               : { data: unknown; error: DefaultError }
 
-type GetCreateQueryResult<T> = GenericGetDefinedOrUndefinedQueryResult<
-  T,
-  InferDataAndError<T>['data'],
-  CreateQueryResult<
-    InferDataAndError<T>['data'],
-    InferDataAndError<T>['error']
-  >,
-  DefinedCreateQueryResult<
-    InferDataAndError<T>['data'],
-    InferDataAndError<T>['error']
-  >
->
+type GetCreateQueryResult<T> = T extends SkipQuery
+  ? CreateQueryResult<never, never>
+  : GetNonSkippedCreateQueryResult<T>
 
-type GetQueryObserverResult<T> = GenericGetDefinedOrUndefinedQueryResult<
-  T,
-  InferDataAndError<T>['data'],
-  QueryObserverResult<
+type GetNonSkippedCreateQueryResult<T> =
+  GenericGetDefinedOrUndefinedQueryResult<
+    T,
     InferDataAndError<T>['data'],
-    InferDataAndError<T>['error']
-  >,
-  DefinedQueryObserverResult<
-    InferDataAndError<T>['data'],
-    InferDataAndError<T>['error']
+    CreateQueryResult<
+      InferDataAndError<T>['data'],
+      InferDataAndError<T>['error']
+    >,
+    DefinedCreateQueryResult<
+      InferDataAndError<T>['data'],
+      InferDataAndError<T>['error']
+    >
   >
->
+
+type GetQueryObserverResult<T> = T extends SkipQuery
+  ? QueryObserverResult<never, never>
+  : GetNonSkippedQueryObserverResult<T>
+
+type GetNonSkippedQueryObserverResult<T> =
+  GenericGetDefinedOrUndefinedQueryResult<
+    T,
+    InferDataAndError<T>['data'],
+    QueryObserverResult<
+      InferDataAndError<T>['data'],
+      InferDataAndError<T>['error']
+    >,
+    DefinedQueryObserverResult<
+      InferDataAndError<T>['data'],
+      InferDataAndError<T>['error']
+    >
+  >
 
 /**
  * The `queries` array accepted by `injectQueries`. Recursively unwraps each tuple element so every entry's

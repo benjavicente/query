@@ -1,7 +1,12 @@
 'use client'
 import { QueryObserver } from '@tanstack/query-core'
 import { useBaseQuery } from './useBaseQuery'
-import type { DefaultError, QueryClient, QueryKey } from '@tanstack/query-core'
+import type {
+  DefaultError,
+  QueryClient,
+  QueryKey,
+  SkipQuery,
+} from '@tanstack/query-core'
 import type {
   DefinedInitialDataOptions,
   UndefinedInitialDataOptions,
@@ -62,6 +67,8 @@ export function useQuery<
  * This overload is selected when `initialData` is omitted, may be `undefined`, or is a function that may
  * return `undefined`, so the resulting `data` can be `undefined`.
  * @param options - The {@link UndefinedInitialDataOptions} to use — everything you can pass to `useQuery`.
+ * Pass `skipQuery` instead to skip the query: no query is created or observed, and the same idle `pending`
+ * result is returned until options are passed again.
  * @param queryClient - Use this to use a custom `QueryClient`. Otherwise, the one from the nearest context will
  * be used.
  * @returns The current query result. `status` is `error` if the query has an error from a fetch that failed
@@ -122,7 +129,9 @@ export function useQuery<
   TData = TQueryFnData,
   TQueryKey extends QueryKey = QueryKey,
 >(
-  options: UndefinedInitialDataOptions<TQueryFnData, TError, TData, TQueryKey>,
+  options:
+    | UndefinedInitialDataOptions<TQueryFnData, TError, TData, TQueryKey>
+    | SkipQuery,
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError>
 
@@ -130,7 +139,8 @@ export function useQuery<
  * Fallback overload for options whose `initialData` presence isn't statically known — for example, an
  * object typed as {@link UseQueryOptions} rather than an object literal. Prefer one of the other overloads
  * when possible, since they infer whether `data` can be `undefined` from `initialData` directly.
- * @param options - The {@link UseQueryOptions} to use — everything you can pass to `useQuery`.
+ * @param options - The {@link UseQueryOptions} to use — everything you can pass to `useQuery` — or
+ * `skipQuery` to skip the query.
  * @param queryClient - Use this to use a custom `QueryClient`. Otherwise, the one from the nearest context will
  * be used.
  * @returns The current query result. `status` is `error` if the query has an error from a fetch that failed
@@ -288,10 +298,13 @@ export function useQuery<
   TData = TQueryFnData,
   TQueryKey extends QueryKey = QueryKey,
 >(
-  options: UseQueryOptions<TQueryFnData, TError, TData, TQueryKey>,
+  options: UseQueryOptions<TQueryFnData, TError, TData, TQueryKey> | SkipQuery,
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError>
 
-export function useQuery(options: UseQueryOptions, queryClient?: QueryClient) {
+export function useQuery(
+  options: UseQueryOptions | SkipQuery,
+  queryClient?: QueryClient,
+) {
   return useBaseQuery(options, QueryObserver, queryClient)
 }

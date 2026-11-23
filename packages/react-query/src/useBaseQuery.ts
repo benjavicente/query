@@ -1,5 +1,5 @@
 'use client'
-import { noop, notifyManager } from '@tanstack/query-core'
+import { noop, notifyManager, skipQuery } from '@tanstack/query-core'
 import * as React from 'react'
 import { useIsRestoring } from './IsRestoringProvider'
 import { useQueryClient } from './QueryClientProvider'
@@ -19,13 +19,15 @@ import type {
   QueryKey,
   QueryObserver,
   QueryObserverResult,
+  SkipQuery,
 } from '@tanstack/query-core'
 import type { UseBaseQueryOptions } from './types'
 
 /**
  * Base implementation shared by `useQuery`, `useInfiniteQuery`, `useSuspenseQuery`, and
  * `useSuspenseInfiniteQuery`.
- * @param options - The options passed to the calling hook.
+ * @param options - The options passed to the calling hook, or `skipQuery` to skip the query. The
+ * observer then stops observing any query and returns the static skipped result.
  * @param Observer - The observer class from query-core (`QueryObserver` or
  * `InfiniteQueryObserver`).
  * @param queryClient - Use this to use a custom `QueryClient`. Otherwise, the one from the nearest
@@ -42,18 +44,15 @@ export function useBaseQuery<
   TQueryData,
   TQueryKey extends QueryKey,
 >(
-  options: UseBaseQueryOptions<
-    TQueryFnData,
-    TError,
-    TData,
-    TQueryData,
-    TQueryKey
-  >,
+  options:
+    | UseBaseQueryOptions<TQueryFnData, TError, TData, TQueryData, TQueryKey>
+    | SkipQuery,
   Observer: typeof QueryObserver,
   queryClient?: QueryClient,
 ): QueryObserverResult<TData, TError> {
+  const skipped = options === skipQuery
   if (process.env.NODE_ENV !== 'production') {
-    if (typeof options !== 'object' || Array.isArray(options)) {
+    if (!skipped && (typeof options !== 'object' || Array.isArray(options))) {
       throw new Error(
         'Bad argument type. Starting with v5, only the "Object" form is allowed when calling query related functions. Please use the error stack to find the culprit call. More info here: https://tanstack.com/query/latest/docs/react/guides/migrating-to-v5#supports-a-single-signature-one-object',
       )
@@ -63,33 +62,40 @@ export function useBaseQuery<
   const isRestoring = useIsRestoring()
   const errorResetBoundary = useQueryErrorResetBoundary()
   const client = useQueryClient(queryClient)
-  const defaultedOptions = client.defaultQueryOptions(options)
+  const defaultedOptions = skipped
+    ? skipQuery
+    : client.defaultQueryOptions(options)
 
-  const query = client
-    .getQueryCache()
-    .get<TQueryFnData, TError, TQueryData, TQueryKey>(
-      defaultedOptions.queryHash,
-    )
+  const query =
+    defaultedOptions === skipQuery
+      ? undefined
+      : client
+          .getQueryCache()
+          .get<TQueryFnData, TError, TQueryData, TQueryKey>(
+            defaultedOptions.queryHash,
+          )
 
   if (process.env.NODE_ENV !== 'production') {
-    if (!defaultedOptions.queryFn) {
+    if (defaultedOptions !== skipQuery && !defaultedOptions.queryFn) {
       console.error(
         `[${defaultedOptions.queryHash}]: No queryFn was passed as an option, and no default queryFn was found. The queryFn parameter is only optional when using a default queryFn. More info here: https://tanstack.com/query/latest/docs/framework/react/guides/default-query-function`,
       )
     }
   }
 
-  const subscribed = options.subscribed !== false
+  const subscribed = skipped || options.subscribed !== false
 
-  // Make sure results are optimistically set in fetching state before subscribing or updating options
-  defaultedOptions._optimisticResults = isRestoring
-    ? 'isRestoring'
-    : subscribed
-      ? 'optimistic'
-      : undefined
+  if (defaultedOptions !== skipQuery) {
+    // Make sure results are optimistically set in fetching state before subscribing or updating options
+    defaultedOptions._optimisticResults = isRestoring
+      ? 'isRestoring'
+      : subscribed
+        ? 'optimistic'
+        : undefined
 
-  ensureSuspenseTimers(defaultedOptions)
-  ensurePreventErrorBoundaryRetry(defaultedOptions, errorResetBoundary, query)
+    ensureSuspenseTimers(defaultedOptions)
+    ensurePreventErrorBoundaryRetry(defaultedOptions, errorResetBoundary, query)
+  }
   useClearResetErrorBoundary(errorResetBoundary)
 
   const [observer] = React.useState(
@@ -126,6 +132,10 @@ export function useBaseQuery<
     () => observer.getCurrentResult(),
     () => observer.getCurrentResult(),
   )
+
+  if (defaultedOptions === skipQuery) {
+    return result
+  }
 
   // Handle suspense
   if (shouldSuspend(defaultedOptions, result)) {

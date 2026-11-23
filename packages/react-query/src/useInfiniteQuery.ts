@@ -7,6 +7,7 @@ import type {
   QueryClient,
   QueryKey,
   QueryObserver,
+  SkipQuery,
 } from '@tanstack/query-core'
 import type {
   DefinedInitialDataInfiniteOptions,
@@ -81,6 +82,8 @@ export function useInfiniteQuery<
  * The options for `useInfiniteQuery` are identical to `useQuery`, with the addition of
  * `initialPageParam`, `getNextPageParam`, `getPreviousPageParam`, and `maxPages`.
  * @param options - The {@link UndefinedInitialDataInfiniteOptions} to use — everything you can pass to `useInfiniteQuery`.
+ * Pass `skipQuery` instead to skip the query: no query is created or observed, and the same idle `pending`
+ * result (with `hasNextPage` and `hasPreviousPage` set to `false`) is returned until options are passed again.
  * @param queryClient - Use this to use a custom `QueryClient`. Otherwise, the one from the nearest context will
  * be used.
  * @returns The same properties as `useQuery`, with the addition of `fetchNextPage`, `fetchPreviousPage`,
@@ -190,20 +193,23 @@ export function useInfiniteQuery<
   TQueryKey extends QueryKey = QueryKey,
   TPageParam = unknown,
 >(
-  options: UndefinedInitialDataInfiniteOptions<
-    TQueryFnData,
-    TError,
-    TData,
-    TQueryKey,
-    TPageParam
-  >,
+  options:
+    | UndefinedInitialDataInfiniteOptions<
+        TQueryFnData,
+        TError,
+        TData,
+        TQueryKey,
+        TPageParam
+      >
+    | SkipQuery,
   queryClient?: QueryClient,
 ): UseInfiniteQueryResult<TData, TError>
 
 /**
  * The options for `useInfiniteQuery` are identical to `useQuery`, with the addition of
  * `initialPageParam`, `getNextPageParam`, `getPreviousPageParam`, and `maxPages`.
- * @param options - The {@link UseInfiniteQueryOptions} to use — everything you can pass to `useInfiniteQuery`.
+ * @param options - The {@link UseInfiniteQueryOptions} to use — everything you can pass to `useInfiniteQuery`
+ * — or `skipQuery` to skip the query.
  * @param queryClient - Use this to use a custom `QueryClient`. Otherwise, the one from the nearest context will
  * be used.
  * @returns The same properties as `useQuery`, with the addition of `fetchNextPage`, `fetchPreviousPage`,
@@ -342,18 +348,20 @@ export function useInfiniteQuery<
   TQueryKey extends QueryKey = QueryKey,
   TPageParam = unknown,
 >(
-  options: UseInfiniteQueryOptions<
-    TQueryFnData,
-    TError,
-    TData,
-    TQueryKey,
-    TPageParam
-  >,
+  options:
+    | UseInfiniteQueryOptions<
+        TQueryFnData,
+        TError,
+        TData,
+        TQueryKey,
+        TPageParam
+      >
+    | SkipQuery,
   queryClient?: QueryClient,
 ): UseInfiniteQueryResult<TData, TError>
 
 export function useInfiniteQuery(
-  options: UseInfiniteQueryOptions,
+  options: UseInfiniteQueryOptions | SkipQuery,
   queryClient?: QueryClient,
 ) {
   return useBaseQuery(

@@ -2,6 +2,7 @@ import { isServer as isServerEnvironment } from './environmentManager'
 import { focusManager } from './focusManager'
 import { notifyManager } from './notifyManager'
 import { fetchState } from './query'
+import { getSkippedQueryResult, skipQuery } from './skipQuery'
 import { Subscribable } from './subscribable'
 import { timeoutManager } from './timeoutManager'
 import {
@@ -14,6 +15,7 @@ import {
 } from './utils'
 import type { FetchOptions, Query, QueryState } from './query'
 import type { QueryClient } from './queryClient'
+import type { SkipQuery } from './skipQuery'
 import type { ManagedTimerId } from './timeoutManager'
 import type {
   DefaultError,
@@ -41,6 +43,9 @@ interface ObserverFetchOptions extends FetchOptions {
  * the primitive that framework adapters (e.g. `useQuery`) build their hooks
  * on top of, but it can also be used directly to observe and switch between
  * queries outside of any framework.
+ *
+ * Passing `skipQuery` instead of options detaches the observer: it stops observing its query and
+ * its result becomes the static skipped result until options are passed again.
  * @example
  * ```ts
  * const observer = new QueryObserver(queryClient, {
@@ -61,6 +66,18 @@ export class QueryObserver<
   TQueryKey extends QueryKey = QueryKey,
 > extends Subscribable<QueryObserverListener<TData, TError>> {
   #client: QueryClient
+  /**
+   * The current options. While the observer is skipped, these are the last options it had
+   * before skipping (or an empty object if it was created with `skipQuery`).
+   */
+  options: QueryObserverOptions<
+    TQueryFnData,
+    TError,
+    TData,
+    TQueryData,
+    TQueryKey
+  >
+  // `undefined` while skipped
   #currentQuery: Query<TQueryFnData, TError, TQueryData, TQueryKey> = undefined!
   #currentQueryInitialState: QueryState<TQueryData, TError> = undefined!
   #currentResult: QueryObserverResult<TData, TError> = undefined!
@@ -82,20 +99,18 @@ export class QueryObserver<
   #refetchIntervalId?: ManagedTimerId
   #currentRefetchInterval?: number | false
   #trackedProps = new Set<keyof QueryObserverResult>()
+  #skipped = false
 
   constructor(
     client: QueryClient,
-    public options: QueryObserverOptions<
-      TQueryFnData,
-      TError,
-      TData,
-      TQueryData,
-      TQueryKey
-    >,
+    options:
+      | QueryObserverOptions<TQueryFnData, TError, TData, TQueryData, TQueryKey>
+      | SkipQuery,
   ) {
     super()
 
     this.#client = client
+    this.options = options === skipQuery ? ({} as typeof this.options) : options
     this.#selectError = null
 
     this.bindMethods()
@@ -111,7 +126,7 @@ export class QueryObserver<
   }
 
   protected override onSubscribe(): void {
-    if (this.listeners.size === 1) {
+    if (this.listeners.size === 1 && !this.#skipped) {
       this.#currentQuery.addObserver(this)
 
       if (shouldFetchOnMount(this.#currentQuery, this.options)) {
@@ -167,7 +182,9 @@ export class QueryObserver<
     this.listeners = new Set()
     this.#clearStaleTimeout()
     this.#clearRefetchInterval()
-    this.#currentQuery.removeObserver(this)
+    if (!this.#skipped) {
+      this.#currentQuery.removeObserver(this)
+    }
   }
 
   /**
@@ -184,17 +201,21 @@ export class QueryObserver<
    * observer.setOptions({ queryKey: ['posts', 1], queryFn: () => fetchPost(1) })
    * // later: switch to a different query, reusing the same observer
    * observer.setOptions({ queryKey: ['posts', 2], queryFn: () => fetchPost(2) })
+   * // later: stop observing any query
+   * observer.setOptions(skipQuery)
    * ```
    */
   setOptions(
-    options: QueryObserverOptions<
-      TQueryFnData,
-      TError,
-      TData,
-      TQueryData,
-      TQueryKey
-    >,
+    options:
+      | QueryObserverOptions<TQueryFnData, TError, TData, TQueryData, TQueryKey>
+      | SkipQuery,
   ): void {
+    if (options === skipQuery) {
+      this.#skip()
+      return
+    }
+    this.#skipped = false
+
     const prevOptions = this.options
     const prevQuery = this.#currentQuery
 
@@ -279,14 +300,22 @@ export class QueryObserver<
    * @returns The result for the given options.
    */
   getOptimisticResult(
-    options: DefaultedQueryObserverOptions<
-      TQueryFnData,
-      TError,
-      TData,
-      TQueryData,
-      TQueryKey
-    >,
+    options:
+      | DefaultedQueryObserverOptions<
+          TQueryFnData,
+          TError,
+          TData,
+          TQueryData,
+          TQueryKey
+        >
+      | SkipQuery,
   ): QueryObserverResult<TData, TError> {
+    if (options === skipQuery) {
+      // Like below, move the cursor; the observer detaches in `setOptions`
+      this.#currentResult = this.getSkippedResult()
+      this.#currentResultOptions = undefined
+      return this.#currentResult
+    }
     const query = this.#client.getQueryCache().build(this.#client, options)
 
     const result = this.createResult(query, options)
@@ -365,10 +394,56 @@ export class QueryObserver<
 
   /**
    * Returns the `Query` instance this observer is currently observing.
-   * @returns The observed query.
+   * @returns The observed query, or `undefined` while the observer is skipped.
    */
-  getCurrentQuery(): Query<TQueryFnData, TError, TQueryData, TQueryKey> {
+  getCurrentQuery():
+    | Query<TQueryFnData, TError, TQueryData, TQueryKey>
+    | undefined {
     return this.#currentQuery
+  }
+
+  /**
+   * Returns the static result used while the observer is skipped with `skipQuery`. Subclasses
+   * override it to return their own skipped result.
+   * @returns The idle `pending` result without data from `getSkippedQueryResult`.
+   */
+  protected getSkippedResult(): QueryObserverResult<TData, TError> {
+    return getSkippedQueryResult()
+  }
+
+  #skip(): void {
+    if (this.#skipped) {
+      return
+    }
+    const prevResult = this.#currentResult as
+      | QueryObserverResult<TData, TError>
+      | undefined
+    this.#skipped = true
+    this.#clearStaleTimeout()
+    this.#clearRefetchInterval()
+    this.#currentRefetchInterval = undefined
+    // Undefined when the observer was created with `skipQuery`
+    const prevQuery = this.#currentQuery as
+      | Query<TQueryFnData, TError, TQueryData, TQueryKey>
+      | undefined
+    prevQuery?.removeObserver(this)
+    this.#currentQuery = undefined!
+    // Start from scratch once options are passed again
+    this.#lastQueryWithDefinedData = undefined
+    this.#selectFn = undefined
+    this.#selectInput = undefined
+    this.#selectResult = undefined
+    this.#selectError = null
+    this.#currentResultOptions = undefined
+    this.#currentResult = this.getSkippedResult()
+
+    if (prevResult && prevResult !== this.#currentResult) {
+      notifyManager.batch(() => {
+        this.listeners.forEach((listener) => {
+          listener(this.#currentResult)
+        })
+      })
+    }
   }
 
   /**
@@ -470,6 +545,10 @@ export class QueryObserver<
   protected fetch(
     fetchOptions: ObserverFetchOptions,
   ): Promise<QueryObserverResult<TData, TError>> {
+    if (this.#skipped) {
+      // A skipped observer has nothing to fetch; the skipped result warns about it
+      return this.#currentResult.refetch()
+    }
     return this.#executeFetch({
       ...fetchOptions,
       cancelRefetch: fetchOptions.cancelRefetch ?? true,
@@ -761,6 +840,9 @@ export class QueryObserver<
    * update was missed in the gap between creating the observer and subscribing to it.
    */
   updateResult(): void {
+    if (this.#skipped) {
+      return
+    }
     const prevResult = this.#currentResult as
       | QueryObserverResult<TData, TError>
       | undefined

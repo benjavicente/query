@@ -4,6 +4,7 @@ import {
   QueryObserver,
   noop,
   notifyManager,
+  skipQuery,
 } from '@tanstack/query-core'
 import * as React from 'react'
 import { useIsRestoring } from './IsRestoringProvider'
@@ -28,6 +29,7 @@ import type {
   QueryFunction,
   QueryKey,
   QueryObserverOptions,
+  SkipQuery,
   ThrowOnError,
 } from '@tanstack/query-core'
 import type {
@@ -56,13 +58,14 @@ type MAXIMUM_DEPTH = 20
 // Widen the type of the symbol to enable type inference even if skipToken is not immutable.
 type SkipTokenForUseQueries = symbol
 
-type GetUseQueryOptionsForUseQueries<T> =
-  // Part 1: responsible for applying explicit type parameter to function arguments, if object { queryFnData: TQueryFnData, error: TError, data: TData }
-  T extends {
-    queryFnData: infer TQueryFnData
-    error?: infer TError
-    data: infer TData
-  }
+type GetUseQueryOptionsForUseQueries<T> = T extends SkipQuery
+  ? SkipQuery
+  : // Part 1: responsible for applying explicit type parameter to function arguments, if object { queryFnData: TQueryFnData, error: TError, data: TData }
+    T extends {
+        queryFnData: infer TQueryFnData
+        error?: infer TError
+        data: infer TData
+      }
     ? UseQueryOptionsForUseQueries<TQueryFnData, TError, TData>
     : T extends { queryFnData: infer TQueryFnData; error?: infer TError }
       ? UseQueryOptionsForUseQueries<TQueryFnData, TError>
@@ -109,9 +112,10 @@ type GetDefinedOrUndefinedQueryResult<T, TData, TError = unknown> = T extends {
         : UseQueryResult<TData, TError>
   : UseQueryResult<TData, TError>
 
-type GetUseQueryResult<T> =
-  // Part 1: responsible for mapping explicit type parameter to function result, if object
-  T extends { queryFnData: any; error?: infer TError; data: infer TData }
+type GetUseQueryResult<T> = T extends SkipQuery
+  ? UseQueryResult<never, never>
+  : // Part 1: responsible for mapping explicit type parameter to function result, if object
+    T extends { queryFnData: any; error?: infer TError; data: infer TData }
     ? GetDefinedOrUndefinedQueryResult<T, TData, TError>
     : T extends { queryFnData: infer TQueryFnData; error?: infer TError }
       ? GetDefinedOrUndefinedQueryResult<T, TQueryFnData, TError>
@@ -390,6 +394,9 @@ export function useQueries<
   const defaultedQueries = React.useMemo(
     () =>
       queries.map((opts) => {
+        if (opts === skipQuery) {
+          return skipQuery
+        }
         const defaultedOptions = client.defaultQueryOptions(
           opts as QueryObserverOptions,
         )
@@ -407,6 +414,7 @@ export function useQueries<
   )
 
   defaultedQueries.forEach((queryOptions) => {
+    if (queryOptions === skipQuery) return
     ensureSuspenseTimers(queryOptions)
     const query = client.getQueryCache().get(queryOptions.queryHash)
     ensurePreventErrorBoundaryRetry(queryOptions, errorResetBoundary, query)
@@ -450,15 +458,16 @@ export function useQueries<
     () => observer.getCurrentResult(),
   )
 
-  const shouldAtLeastOneSuspend = optimisticResult.some((result, index) =>
-    shouldSuspend(defaultedQueries[index], result),
-  )
+  const shouldAtLeastOneSuspend = optimisticResult.some((result, index) => {
+    const opts = defaultedQueries[index]
+    return opts !== skipQuery && shouldSuspend(opts, result)
+  })
 
   const suspensePromises = shouldAtLeastOneSuspend
     ? optimisticResult.flatMap((result, index) => {
         const opts = defaultedQueries[index]
 
-        if (opts && shouldSuspend(opts, result)) {
+        if (opts && opts !== skipQuery && shouldSuspend(opts, result)) {
           const queryObserver = new QueryObserver(client, opts)
           return fetchOptimistic(opts, queryObserver, errorResetBoundary)
         }
@@ -474,6 +483,7 @@ export function useQueries<
       const query = defaultedQueries[index]
       return (
         query &&
+        query !== skipQuery &&
         getHasError({
           result,
           errorResetBoundary,

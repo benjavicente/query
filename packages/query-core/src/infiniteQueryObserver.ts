@@ -1,7 +1,9 @@
 import { hasNextPage, hasPreviousPage } from './infiniteQueryBehavior'
 import { QueryObserver } from './queryObserver'
+import { getSkippedInfiniteQueryResult, skipQuery } from './skipQuery'
 import type { Query } from './query'
 import type { QueryClient } from './queryClient'
+import type { SkipQuery } from './skipQuery'
 import type { Subscribable } from './subscribable'
 import type {
   DefaultError,
@@ -81,13 +83,15 @@ export class InfiniteQueryObserver<
 
   constructor(
     client: QueryClient,
-    options: InfiniteQueryObserverOptions<
-      TQueryFnData,
-      TError,
-      TData,
-      TQueryKey,
-      TPageParam
-    >,
+    options:
+      | InfiniteQueryObserverOptions<
+          TQueryFnData,
+          TError,
+          TData,
+          TQueryKey,
+          TPageParam
+        >
+      | SkipQuery,
   ) {
     super(client, options)
   }
@@ -106,15 +110,19 @@ export class InfiniteQueryObserver<
    * @param options - The new infinite query observer options.
    */
   override setOptions(
-    options: InfiniteQueryObserverOptions<
-      TQueryFnData,
-      TError,
-      TData,
-      TQueryKey,
-      TPageParam
-    >,
+    options:
+      | InfiniteQueryObserverOptions<
+          TQueryFnData,
+          TError,
+          TData,
+          TQueryKey,
+          TPageParam
+        >
+      | SkipQuery,
   ): void {
-    options._type = 'infinite'
+    if (options !== skipQuery) {
+      options._type = 'infinite'
+    }
     super.setOptions(options)
   }
 
@@ -127,15 +135,19 @@ export class InfiniteQueryObserver<
    * @returns The result for the given options.
    */
   override getOptimisticResult(
-    options: DefaultedInfiniteQueryObserverOptions<
-      TQueryFnData,
-      TError,
-      TData,
-      TQueryKey,
-      TPageParam
-    >,
+    options:
+      | DefaultedInfiniteQueryObserverOptions<
+          TQueryFnData,
+          TError,
+          TData,
+          TQueryKey,
+          TPageParam
+        >
+      | SkipQuery,
   ): InfiniteQueryObserverResult<TData, TError> {
-    options._type = 'infinite'
+    if (options !== skipQuery) {
+      options._type = 'infinite'
+    }
     return super.getOptimisticResult(options) as InfiniteQueryObserverResult<
       TData,
       TError
@@ -202,6 +214,13 @@ export class InfiniteQueryObserver<
         fetchMore: { direction: 'backward' },
       },
     })
+  }
+
+  protected override getSkippedResult(): InfiniteQueryObserverResult<
+    TData,
+    TError
+  > {
+    return getSkippedInfiniteQueryResult()
   }
 
   protected override createResult(
