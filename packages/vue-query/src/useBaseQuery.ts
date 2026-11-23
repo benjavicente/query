@@ -171,6 +171,8 @@ export function useBaseQuery<
     return defaulted
   })
 
+  // The observer always has options (Vue doesn't accept `skipQuery`), so it always has a
+  // current query
   const observer = new Observer(client, defaultedOptions.value)
   // @ts-expect-error
   const state = defaultedOptions.value.shallow
@@ -235,7 +237,7 @@ export function useBaseQuery<
           const { enabled } = defaultedOptions.value
           if (
             (typeof enabled === 'function'
-              ? enabled(observer.getCurrentQuery())
+              ? enabled(observer.getCurrentQuery()!)
               : enabled) !== false
           ) {
             const optimisticResult = observer.getOptimisticResult(
@@ -249,7 +251,7 @@ export function useBaseQuery<
                   if (
                     shouldThrowError(defaultedOptions.value.throwOnError, [
                       error,
-                      observer.getCurrentQuery(),
+                      observer.getCurrentQuery()!,
                     ])
                   ) {
                     reject(error)
@@ -280,7 +282,7 @@ export function useBaseQuery<
         !state.isFetching &&
         shouldThrowError(defaultedOptions.value.throwOnError, [
           error as TError,
-          observer.getCurrentQuery(),
+          observer.getCurrentQuery()!,
         ])
       ) {
         throw error

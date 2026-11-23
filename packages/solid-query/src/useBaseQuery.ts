@@ -159,6 +159,8 @@ export function useBaseQuery<
   })
   const initialOptions = defaultedOptions()
 
+  // The observer always has options (Solid doesn't accept `skipQuery`), so it always has a
+  // current query
   const [observer, setObserver] = createSignal(
     new Observer(client(), defaultedOptions()),
   )
@@ -175,7 +177,7 @@ export function useBaseQuery<
   ) => {
     return observer().subscribe((result) => {
       notifyManager.batchCalls(() => {
-        const query = observer().getCurrentQuery()
+        const query = observer().getCurrentQuery()!
         const unwrappedResult = hydratableObserverResult(query, result)
 
         if (result.data !== undefined && unwrappedResult.isError) {
@@ -282,7 +284,7 @@ export function useBaseQuery<
           !isRestoring() &&
           shouldThrowError(obs.options.throwOnError, [
             observerResult.error,
-            obs.getCurrentQuery(),
+            obs.getCurrentQuery()!,
           ])
         ) {
           setStateWithReconciliation(observerResult)
@@ -291,7 +293,7 @@ export function useBaseQuery<
         if (!observerResult.isLoading) {
           resolver = null
           return resolve(
-            hydratableObserverResult(obs.getCurrentQuery(), observerResult),
+            hydratableObserverResult(obs.getCurrentQuery()!, observerResult),
           )
         }
 
