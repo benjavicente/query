@@ -227,7 +227,7 @@ describe('InfiniteQueryBehavior', () => {
       observerResult = result
     })
 
-    const query = observer.getCurrentQuery()
+    const query = observer.getCurrentQuery()!
     query.cancel()
 
     // Wait for the first page to be cancelled
@@ -323,7 +323,7 @@ describe('InfiniteQueryBehavior', () => {
     })
 
     // Cancel the query
-    const query = observer.getCurrentQuery()
+    const query = observer.getCurrentQuery()!
     await query.cancel()
     vi.advanceTimersByTime(10)
     expect(observerResult).toMatchObject({

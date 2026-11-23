@@ -21,6 +21,7 @@ import type {
   QueryPersister,
   QueryStatus,
   RefetchOptions,
+  SkipQuery,
 } from '..'
 
 class CustomError extends Error {
@@ -70,7 +71,7 @@ describe('queryObserver', () => {
           queryFn: () => Promise.resolve('data'),
         })
 
-        expectTypeOf(observer.getCurrentQuery().queryKey).toEqualTypeOf<
+        expectTypeOf(observer.getCurrentQuery()!.queryKey).toEqualTypeOf<
           ReadonlyArray<unknown>
         >()
       })
@@ -1548,7 +1549,7 @@ describe('queryObserver', () => {
 
       expectTypeOf(observer.getOptimisticResult)
         .parameter(0)
-        .toEqualTypeOf<typeof options>()
+        .toEqualTypeOf<typeof options | SkipQuery>()
     })
 
     it('should require the options that are always defaulted', () => {
@@ -1557,7 +1558,10 @@ describe('queryObserver', () => {
         queryFn: () => Promise.resolve({ value: 'data' }),
       })
 
-      type Options = Parameters<typeof observer.getOptimisticResult>[0]
+      type Options = Exclude<
+        Parameters<typeof observer.getOptimisticResult>[0],
+        SkipQuery
+      >
       type OptionalKeys = {
         [K in keyof Options]-?: {} extends Pick<Options, K> ? K : never
       }[keyof Options]
@@ -1670,11 +1674,13 @@ describe('queryObserver', () => {
         queryFn: () => Promise.resolve({ value: 'data' }),
       })
 
-      expectTypeOf(observer.getCurrentQuery().state.data).toEqualTypeOf<
+      // `undefined` while the observer is skipped with `skipQuery`
+      expectTypeOf(observer.getCurrentQuery()).toBeNullable()
+      expectTypeOf(observer.getCurrentQuery()!.state.data).toEqualTypeOf<
         { value: string } | undefined
       >()
       expectTypeOf(
-        observer.getCurrentQuery().state.error,
+        observer.getCurrentQuery()!.state.error,
       ).toEqualTypeOf<DefaultError | null>()
 
       const withCustomError = new QueryObserver<{ value: string }, CustomError>(
@@ -1686,10 +1692,10 @@ describe('queryObserver', () => {
       )
 
       expectTypeOf(
-        withCustomError.getCurrentQuery().state.error,
+        withCustomError.getCurrentQuery()!.state.error,
       ).toEqualTypeOf<CustomError | null>()
       expectTypeOf(
-        withCustomError.getCurrentQuery().state.fetchFailureReason,
+        withCustomError.getCurrentQuery()!.state.fetchFailureReason,
       ).toEqualTypeOf<CustomError | null>()
     })
 
@@ -1700,7 +1706,7 @@ describe('queryObserver', () => {
         select: (data) => data.count,
       })
 
-      expectTypeOf(observer.getCurrentQuery().state.data).toEqualTypeOf<
+      expectTypeOf(observer.getCurrentQuery()!.state.data).toEqualTypeOf<
         { count: number } | undefined
       >()
     })
@@ -1713,7 +1719,7 @@ describe('queryObserver', () => {
         queryFn: () => Promise.resolve('data'),
       })
 
-      expectTypeOf(observer.getCurrentQuery().queryKey).toEqualTypeOf<
+      expectTypeOf(observer.getCurrentQuery()!.queryKey).toEqualTypeOf<
         readonly ['a', 1]
       >()
     })
@@ -1724,7 +1730,7 @@ describe('queryObserver', () => {
         queryFn: () => Promise.resolve({ value: 'data' }),
       })
 
-      const state = observer.getCurrentQuery().state
+      const state = observer.getCurrentQuery()!.state
 
       expectTypeOf(state.dataUpdateCount).toEqualTypeOf<number>()
       expectTypeOf(state.dataUpdatedAt).toEqualTypeOf<number>()
@@ -1739,11 +1745,9 @@ describe('queryObserver', () => {
         queryFn: () => Promise.resolve({ value: 'data' }),
       })
 
-      type State = (typeof observer)['getCurrentQuery'] extends () => {
-        state: infer TState
-      }
-        ? TState
-        : never
+      type State = NonNullable<
+        ReturnType<typeof observer.getCurrentQuery>
+      >['state']
       type OptionalKeys = {
         [K in keyof State]-?: {} extends Pick<State, K> ? K : never
       }[keyof State]
@@ -1759,9 +1763,11 @@ describe('queryObserver', () => {
         queryFn: () => Promise.resolve({ value: 'data' }),
       })
 
-      const state = observer.getCurrentQuery().state
+      const state = observer.getCurrentQuery()!.state
 
-      expectTypeOf(observer.getCurrentQuery().queryHash).toEqualTypeOf<string>()
+      expectTypeOf(
+        observer.getCurrentQuery()!.queryHash,
+      ).toEqualTypeOf<string>()
       expectTypeOf(state.isInvalidated).toEqualTypeOf<boolean>()
       expectTypeOf(state.fetchMeta).toEqualTypeOf<{
         fetchMore?: { direction: 'forward' | 'backward' }
@@ -1780,7 +1786,9 @@ describe('queryObserver', () => {
         queryFn: () => Promise.resolve({ value: 'data' }),
       })
 
-      type CurrentQuery = ReturnType<typeof observer.getCurrentQuery>
+      type CurrentQuery = NonNullable<
+        ReturnType<typeof observer.getCurrentQuery>
+      >
       type Fields = Pick<CurrentQuery, 'queryKey' | 'queryHash' | 'state'>
       type State = CurrentQuery['state']
 

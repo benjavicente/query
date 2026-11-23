@@ -6,6 +6,7 @@ import type {
   QueryObserver,
   QueryObserverOptions,
   QueryObserverResult,
+  SkipQuery,
 } from '..'
 import type { QueriesObserverOptions } from '../queriesObserver'
 
@@ -141,7 +142,7 @@ describe('queriesObserver', () => {
 
       expectTypeOf(observer.setQueries)
         .parameter(0)
-        .toEqualTypeOf<Array<QueryObserverOptions>>()
+        .toEqualTypeOf<Array<QueryObserverOptions | SkipQuery>>()
     })
 
     it('should take the same options as the constructor', () => {
@@ -193,7 +194,9 @@ describe('queriesObserver', () => {
     it('should return the observed queries', () => {
       const observer = new QueriesObserver(queryClient, [])
 
-      expectTypeOf(observer.getQueries()).toEqualTypeOf<Array<Query>>()
+      expectTypeOf(observer.getQueries()).toEqualTypeOf<
+        Array<Query | undefined>
+      >()
     })
   })
 
@@ -213,7 +216,7 @@ describe('queriesObserver', () => {
 
       expectTypeOf(observer.getOptimisticResult)
         .parameter(0)
-        .toEqualTypeOf<Array<QueryObserverOptions>>()
+        .toEqualTypeOf<Array<QueryObserverOptions | SkipQuery>>()
     })
 
     it('should take a combine function that accepts undefined but is required', () => {

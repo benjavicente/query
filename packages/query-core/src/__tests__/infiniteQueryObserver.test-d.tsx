@@ -23,6 +23,7 @@ import type {
   QueryObserverBaseResult,
   QueryObserverResult,
   QueryPersister,
+  SkipQuery,
 } from '..'
 import type { QueryBehavior } from '../query'
 
@@ -92,6 +93,7 @@ describe('infiniteQueryObserver', () => {
 
         expectTypeOf(observer.setOptions)
           .parameter(0)
+          .exclude<SkipQuery>()
           .toHaveProperty('initialPageParam')
           .toEqualTypeOf<number>()
       })
@@ -1177,7 +1179,7 @@ describe('infiniteQueryObserver', () => {
         getNextPageParam: () => 1,
       })
 
-      expectTypeOf(observer.getCurrentQuery().state.data).toEqualTypeOf<
+      expectTypeOf(observer.getCurrentQuery()!.state.data).toEqualTypeOf<
         InfiniteData<{ value: string }, number> | undefined
       >()
     })
@@ -1190,7 +1192,7 @@ describe('infiniteQueryObserver', () => {
         getNextPageParam: () => 1,
       })
 
-      expectTypeOf(observer.getCurrentQuery().state.fetchMeta).toEqualTypeOf<{
+      expectTypeOf(observer.getCurrentQuery()!.state.fetchMeta).toEqualTypeOf<{
         fetchMore?: { direction: 'forward' | 'backward' }
       } | null>()
     })

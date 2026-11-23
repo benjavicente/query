@@ -1093,7 +1093,7 @@ describe('queryObserver', () => {
       queryFn: () => 'data',
     })
 
-    expect(observer.getCurrentQuery().queryKey).toStrictEqual(key)
+    expect(observer.getCurrentQuery()!.queryKey).toStrictEqual(key)
   })
 
   it('should throw an error if throwOnError option is true', async () => {
