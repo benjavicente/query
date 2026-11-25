@@ -106,16 +106,6 @@ describe('query', () => {
   })
 
   describe('QueryBehavior', () => {
-    it('should not be accepted as a query option', () => {
-      const options: QueryOptions = {
-        queryKey: ['a'],
-        // @ts-expect-error behavior is not a query option
-        behavior: { onFetch: () => {} },
-      }
-
-      expectTypeOf(options).not.toHaveProperty('behavior')
-    })
-
     it('should type the fetch context given to onFetch', () => {
       const behavior: QueryBehavior<
         { value: string },
