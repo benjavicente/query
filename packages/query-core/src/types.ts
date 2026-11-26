@@ -616,20 +616,11 @@ export interface QueryObserverOptionsBase<
    * Controls when changes to the query result notify this observer's listeners.
    * Use `'all'` to notify on every result change.
    * Use `'none'` to suppress notifications while the query remains subscribed and can fetch.
-   * If `throwOnError` is set, changes to `error` still notify listeners.
    *
    * By default, adapters that track property reads notify listeners when a tracked property changes.
    * If no properties are tracked, every result change notifies listeners.
    */
   notifyOnChangeProps?: NotifyOnChangeProps
-  /**
-   * Whether errors should be thrown instead of setting the `error` property.
-   * If set to `true` or `suspense` is `true`, all errors will be thrown to the error boundary.
-   * If set to `false` and `suspense` is `false`, errors are returned as state.
-   * If set to a function, it will be passed the error and the query, and it should return a boolean indicating whether to show the error in an error boundary (`true`) or return the error as state (`false`).
-   * @defaultValue false
-   */
-  throwOnError?: ThrowOnError<TQueryFnData, TError, TQueryData, TQueryKey>
   /**
    * This option can be used to transform or select a part of the data returned by the query function. It affects
    * the returned `data` value, but does not affect what gets stored in the query cache.
@@ -638,12 +629,6 @@ export interface QueryObserverOptionsBase<
    * If the selector throws, the observer reports the error and can keep the last valid selection.
    */
   select?: (data: TQueryData) => TData
-  /**
-   * If set to `true`, the query will suspend when `status === 'pending'`
-   * and throw errors when `status === 'error'`.
-   * @defaultValue false
-   */
-  suspense?: boolean
   /**
    * If set, this value will be used as the placeholder data for this particular query observer while the query is still in the `loading` data and no initialData has been provided.
    * If the placeholder function throws, the observer reports the error with no data. The query state in the cache is unaffected.
@@ -695,7 +680,7 @@ export type WithRequired<TTarget, TKey extends keyof TTarget> = TTarget & {
 
 /**
  * The {@link QueryObserverOptions} after `QueryClient#defaultQueryOptions` has applied the
- * defaults, so `throwOnError`, `refetchOnReconnect`, and `queryHash` are always set.
+ * defaults, so `refetchOnReconnect` and `queryHash` are always set.
  */
 export type DefaultedQueryObserverOptions<
   TQueryFnData = unknown,
@@ -713,7 +698,7 @@ export type DefaultedQueryObserverOptions<
     TQueryKey,
     TPageParam
   >,
-  'throwOnError' | 'refetchOnReconnect' | 'queryHash'
+  'refetchOnReconnect' | 'queryHash'
 >
 
 /**
@@ -740,7 +725,7 @@ export interface InfiniteQueryObserverOptions<
 
 /**
  * The {@link InfiniteQueryObserverOptions} after `QueryClient#defaultQueryOptions` has applied the
- * defaults, so `throwOnError`, `refetchOnReconnect`, and `queryHash` are always set.
+ * defaults, so `refetchOnReconnect` and `queryHash` are always set.
  */
 export type DefaultedInfiniteQueryObserverOptions<
   TQueryFnData = unknown,
@@ -1947,24 +1932,14 @@ export interface MutationOptions<
 }
 
 /**
- * The options of a `MutationObserver`, and of the hooks built on it like `useMutation`: the
- * {@link MutationOptions}, plus `throwOnError`.
+ * The options of a `MutationObserver`, and of the hooks built on it like `useMutation`.
  */
 export interface MutationObserverOptions<
   TData = unknown,
   TError = DefaultError,
   TVariables = void,
   TOnMutateResult = unknown,
-> extends MutationOptions<TData, TError, TVariables, TOnMutateResult> {
-  /**
-   * Whether errors should be thrown instead of setting the `error` property.
-   * If set to `true`, all errors will be thrown to the nearest error boundary.
-   * If set to a function, it will be passed the error and should return a boolean indicating whether to throw the
-   * error (`true`) or return it as state (`false`).
-   * @defaultValue false
-   */
-  throwOnError?: boolean | ((error: TError) => boolean)
-}
+> extends MutationOptions<TData, TError, TVariables, TOnMutateResult> {}
 
 /**
  * The callbacks that can be passed to `mutate` for a single call. They run after the callbacks of
@@ -2337,10 +2312,7 @@ export interface QueryClientConfig {
  */
 export interface DefaultOptions<TError = DefaultError> {
   /** Default options applied to every query, unless overridden per-query. */
-  queries?: OmitKeyof<
-    QueryObserverOptionsBase<unknown, TError>,
-    'suspense' | 'queryKey'
-  >
+  queries?: OmitKeyof<QueryObserverOptionsBase<unknown, TError>, 'queryKey'>
   /** Default options applied to every mutation, unless overridden per-mutation. */
   mutations?: MutationObserverOptions<unknown, TError, unknown, unknown>
   /** Default options used when hydrating queries and mutations; see {@link HydrateOptions}. */

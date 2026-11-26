@@ -20,6 +20,7 @@ import type {
   QueryObserverPlaceholderResult,
   QueryObserverResult,
   SkipToken,
+  ThrowOnError,
 } from '@tanstack/query-core'
 
 /**
@@ -62,6 +63,13 @@ export interface UseBaseQueryOptions<
    * @defaultValue true
    */
   subscribed?: boolean
+  /**
+   * Whether errors should be thrown to the nearest error boundary instead of being returned as `error`.
+   * If set to a function, it receives the error and the query, and returns whether to throw it (`true`) or
+   * return it as state (`false`).
+   * @defaultValue false
+   */
+  throwOnError?: ThrowOnError<TQueryFnData, TError, TQueryData, TQueryKey>
 }
 
 /**
@@ -161,9 +169,12 @@ export interface UseQueryOptions<
   TError = DefaultError,
   TData = TQueryFnData,
   TQueryKey extends QueryKey = QueryKey,
-> extends OmitKeyof<
-  UseBaseQueryOptions<TQueryFnData, TError, TData, TQueryFnData, TQueryKey>,
-  'suspense'
+> extends UseBaseQueryOptions<
+  TQueryFnData,
+  TError,
+  TData,
+  TQueryFnData,
+  TQueryKey
 > {}
 
 /**
@@ -232,16 +243,25 @@ export interface UseInfiniteQueryOptions<
   TData = InfiniteData<TQueryFnData>,
   TQueryKey extends QueryKey = QueryKey,
   TPageParam = unknown,
-> extends OmitKeyof<
-  InfiniteQueryObserverOptions<
+> extends InfiniteQueryObserverOptions<
+  TQueryFnData,
+  TError,
+  TData,
+  TQueryKey,
+  TPageParam
+> {
+  /**
+   * Whether errors should be thrown to the nearest error boundary instead of being returned as `error`.
+   * If set to a function, it receives the error and the query, and returns whether to throw it (`true`) or
+   * return it as state (`false`).
+   * @defaultValue false
+   */
+  throwOnError?: ThrowOnError<
     TQueryFnData,
     TError,
-    TData,
-    TQueryKey,
-    TPageParam
-  >,
-  'suspense'
-> {
+    InfiniteData<TQueryFnData, TPageParam>,
+    TQueryKey
+  >
   /**
    * Set this to `false` to unsubscribe this observer from updates to the query cache.
    * @defaultValue true
@@ -385,7 +405,15 @@ export interface UseMutationOptions<
 > extends OmitKeyof<
   MutationObserverOptions<TData, TError, TVariables, TOnMutateResult>,
   '_defaulted'
-> {}
+> {
+  /**
+   * Whether errors should be thrown to the nearest error boundary instead of being returned as `error`.
+   * If set to a function, it receives the error and returns whether to throw it (`true`) or return it as
+   * state (`false`).
+   * @defaultValue false
+   */
+  throwOnError?: boolean | ((error: TError) => boolean)
+}
 
 /**
  * The type of `mutate`, as returned by `useMutation`. Forwards the variables (and an optional per-call

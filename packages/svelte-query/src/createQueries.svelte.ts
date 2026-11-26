@@ -11,7 +11,6 @@ import type {
   QueryClient,
   QueryFunction,
   QueryKey,
-  ThrowOnError,
 } from '@tanstack/query-core'
 import type {
   Accessor,
@@ -65,11 +64,10 @@ type GetCreateQueryOptionsForCreateQueries<T> =
                       | QueryFunction<infer TQueryFnData, infer TQueryKey>
                       | SkipTokenForCreateQueries
                     select?: (data: any) => infer TData
-                    throwOnError?: ThrowOnError<any, infer TError, any, any>
                   }
                 ? CreateQueryOptionsForCreateQueries<
                     TQueryFnData,
-                    unknown extends TError ? DefaultError : TError,
+                    DefaultError,
                     unknown extends TData ? TQueryFnData : TData,
                     TQueryKey
                   >
@@ -114,12 +112,11 @@ type GetCreateQueryResult<T> =
                       | QueryFunction<infer TQueryFnData, any>
                       | SkipTokenForCreateQueries
                     select?: (data: any) => infer TData
-                    throwOnError?: ThrowOnError<any, infer TError, any, any>
                   }
                 ? GetDefinedOrUndefinedQueryResult<
                     T,
                     unknown extends TData ? TQueryFnData : TData,
-                    unknown extends TError ? DefaultError : TError
+                    DefaultError
                   >
                 : // Fallback
                   CreateQueryResult

@@ -6,6 +6,7 @@ import type { DefaultError } from '@tanstack/query-core'
 import type { Accessor } from 'solid-js'
 import type { QueryClient } from './QueryClient'
 import type {
+  MutationOptions,
   UseMutateFunction,
   UseMutationOptions,
   UseMutationResult,
@@ -213,7 +214,17 @@ export function useMutation<
       () => {
         if (
           state.isError &&
-          shouldThrowError(observer.options.throwOnError, [state.error])
+          shouldThrowError(
+            (
+              observer.options as MutationOptions<
+                TData,
+                TError,
+                TVariables,
+                TOnMutateResult
+              >
+            ).throwOnError,
+            [state.error],
+          )
         ) {
           throw state.error
         }

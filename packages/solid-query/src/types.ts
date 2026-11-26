@@ -236,7 +236,15 @@ export interface MutationOptions<
 > extends OmitKeyof<
   MutationObserverOptions<TData, TError, TVariables, TOnMutateResult>,
   '_defaulted'
-> {}
+> {
+  /**
+   * Whether errors should be thrown to the nearest error boundary instead of being returned as `error`.
+   * If set to a function, it receives the error and returns whether to throw it (`true`) or return it as
+   * state (`false`).
+   * @defaultValue false
+   */
+  throwOnError?: boolean | ((error: TError) => boolean)
+}
 
 /**
  * The accessor `useMutation` expects as its first argument — Solid re-evaluates it reactively, so callbacks

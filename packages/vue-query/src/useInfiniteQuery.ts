@@ -8,6 +8,7 @@ import type {
   InfiniteQueryObserverResult,
   QueryKey,
   QueryObserver,
+  ThrowOnError,
 } from '@tanstack/query-core'
 import type {
   DefinedInitialDataInfiniteOptions,
@@ -66,7 +67,22 @@ export type UseInfiniteQueryOptions<
             TPageParam
           >[Property]
         >
-  } & ShallowOption
+  } & ShallowOption & {
+      /**
+       * Whether errors should be thrown instead of being returned as `error`, so they reach the nearest
+       * `onErrorCaptured` handler or `errorHandler`. If set to a function, it receives the error and the
+       * query, and returns whether to throw it (`true`) or return it as state (`false`).
+       * @defaultValue false
+       */
+      throwOnError?: MaybeRefDeep<
+        ThrowOnError<
+          TQueryFnData,
+          TError,
+          InfiniteData<TQueryFnData, TPageParam>,
+          DeepUnwrapRef<TQueryKey>
+        >
+      >
+    }
 >
 
 /**

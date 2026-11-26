@@ -15,6 +15,7 @@ import type {
   QueryObserver,
   QueryObserverResult,
 } from '@tanstack/query-core'
+import type { DefaultedUseQueryOptions } from './errorBoundaryUtils'
 import type { suspenseQueryPolicy } from './suspense'
 import type { UseBaseQueryOptions } from './types'
 
@@ -61,10 +62,20 @@ export function useBaseQuery<
   const isRestoring = useIsRestoring()
   const errorResetBoundary = useQueryErrorResetBoundary()
   const client = useQueryClient(queryClient)
-  const defaultedOptions = client.defaultQueryOptions({
-    ...options,
-    suspense: !!suspense,
-  })
+  const defaultedOptions: DefaultedUseQueryOptions<
+    TQueryFnData,
+    TError,
+    TData,
+    TQueryData,
+    TQueryKey
+  > = client.defaultQueryOptions(options)
+  const { notifyOnChangeProps } = defaultedOptions
+  // Errors that reach the error boundary must re-render the component, even when it doesn't read
+  // `error` or turned notifications off with `'none'`
+  const throwsErrors = !!defaultedOptions.throwOnError
+  if (throwsErrors && notifyOnChangeProps === 'none') {
+    defaultedOptions.notifyOnChangeProps = undefined
+  }
 
   const query = client
     .getQueryCache()
@@ -90,7 +101,12 @@ export function useBaseQuery<
       : undefined
 
   suspense?.prepare(defaultedOptions)
-  ensurePreventErrorBoundaryRetry(defaultedOptions, errorResetBoundary, query)
+  ensurePreventErrorBoundaryRetry(
+    defaultedOptions,
+    errorResetBoundary,
+    query,
+    !!suspense,
+  )
 
   useClearResetErrorBoundary(errorResetBoundary)
 
@@ -101,6 +117,10 @@ export function useBaseQuery<
         defaultedOptions,
       ),
   )
+
+  if (throwsErrors && notifyOnChangeProps === 'none') {
+    observer.trackProp('error')
+  }
 
   const reader = observer.createResultReader(defaultedOptions)
 
@@ -142,14 +162,18 @@ export function useBaseQuery<
       errorResetBoundary,
       throwOnError: defaultedOptions.throwOnError,
       query,
-      suspense: defaultedOptions.suspense,
+      suspense: !!suspense,
     })
   ) {
     throw result.error
   }
 
   // Handle result property usage tracking
-  return !defaultedOptions.notifyOnChangeProps
-    ? observer.trackResult(result)
+  // Reading any property also tracks `error`, so it still reaches the error boundary
+  return !notifyOnChangeProps
+    ? observer.trackResult(
+        result,
+        throwsErrors ? () => observer.trackProp('error') : undefined,
+      )
     : result
 }

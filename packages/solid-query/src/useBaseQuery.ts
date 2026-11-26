@@ -15,6 +15,7 @@ import { isServer } from 'solid-js/web'
 import { useQueryClientResolver } from './QueryClientProvider'
 import { useIsRestoring } from './isRestoring'
 import type {
+  DefaultedQueryObserverOptions,
   Query,
   QueryKey,
   QueryObserver,
@@ -146,7 +147,17 @@ export function useBaseQuery<
   let unsubscribeQueued = false
 
   const defaultedOptions = createMemo(() => {
-    const defaultOptions = client().defaultQueryOptions(options())
+    const defaultOptions: DefaultedQueryObserverOptions<
+      TQueryFnData,
+      TError,
+      TData,
+      TQueryData,
+      TQueryKey
+    > &
+      Pick<
+        UseBaseQueryOptions<TQueryFnData, TError, TData, TQueryData, TQueryKey>,
+        'throwOnError'
+      > = client().defaultQueryOptions(options())
     defaultOptions._optimisticResults = isRestoring()
       ? 'isRestoring'
       : 'optimistic'
@@ -282,10 +293,18 @@ export function useBaseQuery<
           observerResult.isError &&
           !observerResult.isFetching &&
           !isRestoring() &&
-          shouldThrowError(obs.options.throwOnError, [
-            observerResult.error,
-            obs.getCurrentQuery(),
-          ])
+          shouldThrowError(
+            (
+              obs.options as UseBaseQueryOptions<
+                TQueryFnData,
+                TError,
+                TData,
+                TQueryData,
+                TQueryKey
+              >
+            ).throwOnError,
+            [observerResult.error, obs.getCurrentQuery()],
+          )
         ) {
           setStateWithReconciliation(observerResult)
           return reject(observerResult.error)

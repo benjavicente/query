@@ -231,7 +231,17 @@ export function useMutation<
 
   if (
     result.error &&
-    shouldThrowError(observer.options.throwOnError, [result.error])
+    shouldThrowError(
+      (
+        observer.options as UseMutationOptions<
+          TData,
+          TError,
+          TVariables,
+          TOnMutateResult
+        >
+      ).throwOnError,
+      [result.error],
+    )
   ) {
     throw result.error
   }

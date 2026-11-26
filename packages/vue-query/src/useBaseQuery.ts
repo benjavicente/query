@@ -21,7 +21,7 @@ import type {
 import type { Ref } from 'vue'
 import type { QueryClient } from './queryClient'
 import type { UseQueryOptions } from './queryOptions'
-import type { MaybeRefOrGetter } from './types'
+import type { MaybeRefOrGetter, QueryThrowOnErrorOption } from './types'
 import type { UseInfiniteQueryOptions } from './useInfiniteQuery'
 
 /**
@@ -162,7 +162,9 @@ export function useBaseQuery<
       TData,
       TQueryData,
       TQueryKey
-    > = client.defaultQueryOptions(clonedOptions)
+    > &
+      QueryThrowOnErrorOption<TQueryFnData, TError, TQueryData, TQueryKey> =
+      client.defaultQueryOptions(clonedOptions)
 
     defaulted._optimisticResults = client.isRestoring?.value
       ? 'isRestoring'

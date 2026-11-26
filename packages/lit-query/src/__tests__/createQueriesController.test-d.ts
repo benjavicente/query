@@ -561,9 +561,6 @@ describe('createQueriesController', () => {
       const key4 = createKey()
       const key5 = createKey()
 
-      type BizError = { code: number }
-      const throwOnError = (_error: BizError) => true
-
       // Array.map preserves TQueryFnData
       const result1 = createQueriesController(
         new Host(),
@@ -582,26 +579,6 @@ describe('createQueriesController', () => {
         expectTypeOf(result1[0].data).toEqualTypeOf<number | undefined>()
       }
 
-      // Array.map preserves TError
-      const result1_err = createQueriesController(
-        new Host(),
-        {
-          queries: Array(50).map((_, i) => ({
-            queryKey: ['key', i] as const,
-            queryFn: () => i + 10,
-            throwOnError,
-          })),
-        },
-        new QueryClient(),
-      )()
-      expectTypeOf(result1_err).toEqualTypeOf<
-        Array<QueryObserverResult<number, BizError>>
-      >()
-      if (result1_err[0]) {
-        expectTypeOf(result1_err[0].data).toEqualTypeOf<number | undefined>()
-        expectTypeOf(result1_err[0].error).toEqualTypeOf<BizError | null>()
-      }
-
       // Array.map preserves TData
       const result2 = createQueriesController(
         new Host(),
@@ -616,22 +593,6 @@ describe('createQueriesController', () => {
       )()
       expectTypeOf(result2).toEqualTypeOf<
         Array<QueryObserverResult<string, Error>>
-      >()
-
-      const result2_err = createQueriesController(
-        new Host(),
-        {
-          queries: Array(50).map((_, i) => ({
-            queryKey: ['key', i] as const,
-            queryFn: () => i + 10,
-            select: (data: number) => data.toString(),
-            throwOnError,
-          })),
-        },
-        new QueryClient(),
-      )()
-      expectTypeOf(result2_err).toEqualTypeOf<
-        Array<QueryObserverResult<string, BizError>>
       >()
 
       const result3 = createQueriesController(
@@ -654,7 +615,6 @@ describe('createQueriesController', () => {
             {
               queryKey: key5,
               queryFn: () => 'string',
-              throwOnError,
             },
           ],
         },
@@ -674,8 +634,6 @@ describe('createQueriesController', () => {
       expectTypeOf(result3[3].data).toEqualTypeOf<string | undefined>()
       // select takes precedence over queryFn
       expectTypeOf(result3[2].data).toEqualTypeOf<number | undefined>()
-      // infer TError from throwOnError
-      expectTypeOf(result3[3].error).toEqualTypeOf<BizError | null>()
 
       // initialData/placeholderData are enforced
       createQueriesController(
@@ -701,7 +659,7 @@ describe('createQueriesController', () => {
         new QueryClient(),
       )()
 
-      // select and throwOnError params are "indirectly" enforced
+      // select params are "indirectly" enforced
       createQueriesController(
         new Host(),
         {
@@ -729,7 +687,6 @@ describe('createQueriesController', () => {
             {
               queryKey: key5,
               queryFn: () => 'string',
-              throwOnError,
             },
           ],
         },
@@ -782,7 +739,6 @@ describe('createQueriesController', () => {
               queryKey: key5,
               queryFn: () => 'string',
               select: (a: string) => parseInt(a),
-              throwOnError,
             },
           ],
         },
@@ -798,7 +754,7 @@ describe('createQueriesController', () => {
         QueryObserverResult<number, Error>
       >()
       expectTypeOf(result4[3]).toEqualTypeOf<
-        QueryObserverResult<number, BizError>
+        QueryObserverResult<number, Error>
       >()
 
       // handles when queryFn returns a Promise
@@ -834,7 +790,6 @@ describe('createQueriesController', () => {
             {
               queryKey: key5,
               queryFn: () => 'string',
-              throwOnError,
             },
           ],
         } as const,
@@ -847,7 +802,7 @@ describe('createQueriesController', () => {
         QueryObserverResult<number, Error>
       >()
       expectTypeOf(result6[2]).toEqualTypeOf<
-        QueryObserverResult<string, BizError>
+        QueryObserverResult<string, Error>
       >()
 
       // field names should be enforced - array literal

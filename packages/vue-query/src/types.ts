@@ -7,6 +7,8 @@ import type {
   MutationObserverOptions,
   OmitKeyof,
   QueryCache,
+  QueryKey,
+  ThrowOnError,
 } from '@tanstack/query-core'
 import type { ComputedRef, Ref, UnwrapRef } from 'vue'
 
@@ -94,6 +96,24 @@ export type ShallowOption = {
 }
 
 /**
+ * The `vue-query` `throwOnError` option of queries.
+ */
+export type QueryThrowOnErrorOption<
+  TQueryFnData,
+  TError,
+  TQueryData,
+  TQueryKey extends QueryKey,
+> = {
+  /**
+   * Whether errors should be thrown instead of being returned as `error`, so they reach the nearest
+   * `onErrorCaptured` handler or `errorHandler`. If set to a function, it receives the error and the query,
+   * and returns whether to throw it (`true`) or return it as state (`false`).
+   * @defaultValue false
+   */
+  throwOnError?: ThrowOnError<TQueryFnData, TError, TQueryData, TQueryKey>
+}
+
+/**
  * The options of a mutation. Same as {@link MutationObserverOptions} from `@tanstack/query-core`, minus the
  * internal `_defaulted` flag, plus the `shallow` option.
  */
@@ -106,7 +126,15 @@ export type MutationOptions<
   MutationObserverOptions<TData, TError, TVariables, TOnMutateResult>,
   '_defaulted'
 > &
-  ShallowOption
+  ShallowOption & {
+    /**
+     * Whether errors should be thrown instead of being returned as `error`, so they reach the nearest
+     * `onErrorCaptured` handler or `errorHandler`. If set to a function, it receives the error and returns
+     * whether to throw it (`true`) or return it as state (`false`).
+     * @defaultValue false
+     */
+    throwOnError?: boolean | ((error: TError) => boolean)
+  }
 
 /**
  * The default options of a `QueryClient`, applied to every query (`queries`), mutation

@@ -12,6 +12,7 @@ import type {
   MaybeRef,
   MaybeRefDeep,
   MaybeRefOrGetter,
+  QueryThrowOnErrorOption,
   ShallowOption,
 } from './types'
 
@@ -74,7 +75,13 @@ export type QueryOptions<
           TQueryData,
           DeepUnwrapRef<TQueryKey>
         >[Property]
-} & ShallowOption
+} & ShallowOption &
+  QueryThrowOnErrorOption<
+    TQueryFnData,
+    TError,
+    TQueryData,
+    DeepUnwrapRef<TQueryKey>
+  >
 
 // Widen the type of the symbol to enable type inference even if skipToken is not immutable.
 type SkipTokenForUseQuery = symbol
@@ -149,7 +156,17 @@ export type UseQueryOptions<
               TQueryKey
             >[Property]
           >
-  } & ShallowOption
+  } & ShallowOption & {
+      throwOnError?: MaybeRefDeep<
+        QueryOptions<
+          TQueryFnData,
+          TError,
+          TData,
+          TQueryData,
+          TQueryKey
+        >['throwOnError']
+      >
+    }
 >
 
 type WithUndefinedInitialData<TQueryFnData> = {

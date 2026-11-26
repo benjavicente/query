@@ -18,8 +18,10 @@ import type {
   QueryFunction,
   QueryKey,
   QueryObserverOptions,
+  QueryObserverResult,
   ThrowOnError,
 } from '@tanstack/query-core'
+import type { DefaultedUseQueryOptions } from './errorBoundaryUtils'
 import type { suspenseQueriesPolicy } from './suspense'
 import type {
   DefinedUseQueryResult,
@@ -336,10 +338,11 @@ export function useBaseQueries<
   T extends Array<any>,
   TCombinedResult = QueriesResults<T>,
 >(
-  { queries, ...options }: UseQueriesInput<T, TCombinedResult>,
+  { queries, ...inputOptions }: UseQueriesInput<T, TCombinedResult>,
   queryClient?: QueryClient,
   suspense?: typeof suspenseQueriesPolicy,
 ): TCombinedResult {
+  const options = useSuspenseCombine(inputOptions, suspense)
   const client = useQueryClient(queryClient)
   const isRestoring = useIsRestoring()
   const errorResetBoundary = useQueryErrorResetBoundary()
@@ -348,10 +351,9 @@ export function useBaseQueries<
   const defaultedQueries = useMemo(
     () =>
       queries.map((opts) => {
-        const defaultedOptions = client.defaultQueryOptions({
-          ...opts,
-          suspense: !!suspense,
-        } as QueryObserverOptions)
+        const defaultedOptions = client.defaultQueryOptions(
+          opts as QueryObserverOptions,
+        )
 
         // Make sure the results are already in fetching state before subscribing or updating options
         defaultedOptions._optimisticResults = isRestoring
@@ -362,13 +364,18 @@ export function useBaseQueries<
 
         return defaultedOptions
       }),
-    [queries, client, isRestoring, subscribed, suspense],
+    [queries, client, isRestoring, subscribed],
   )
 
   defaultedQueries.forEach((queryOptions) => {
     suspense?.prepare(queryOptions)
     const query = client.getQueryCache().get(queryOptions.queryHash)
-    ensurePreventErrorBoundaryRetry(queryOptions, errorResetBoundary, query)
+    ensurePreventErrorBoundaryRetry(
+      queryOptions,
+      errorResetBoundary,
+      query,
+      !!suspense,
+    )
   })
 
   useClearResetErrorBoundary(errorResetBoundary)
@@ -391,7 +398,13 @@ export function useBaseQueries<
   // Commit the combine cache before subscription can start a fetch.
   useEffect(() => {
     reader.commit()
-  }, [reader])
+    // Errors that reach the error boundary must re-render the component
+    observer.getObservers().forEach((queryObserver) => {
+      if ((queryObserver.options as DefaultedUseQueryOptions).throwOnError) {
+        queryObserver.trackProp('error')
+      }
+    })
+  }, [observer, reader])
 
   const shouldSubscribe = !isRestoring && subscribed
   const results = useSyncExternalStore(
@@ -419,9 +432,9 @@ export function useBaseQueries<
       getHasError({
         result,
         errorResetBoundary,
-        throwOnError: query.throwOnError,
+        throwOnError: (query as DefaultedUseQueryOptions).throwOnError,
         query: client.getQueryCache().get(query.queryHash),
-        suspense: query.suspense,
+        suspense: !!suspense,
       })
     )
   })
@@ -431,4 +444,34 @@ export function useBaseQueries<
   }
 
   return reader.combineResult(results)
+}
+
+/**
+ * Keeps `combine` from running on results without data while their Suspense queries are pending,
+ * for example after `resetQueries`. The component suspends before it reads the combined result, so
+ * a skipped combine returns a new value that only makes the observer notify (#10129).
+ * @param options - The `useQueries` options without `queries`.
+ * @param suspense - The Suspense policy, if the queries are read by a Suspense hook.
+ * @returns The options, with a guarded `combine` for Suspense queries.
+ */
+function useSuspenseCombine<
+  TOptions extends { combine?: (result: any) => any },
+>(
+  options: TOptions,
+  suspense: typeof suspenseQueriesPolicy | undefined,
+): TOptions {
+  const { combine } = options
+  const guardedCombine = useMemo(
+    () =>
+      suspense && combine
+        ? (results: Array<QueryObserverResult>) =>
+            results.some((result) => result.data === undefined)
+              ? Symbol('skipped combine')
+              : combine(results)
+        : combine,
+    [suspense, combine],
+  )
+  return guardedCombine === combine
+    ? options
+    : { ...options, combine: guardedCombine }
 }

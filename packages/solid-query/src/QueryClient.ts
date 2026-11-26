@@ -2,11 +2,13 @@ import { QueryClient as QueryCoreClient } from '@tanstack/query-core'
 import type {
   DefaultOptions as CoreDefaultOptions,
   DefaultError,
+  InfiniteData,
   OmitKeyof,
   QueryClientConfig as QueryCoreClientConfig,
   InfiniteQueryObserverOptions as QueryCoreInfiniteQueryObserverOptions,
   QueryObserverOptions as QueryCoreObserverOptions,
   QueryKey,
+  ThrowOnError,
 } from '@tanstack/query-core'
 
 /**
@@ -35,7 +37,7 @@ export interface QueryObserverOptions<
     TQueryKey,
     TPageParam
   >,
-  'structuralSharing' | 'suspense'
+  'structuralSharing'
 > {
   /**
    * Set this to a reconciliation key to enable reconciliation between query results.
@@ -47,6 +49,13 @@ export interface QueryObserverOptions<
     | string
     | false
     | ((oldData: TData | undefined, newData: TData) => TData)
+  /**
+   * Whether errors should be thrown to the nearest error boundary instead of being returned as `error`.
+   * If set to a function, it receives the error and the query, and returns whether to throw it (`true`) or
+   * return it as state (`false`). On the server, errors are always thrown.
+   * @defaultValue false
+   */
+  throwOnError?: ThrowOnError<TQueryFnData, TError, TQueryData, TQueryKey>
 }
 
 /**
@@ -71,7 +80,7 @@ export interface InfiniteQueryObserverOptions<
     TQueryKey,
     TPageParam
   >,
-  'structuralSharing' | 'suspense'
+  'structuralSharing'
 > {
   /**
    * Set this to a reconciliation key to enable reconciliation between query results.
@@ -83,6 +92,18 @@ export interface InfiniteQueryObserverOptions<
     | string
     | false
     | ((oldData: TData | undefined, newData: TData) => TData)
+  /**
+   * Whether errors should be thrown to the nearest error boundary instead of being returned as `error`.
+   * If set to a function, it receives the error and the query, and returns whether to throw it (`true`) or
+   * return it as state (`false`). On the server, errors are always thrown.
+   * @defaultValue false
+   */
+  throwOnError?: ThrowOnError<
+    TQueryFnData,
+    TError,
+    InfiniteData<TQueryFnData, TPageParam>,
+    TQueryKey
+  >
 }
 
 /**

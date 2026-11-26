@@ -2686,6 +2686,34 @@ describe('useQuery', () => {
     expect(rendered.getByText('error boundary')).toBeInTheDocument()
   })
 
+  it('should throw error with notifyOnChangeProps set to none and throwOnError in use', async () => {
+    vi.spyOn(console, 'error').mockReturnValue(undefined)
+    const key = createKey()
+
+    function Page() {
+      const { status } = useQuery({
+        queryKey: key,
+        queryFn: () => Promise.reject(new Error('Error test')),
+        retry: false,
+        notifyOnChangeProps: 'none',
+        throwOnError: true,
+      })
+
+      return <h1>{status}</h1>
+    }
+
+    const rendered = renderWithClient(
+      queryClient,
+      <ErrorBoundary fallbackRender={() => <div>error boundary</div>}>
+        <Page />
+      </ErrorBoundary>,
+    )
+
+    expect(rendered.getByText('pending')).toBeInTheDocument()
+    await vi.advanceTimersByTimeAsync(0)
+    expect(rendered.getByText('error boundary')).toBeInTheDocument()
+  })
+
   it('should throw error if queryFn rejects with a falsy error and throwOnError is in use', async () => {
     vi.spyOn(console, 'error').mockReturnValue(undefined)
     const key = createKey()

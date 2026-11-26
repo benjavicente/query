@@ -287,6 +287,69 @@ describe('useSuspenseQueries', () => {
     ])
   })
 
+  it('should not call combine while reset queries are pending again', async () => {
+    const key = createKey()
+    let shouldError = false
+
+    function Page() {
+      const data = useSuspenseQueries({
+        queries: [
+          {
+            queryKey: key,
+            queryFn: () =>
+              sleep(10).then(() => {
+                if (shouldError) {
+                  throw new Error('Suspense Error Bingo')
+                }
+
+                return 'data'
+              }),
+            retry: false,
+          },
+        ],
+        combine: (result) => result.map((query) => query.data.toUpperCase()),
+      })
+
+      return (
+        <div>
+          <button
+            onClick={() => void queryClient.resetQueries({ queryKey: key })}
+          >
+            reset
+          </button>
+          <div>data: {data.join(',')}</div>
+        </div>
+      )
+    }
+
+    const rendered = renderWithClient(
+      queryClient,
+      <ErrorBoundary fallbackRender={() => <div>error boundary</div>}>
+        <Suspense fallback="loading">
+          <Page />
+        </Suspense>
+      </ErrorBoundary>,
+    )
+
+    expect(rendered.getByText('loading')).toBeInTheDocument()
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10)
+    })
+    expect(rendered.getByText('data: DATA')).toBeInTheDocument()
+
+    shouldError = true
+
+    await act(async () => {
+      fireEvent.click(rendered.getByText('reset'))
+      await vi.advanceTimersByTimeAsync(0)
+    })
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10)
+    })
+    expect(rendered.getByText('error boundary')).toBeInTheDocument()
+  })
+
   it('should handle duplicate query keys without infinite loops', async () => {
     const key = createKey()
     const localDuration = 10
